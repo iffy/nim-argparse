@@ -6,10 +6,16 @@ import strutils
 
 
 dumpTree:
-  type
-    Foo = object
-      a*: bool
-      b*: bool
+  block:
+    var g = something()
+    g.help = "some help"
+    g
+
+  proc foo(x:Parser, input:string):Foo =
+    case input.something
+    of "Foo":
+      discard
+  
 
 suite "flags":
   test "simplest short option":

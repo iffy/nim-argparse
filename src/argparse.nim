@@ -2,6 +2,7 @@ import sequtils
 import strutils
 import macros
 import strformat
+import parseopt
 
 type
   ComponentKind = enum
@@ -17,6 +18,9 @@ type
   Builder = object
     name*: string
     components*: seq[Component]
+    parserSymbol: NimNode
+    varSymbol: NimNode
+    rtypeSymbol: NimNode
 
   ObjTypeDef = object
     root*: NimNode
@@ -24,9 +28,15 @@ type
 
 var builderstack {.global.} : seq[Builder] = @[]
 
+proc sanitize(name:string):string =
+  return name.replace(" ", "")
+
 proc newBuilder(name: string): Builder {.compileTime.} =
   result = Builder()
   result.name = name
+  result.parserSymbol = genSym(nskType, sanitize(name))
+  result.varSymbol = genSym(nskVar, sanitize(name))
+  result.rtypeSymbol = genSym(nskType, sanitize(name))
 
 proc add(builder: var Builder, component: Component) {.compileTime.} =
   builder.components.add(component)
@@ -40,10 +50,7 @@ proc generateHelp(builder: var Builder):string {.compileTime.} =
     result.add(parts.join(" "))
     result.add("\L")
 
-proc sanitize(name:string):string =
-  return name.replace(" ", "_")
-
-proc newObjectTypeDef(name: string): ObjTypeDef {.compileTime.} =
+proc newObjectTypeDef(name: NimNode): ObjTypeDef {.compileTime.} =
   ## Creates:
   ## root ->
   ##            type
@@ -53,7 +60,7 @@ proc newObjectTypeDef(name: string): ObjTypeDef {.compileTime.} =
   var insertion = newNimNode(nnkRecList)
   var root = newNimNode(nnkTypeSection).add(
     newNimNode(nnkTypeDef).add(
-      ident(name),
+      name,
       newEmptyNode(),
       newNimNode(nnkObjectTy).add(
         newEmptyNode(),
@@ -75,12 +82,8 @@ proc addObjectField(objtypedef: ObjTypeDef, name: string, kind: string) {.compil
     newEmptyNode(),
   ))
 
-proc returnTypeName(builder: var Builder): string {.compileTime.} =
-  sanitize(builder.name & "opts")
-
 proc generateReturnType(builder: var Builder): NimNode {.compileTime.} =
-  let objname = builder.returnTypeName()
-  var objdef = newObjectTypeDef(objname)
+  var objdef = newObjectTypeDef(builder.rtypeSymbol)
 
   for component in builder.components:
     case component.kind
@@ -91,6 +94,56 @@ proc generateReturnType(builder: var Builder): NimNode {.compileTime.} =
 
   result = objdef.root
 
+proc generateParseProc(builder: var Builder): NimNode {.compileTime.} =
+  var body = newStmtList()
+  result = newNimNode(nnkProcDef).add(
+    ident("parse"),
+    newEmptyNode(),
+    newEmptyNode(),
+    newNimNode(nnkFormalParams).add(
+      # return value
+      builder.rtypeSymbol,
+      newIdentDefs(
+        ident("p"),
+        builder.parserSymbol,
+        newEmptyNode(),
+      ),
+      newIdentDefs(
+        ident("input"),
+        ident("string"),
+        newEmptyNode(),
+      ),
+    ),
+    newEmptyNode(),
+    newEmptyNode(),
+    body,
+  )
+
+proc instantiateParser(builder: var Builder): NimNode {.compileTime.} =
+  result = newStmtList(
+    # var parser = someParser()
+    newNimNode(nnkVarSection).add(
+      newIdentDefs(
+        ident("parser"),
+        newEmptyNode(),
+        newCall(
+          builder.parserSymbol,
+        )
+      )
+    ),
+    # parser.help = thehelptext
+    newNimNode(nnkAsgn).add(
+      newDotExpr(
+        ident("parser"),
+        ident("help"),
+      ),
+      newLit(builder.generateHelp()),
+    ),
+    # parser
+    ident("parser"),
+  )
+
+
 proc mkParser*(name: string, content: proc()): NimNode {.compileTime.} =
   hint("mkParser start")
   result = newStmtList()
@@ -98,24 +151,23 @@ proc mkParser*(name: string, content: proc()): NimNode {.compileTime.} =
   content()
 
   var builder = builderstack.pop()
-  var help = builder.generateHelp()
-  let objname = builder.returnTypeName()
-  result.add(builder.generateReturnType())
   
+  # Create the parser return type
+  result.add(builder.generateReturnType())
+
+  # Create the parser type
   # type
   #   Parser = object
-  var parser = newObjectTypeDef("Parser")
+  var parser = newObjectTypeDef(builder.parserSymbol)
   #     help*: string
   parser.addObjectField("help", "string")
   result.add(parser.root)
-  result.add(quote do:
-    proc parse(p:Parser, input:string):untyped =
-      return (a: true, b: true)
-    var parser = Parser()
-    parser.help = `help`
-    parser
-  )
-  # hint("Return\L" & result.treeRepr)
+
+  # Create the parse proc
+  # result.add(builder.generateParseProc())
+
+  # Instantiate a parser and return an instance
+  result.add(builder.instantiateParser())
   hint("mkParser end")
 
 proc flag*(shortflag: string) {.compileTime.} =
