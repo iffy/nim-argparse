@@ -97,6 +97,21 @@ proc generateReturnType(builder: var Builder): NimNode {.compileTime.} =
 proc generateParseProc(builder: var Builder): NimNode {.compileTime.} =
   var body = quote do:
     echo "hi!"
+    echo "input: ", input.repr
+    var o = initOptParser(input)
+    for kind, key, val in o.getopt():
+      echo "kind ", kind, key, val
+      case kind
+      of cmdArgument:
+        echo "argument"
+      of cmdShortOption:
+        echo "shortOpt ", key
+        echo "val ", val
+      of cmdLongOption:
+        echo "longOpt ", key
+        echo "val ", val
+      of cmdEnd:
+        echo "end"
   result = newNimNode(nnkProcDef).add(
     ident("parse"),
     newEmptyNode(),
