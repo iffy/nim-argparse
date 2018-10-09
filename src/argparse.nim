@@ -109,6 +109,7 @@ proc mkParser*(name: string, content: proc()): NimNode {.compileTime.} =
   #       help*: string
   # )
   result.add(quote do:
+    type Foo = object
     var parser = Parser()
     parser.help = `help`
     parser
