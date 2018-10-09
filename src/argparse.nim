@@ -164,7 +164,7 @@ proc mkParser*(name: string, content: proc()): NimNode {.compileTime.} =
   result.add(parser.root)
 
   # Create the parse proc
-  # result.add(builder.generateParseProc())
+  result.add(builder.generateParseProc())
 
   # Instantiate a parser and return an instance
   result.add(builder.instantiateParser())
