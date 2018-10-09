@@ -9,6 +9,7 @@ dumpTree:
   type
     Foo = object
       a*: bool
+      b*: bool
 
 suite "flags":
   test "simplest short option":

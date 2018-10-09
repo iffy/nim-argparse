@@ -18,9 +18,6 @@ type
     name*: string
     components*: seq[Component]
 
-  Parser = object
-    help*: string
-
   ObjTypeDef = object
     root*: NimNode
     insertion*: NimNode
@@ -43,6 +40,9 @@ proc generateHelp(builder: var Builder):string {.compileTime.} =
     result.add(parts.join(" "))
     result.add("\L")
 
+proc sanitize(name:string):string =
+  return name.replace(" ", "_")
+
 proc newObjectTypeDef(name: string): ObjTypeDef {.compileTime.} =
   ## Creates:
   ## root ->
@@ -51,19 +51,17 @@ proc newObjectTypeDef(name: string): ObjTypeDef {.compileTime.} =
   ## insertion ->    ...
   ##
   var insertion = newNimNode(nnkRecList)
-  var root = newStmtList(
-    newNimNode(nnkTypeSection).add(
-      newNimNode(nnkTypeDef).add(
-        ident(name),
+  var root = newNimNode(nnkTypeSection).add(
+    newNimNode(nnkTypeDef).add(
+      ident(name),
+      newEmptyNode(),
+      newNimNode(nnkObjectTy).add(
         newEmptyNode(),
-        newNimNode(nnkObjectTy).add(
-          newEmptyNode(),
-          newEmptyNode(),
-          insertion,
-        )
+        newEmptyNode(),
+        insertion,
       )
     )
-  ) 
+  )
   result = ObjTypeDef(root: root, insertion: insertion)
 
 proc addObjectField(objtypedef: ObjTypeDef, name: string, kind: string) {.compileTime.} =
@@ -78,7 +76,7 @@ proc addObjectField(objtypedef: ObjTypeDef, name: string, kind: string) {.compil
   ))
 
 proc returnTypeName(builder: var Builder): string {.compileTime.} =
-  builder.name & "opts"
+  sanitize(builder.name & "opts")
 
 proc generateReturnType(builder: var Builder): NimNode {.compileTime.} =
   let objname = builder.returnTypeName()
@@ -102,18 +100,22 @@ proc mkParser*(name: string, content: proc()): NimNode {.compileTime.} =
   var builder = builderstack.pop()
   var help = builder.generateHelp()
   let objname = builder.returnTypeName()
-  # result.add(builder.generateReturnType())
-  # result.add(quote do:
-  #   type
-  #     Parser = object
-  #       help*: string
-  # )
+  result.add(builder.generateReturnType())
+  
+  # type
+  #   Parser = object
+  var parser = newObjectTypeDef("Parser")
+  #     help*: string
+  parser.addObjectField("help", "string")
+  result.add(parser.root)
   result.add(quote do:
-    type Foo = object
+    proc parse(p:Parser, input:string):untyped =
+      return (a: true, b: true)
     var parser = Parser()
     parser.help = `help`
     parser
   )
+  # hint("Return\L" & result.treeRepr)
   hint("mkParser end")
 
 proc flag*(shortflag: string) {.compileTime.} =
@@ -187,5 +189,5 @@ proc flag*(shortflag: string) {.compileTime.} =
 # # proc renderHelp*(p: OptParser):string =
 # #   result.add("The help")
 
-proc parse*(p: Parser, input:string):untyped =
-  return (a: true, b: true)
+# proc parse*(p: Parser, input:string):untyped =
+#   return (a: true, b: true)
