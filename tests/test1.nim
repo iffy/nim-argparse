@@ -4,34 +4,34 @@ import unittest
 import argparse
 import strutils
 
+
 dumpTree:
-  discard 5
+  type
+    Foo = object
+      a*: bool
 
 suite "flags":
   test "simplest short option":
-    var p = mkParser("some name"):
-      flag("-a")
+    macro makeParser(): untyped =
+      mkParser("some name"):
+        flag("-a")
+        flag("-b")
+    var p = makeParser()
     
-    check "-a" in p.help
-    check "some name" in p.help
+    echo p.help
     check p.parse("-a").a == true
-
-  # test "long option":
-  #   var p = mkParser:
-  #     flag("--foo")
-
-  #   check p.parse("--foo").foo == true
+    check p.parse("-a").b == false
+    check false == true
+    check "some name" in p.help
+    check "-a" in p.help
+    check "-b" in p.help
   
-  # test "long and short":
-  #   var p = mkParser:
-  #     flag("-f", "--foo")
-
-  #   check p.parse("-f").foo == true
-  #   check p.parse("--foo").foo == true
-
-  # test "help":
-  #   var p = mkParser:
-  #     flag("-f", help="hello")
-
-  #   let helptext = p.renderHelp()
-  #   check "hello" in helptext
+  # test "long options":
+  #   macro makeParser(): untyped =
+  #     mkParser("some name"):
+  #       flag("--apple", "-a")
+  #       flag("-b", "--banana")
+  #       flag("--cat")
+  #   var p = makeParser()
+    
+  #   echo p.help

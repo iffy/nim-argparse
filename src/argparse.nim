@@ -7,128 +7,184 @@ type
   ComponentKind = enum
     Flag
   
-  Component* = object
+  Component = object
     varname*: string
     case kind*: ComponentKind
     of Flag:
       shortflag*: string
       longflag*: string
   
-  OptBuilder* = object
+  Builder = object
+    name*: string
     components*: seq[Component]
 
-  OptParser*[T] = object
+  Parser = object
+    help*: string
 
-proc add(p: var OptBuilder, component: Component) =
-  p.components.add(component)
+  ObjTypeDef = object
+    root*: NimNode
+    insertion*: NimNode
 
-# A global -- this feels gross
-static:
-  var
-    builder_stack: seq[OptBuilder]
+var builderstack {.global.} : seq[Builder] = @[]
 
-# macro defineTypes(name: string, b: OptBuilder): untyped =
-#   echo "defineTypes"
-#   echo "b ", b
-#   result = newStmtList()
+proc newBuilder(name: string): Builder {.compileTime.} =
+  result = Builder()
+  result.name = name
 
-#   # type
-#   var typesection = newNimNode(nnkTypeSection)
-#   result.add(typesection)
-  
-#   var reclist = newNimNode(nnkRecList)
-#   var typdef = newNimNode(nnkTypeDef)
-#     .add(newIdentNode(name.strVal))
-#     .add(newEmptyNode())
-#     .add(newNimNode(nnkObjectTy)
-#       .add(newEmptyNode())
-#       .add(newEmptyNode())
-#       .add(reclist))
-#   typesection.add(typdef)
+proc add(builder: var Builder, component: Component) {.compileTime.} =
+  builder.components.add(component)
 
-#   for child in b:
-#     echo "child ", child
+proc generateHelp(builder: var Builder):string {.compileTime.} =
+  result.add(builder.name)
+  result.add("\L")
+  for component in builder.components:
+    var parts: seq[string]
+    parts.add(component.shortflag)
+    result.add(parts.join(" "))
+    result.add("\L")
 
-#   # echo "mkParser end"
-#   # # var
-#   # #   
-#   # var var_section = newNimNode(nnkVarSection)
-#   # result.add(var_section)
-#   # var_section.add(newIdentDefs(
-#   #   newIdentNode(parsername.strVal),
-#   #   newNimNode(nnkBracketExpr).add(
-#   #     newIdentNode("Parser"),
-#   #     newIdentNode("ParserOpts")
-#   #   ),
-#   #   newEmptyNode(),
-#   # ))
-#   echo "startParser end"
+proc newObjectTypeDef(name: string): ObjTypeDef {.compileTime.} =
+  ## Creates:
+  ## root ->
+  ##            type
+  ##              {name} = object
+  ## insertion ->    ...
+  ##
+  var insertion = newNimNode(nnkRecList)
+  var root = newStmtList(
+    newNimNode(nnkTypeSection).add(
+      newNimNode(nnkTypeDef).add(
+        ident(name),
+        newEmptyNode(),
+        newNimNode(nnkObjectTy).add(
+          newEmptyNode(),
+          newEmptyNode(),
+          insertion,
+        )
+      )
+    )
+  ) 
+  result = ObjTypeDef(root: root, insertion: insertion)
 
-macro doThing(base: NimNode, thing: untyped): NimNode =
-  hint("doThing")
-  thing
+proc addObjectField(objtypedef: ObjTypeDef, name: string, kind: string) {.compileTime.} =
+  ## Adds a field to an object definition created by newObjectTypeDef
+  objtypedef.insertion.add(newIdentDefs(
+    newNimNode(nnkPostfix).add(
+      ident("*"),
+      ident(name),
+    ),
+    ident(kind),
+    newEmptyNode(),
+  ))
 
-static:
-  var lastcomponent: Component
+proc returnTypeName(builder: var Builder): string {.compileTime.} =
+  builder.name & "opts"
 
-macro mkParser*(name: string, body: untyped): untyped =
-  hint("mkParser")
+proc generateReturnType(builder: var Builder): NimNode {.compileTime.} =
+  let objname = builder.returnTypeName()
+  var objdef = newObjectTypeDef(objname)
+
+  for component in builder.components:
+    case component.kind
+    of Flag:
+      objdef.addObjectField(component.varname, "bool")
+    else:
+      error("Unknown component type " & component.kind.repr)
+
+  result = objdef.root
+
+proc mkParser*(name: string, content: proc()): NimNode {.compileTime.} =
+  hint("mkParser start")
   result = newStmtList()
-  # echo "body: ", body.toStrLit
-  # echo "len: ", body.len
-  
-  # var builder = OptBuilder()
-  # discard pushBuilder
-  # discard body
+  builderstack.add(newBuilder(name))
+  content()
 
-  for i, child in body:
-    hint("child " & i.intToStr) 
-    result.add(child)
-  
-  hint("done with children")
+  var builder = builderstack.pop()
+  var help = builder.generateHelp()
+  let objname = builder.returnTypeName()
+  # result.add(builder.generateReturnType())
+  # result.add(quote do:
+  #   type
+  #     Parser = object
+  #       help*: string
+  # )
   result.add(quote do:
-    type
-      Opts = object
-    var p = OptParser[Opts]()
-    p
+    var parser = Parser()
+    parser.help = `help`
+    parser
   )
+  hint("mkParser end")
 
-macro flag*(opt1: string, opt2: string = "", help:string = ""):untyped =
-  ## Add a flag option to the option parser
-  hint("running flag")
-  var
-    varname: string
-    shortflag: string
-    longflag: string
-  if opt1.startsWith("--"):
-    longflag = opt1
-    shortflag = opt2
-    varname = opt1.substr(2)
-  elif opt2.startsWith("--"):
-    longflag = opt2
-    shortflag = opt1
-    varname = opt2.substr(2)
-  elif opt1.startsWith("-"):
-    shortflag = opt1
-    varname = opt1.substr(1)
-  else:
-    error("Must provide a - or -- prefixed string for a flag")
-
+proc flag*(shortflag: string) {.compileTime.} =
   var component = Component()
   component.kind = Flag
-  component.varname = varname
   component.shortflag = shortflag
-  component.longflag = longflag
-  result = quote do:
-    5
-  # builder_stack[^1].add(component)
-  hint("done with flag: " & component.repr)
-  # result = quote do:
-  #   echo "hi"
+  component.varname = shortflag.replace('-','_').strip(chars = {'_'})
+  builderstack[^1].add(component)
 
 
-proc renderHelp*(p: OptParser):string =
-  result.add("The help")
 
-proc parse*[T](p: var OptParser[T], input: string): T =
-  result = (a: true, foo: false)
+
+# macro handleParserComponents(body: untyped): untyped =
+#   hint("handleParserComponents")
+#   result = newStmtList()
+
+# macro mkParser*(name: string, body: untyped): untyped =
+#   hint("mkParser")
+#   result = newStmtList()
+#   var fields:seq[string]
+#   fields.add("a*: bool")
+#   fields.add("b*: bool")
+#   fields.add("")
+#   let fieldstr = fields.join("\L        ")
+#   hint("fieldstr " & fieldstr)
+#   let something = "a*: bool"
+#   result.add(quote do:
+#     echo "hi"
+#     type
+#       OptParser = object
+#       Opts = object
+#         a*: bool
+#         b*: bool
+#     proc parse(p: OptParser, input: string):Opts =
+#       discard
+    
+#     var p = OptParser()
+#     p
+#   )
+  
+#   # handleParserComponents(body)
+
+#   # result = newStmtList()
+#   # for i, child in body:
+#   #   hint("child " & i.intToStr) 
+#     # result.add(child)
+  
+#   hint("done with children")
+#   # var p = OptParser[string]()
+#   # p
+
+# # proc flag*(opt1: string) =
+# #   ## Add a flag option to the option parser
+# #   hint("running flag")
+# #   var
+# #     varname: string
+# #     shortflag: string
+# #   shortflag = opt1
+# #   varname = opt1.substr(1)
+
+# #   var component = Component()
+# #   component.kind = Flag
+# #   component.varname = varname
+# #   component.shortflag = shortflag
+# #   # builder_stack[^1].add(component)
+# #   hint("done with flag: " & component.repr)
+# #   # result = quote do:
+# #   #   echo "hi"
+
+
+# # proc renderHelp*(p: OptParser):string =
+# #   result.add("The help")
+
+proc parse*(p: Parser, input:string):untyped =
+  return (a: true, b: true)
