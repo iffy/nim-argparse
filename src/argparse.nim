@@ -22,11 +22,10 @@ type
   ObjTypeDef = object
     root*: NimNode
     insertion*: NimNode
+  
+
 
 var builderstack {.global.} : seq[Builder] = @[]
-
-proc sanitize(name:string):string =
-  return name.replace(" ", "")
 
 proc newBuilder(name: string): Builder {.compileTime.} =
   result = Builder()
@@ -36,11 +35,12 @@ proc add(builder: var Builder, component: Component) {.compileTime.} =
   builder.components.add(component)
 
 proc generateHelp(builder: var Builder):string {.compileTime.} =
+  ## Generate the usage/help text for the parser.
   result.add(builder.name)
   result.add("\L")
   for component in builder.components:
     var parts: seq[string]
-    parts.add(component.shortflag)
+    parts.add("-" & component.shortflag)
     result.add(parts.join(" "))
     result.add("\L")
 
@@ -78,14 +78,12 @@ proc addObjectField(objtypedef: ObjTypeDef, name: string, kind: string) {.compil
 
 proc generateReturnType(builder: var Builder): NimNode {.compileTime.} =
   var objdef = newObjectTypeDef("Opts")
-
   for component in builder.components:
     case component.kind
     of Flag:
       objdef.addObjectField(component.varname, "bool")
     else:
       error("Unknown component type " & component.kind.repr)
-
   result = objdef.root
 
 proc genShortOf(component: Component): NimNode {.compileTime.} =
@@ -115,11 +113,52 @@ proc genShortCase(builder: var Builder): NimNode {.compileTime.} =
     )
   )
 
-template genParseProc(builder: var Builder):untyped =
-  ## Generate the parse() proc
-  proc parse(p:Parser, input:string):Opts =
-    result = Opts()
-    echo "parsing: ", input
+proc handleShortOptions(builder: Builder, key: string, val: string): NimNode {.compileTime.} =
+  hint("in something macro")
+  for comp in builder.components:
+    echo "comp ", comp.repr
+  result = quote do:
+    echo "handling short option"
+    echo "key ", `key`
+
+proc parentOf(node: NimNode, name:string): NimNode {.compileTime.} =
+  var stack:seq[NimNode] = @[node]
+  while stack.len > 0:
+    var n = stack.pop()
+    echo "testing node: ", n.treeRepr
+    for child in n.children:
+      if child.kind == nnkIdent and child.strVal == name:
+        return n
+      else:
+        stack.add(child)
+  error("node not found: " & name)
+
+macro captureAst(s: untyped):untyped =
+  s.astGenRepr
+
+proc genParseProc(builder: var Builder): NimNode {.compileTime.} =
+  var rep = quote do:
+    proc parse(p:Parser, input:string):Opts =
+      result = Opts()
+      var p = initOptParser(input)
+      for kind, key, val in p.getopt():
+        case kind
+        of cmdEnd:
+          discard
+        of cmdShortOption:
+          insertshort
+        of cmdLongOption:
+          insertlong
+        of cmdArgument:
+          discard
+  var i1 = rep.parentOf("insertshort")
+  var i2 = rep.parentOf("insertlong")
+  i1.del(n = i1.len)
+  i2.del(n = i2.len)
+  echo "insertion point 1: ", i1.astGenRepr
+  echo "insertion point 2: ", i2.astGenRepr
+  echo "rep: ", rep.astGenRepr
+  result = newEmptyNode()
 
 proc instantiateParser(builder: var Builder): NimNode {.compileTime.} =
   result = newStmtList(
@@ -164,7 +203,7 @@ proc mkParser*(name: string, content: proc()): NimNode {.compileTime.} =
   result.add(parser.root)
 
   # Create the parse proc
-  result.add(getAst(genParseProc(builder)))
+  result.add(builder.genParseProc())
 
   # Instantiate a parser and return an instance
   result.add(builder.instantiateParser())
