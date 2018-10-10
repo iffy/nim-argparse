@@ -4,19 +4,6 @@ import unittest
 import argparse
 import strutils
 
-
-dumpTree:
-  block:
-    var g = something()
-    g.help = "some help"
-    g
-
-  proc foo(x:Parser, input:string):Foo =
-    case input.something
-    of "Foo":
-      discard
-  
-
 suite "flags":
   test "simplest short option":
     macro makeParser(): untyped =

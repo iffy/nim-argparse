@@ -18,9 +18,6 @@ type
   Builder = object
     name*: string
     components*: seq[Component]
-    parserSymbol: NimNode
-    varSymbol: NimNode
-    rtypeSymbol: NimNode
 
   ObjTypeDef = object
     root*: NimNode
@@ -34,9 +31,6 @@ proc sanitize(name:string):string =
 proc newBuilder(name: string): Builder {.compileTime.} =
   result = Builder()
   result.name = name
-  result.parserSymbol = genSym(nskType, sanitize(name))
-  result.varSymbol = genSym(nskVar, sanitize(name))
-  result.rtypeSymbol = genSym(nskType, sanitize(name))
 
 proc add(builder: var Builder, component: Component) {.compileTime.} =
   builder.components.add(component)
@@ -50,7 +44,7 @@ proc generateHelp(builder: var Builder):string {.compileTime.} =
     result.add(parts.join(" "))
     result.add("\L")
 
-proc newObjectTypeDef(name: NimNode): ObjTypeDef {.compileTime.} =
+proc newObjectTypeDef(name: string): ObjTypeDef {.compileTime.} =
   ## Creates:
   ## root ->
   ##            type
@@ -60,7 +54,7 @@ proc newObjectTypeDef(name: NimNode): ObjTypeDef {.compileTime.} =
   var insertion = newNimNode(nnkRecList)
   var root = newNimNode(nnkTypeSection).add(
     newNimNode(nnkTypeDef).add(
-      name,
+      ident(name),
       newEmptyNode(),
       newNimNode(nnkObjectTy).add(
         newEmptyNode(),
@@ -83,7 +77,7 @@ proc addObjectField(objtypedef: ObjTypeDef, name: string, kind: string) {.compil
   ))
 
 proc generateReturnType(builder: var Builder): NimNode {.compileTime.} =
-  var objdef = newObjectTypeDef(builder.rtypeSymbol)
+  var objdef = newObjectTypeDef("Opts")
 
   for component in builder.components:
     case component.kind
@@ -94,46 +88,38 @@ proc generateReturnType(builder: var Builder): NimNode {.compileTime.} =
 
   result = objdef.root
 
-proc generateParseProc(builder: var Builder): NimNode {.compileTime.} =
-  var body = quote do:
-    echo "hi!"
-    echo "input: ", input.repr
-    var o = initOptParser(input)
-    for kind, key, val in o.getopt():
-      echo "kind ", kind, key, val
-      case kind
-      of cmdArgument:
-        echo "argument"
-      of cmdShortOption:
-        echo "shortOpt ", key
-        echo "val ", val
-      of cmdLongOption:
-        echo "longOpt ", key
-        echo "val ", val
-      of cmdEnd:
-        echo "end"
-  result = newNimNode(nnkProcDef).add(
-    ident("parse"),
-    newEmptyNode(),
-    newEmptyNode(),
-    newNimNode(nnkFormalParams).add(
-      # return value
-      builder.rtypeSymbol,
-      newIdentDefs(
-        ident("p"),
-        builder.parserSymbol,
-        newEmptyNode(),
-      ),
-      newIdentDefs(
-        ident("input"),
-        ident("string"),
-        newEmptyNode(),
-      ),
-    ),
-    newEmptyNode(),
-    newEmptyNode(),
-    body,
+proc genShortOf(component: Component): NimNode {.compileTime.} =
+  ## Generate the case "of" statement for a component (if any)
+  result = newEmptyNode()
+  case component.kind
+  of Flag:
+    if component.shortflag != "":
+      discard
+
+proc genShortCase(builder: var Builder): NimNode {.compileTime.} =
+  ## Generate the case statement for the short flag cases
+  result = newNimNode(nnkCaseStmt).add(
+    ident("key"),
   )
+  for comp in builder.components:
+    for o in comp.genShortOf():
+      result.add(o)
+  result.add(
+    newNimNode(nnkElse).add(
+      newStmtList(
+        newNimNode(nnkCommand).add(
+          ident("echo"),
+          newStrLitNode("Unknown flag"),
+        )
+      )
+    )
+  )
+
+template genParseProc(builder: var Builder):untyped =
+  ## Generate the parse() proc
+  proc parse(p:Parser, input:string):Opts =
+    result = Opts()
+    echo "parsing: ", input
 
 proc instantiateParser(builder: var Builder): NimNode {.compileTime.} =
   result = newStmtList(
@@ -142,9 +128,7 @@ proc instantiateParser(builder: var Builder): NimNode {.compileTime.} =
       newIdentDefs(
         ident("parser"),
         newEmptyNode(),
-        newCall(
-          builder.parserSymbol,
-        )
+        newCall("Parser"),
       )
     ),
     # parser.help = thehelptext
@@ -174,13 +158,13 @@ proc mkParser*(name: string, content: proc()): NimNode {.compileTime.} =
   # Create the parser type
   # type
   #   Parser = object
-  var parser = newObjectTypeDef(builder.parserSymbol)
+  var parser = newObjectTypeDef("Parser")
   #     help*: string
   parser.addObjectField("help", "string")
   result.add(parser.root)
 
   # Create the parse proc
-  result.add(builder.generateParseProc())
+  result.add(getAst(genParseProc(builder)))
 
   # Instantiate a parser and return an instance
   result.add(builder.instantiateParser())
@@ -189,73 +173,9 @@ proc mkParser*(name: string, content: proc()): NimNode {.compileTime.} =
 proc flag*(shortflag: string) {.compileTime.} =
   var component = Component()
   component.kind = Flag
-  component.shortflag = shortflag
+  component.shortflag = shortflag.strip(leading=true, chars={'-'})
   component.varname = shortflag.replace('-','_').strip(chars = {'_'})
   builderstack[^1].add(component)
 
 
 
-
-# macro handleParserComponents(body: untyped): untyped =
-#   hint("handleParserComponents")
-#   result = newStmtList()
-
-# macro mkParser*(name: string, body: untyped): untyped =
-#   hint("mkParser")
-#   result = newStmtList()
-#   var fields:seq[string]
-#   fields.add("a*: bool")
-#   fields.add("b*: bool")
-#   fields.add("")
-#   let fieldstr = fields.join("\L        ")
-#   hint("fieldstr " & fieldstr)
-#   let something = "a*: bool"
-#   result.add(quote do:
-#     echo "hi"
-#     type
-#       OptParser = object
-#       Opts = object
-#         a*: bool
-#         b*: bool
-#     proc parse(p: OptParser, input: string):Opts =
-#       discard
-    
-#     var p = OptParser()
-#     p
-#   )
-  
-#   # handleParserComponents(body)
-
-#   # result = newStmtList()
-#   # for i, child in body:
-#   #   hint("child " & i.intToStr) 
-#     # result.add(child)
-  
-#   hint("done with children")
-#   # var p = OptParser[string]()
-#   # p
-
-# # proc flag*(opt1: string) =
-# #   ## Add a flag option to the option parser
-# #   hint("running flag")
-# #   var
-# #     varname: string
-# #     shortflag: string
-# #   shortflag = opt1
-# #   varname = opt1.substr(1)
-
-# #   var component = Component()
-# #   component.kind = Flag
-# #   component.varname = varname
-# #   component.shortflag = shortflag
-# #   # builder_stack[^1].add(component)
-# #   hint("done with flag: " & component.repr)
-# #   # result = quote do:
-# #   #   echo "hi"
-
-
-# # proc renderHelp*(p: OptParser):string =
-# #   result.add("The help")
-
-# proc parse*(p: Parser, input:string):untyped =
-#   return (a: true, b: true)
