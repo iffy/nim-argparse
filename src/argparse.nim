@@ -3,6 +3,7 @@ import strutils
 import macros
 import strformat
 import parseopt
+import argparse/macrohelp
 
 type
   ComponentKind = enum
@@ -113,31 +114,20 @@ proc genShortCase(builder: var Builder): NimNode {.compileTime.} =
     )
   )
 
-proc handleShortOptions(builder: Builder, key: string, val: string): NimNode {.compileTime.} =
+
+
+
+proc handleShortOptions(builder: Builder): NimNode {.compileTime.} =
   hint("in something macro")
   for comp in builder.components:
     echo "comp ", comp.repr
-  result = quote do:
+  result = replaceNodes(quote do:
     echo "handling short option"
-    echo "key ", `key`
-
-proc parentOf(node: NimNode, name:string): NimNode {.compileTime.} =
-  var stack:seq[NimNode] = @[node]
-  while stack.len > 0:
-    var n = stack.pop()
-    echo "testing node: ", n.treeRepr
-    for child in n.children:
-      if child.kind == nnkIdent and child.strVal == name:
-        return n
-      else:
-        stack.add(child)
-  error("node not found: " & name)
-
-macro captureAst(s: untyped):untyped =
-  s.astGenRepr
+    echo "key ", key
+  )
 
 proc genParseProc(builder: var Builder): NimNode {.compileTime.} =
-  var rep = quote do:
+  var rep = replaceNodes(quote do:
     proc parse(p:Parser, input:string):Opts =
       result = Opts()
       var p = initOptParser(input)
@@ -151,37 +141,11 @@ proc genParseProc(builder: var Builder): NimNode {.compileTime.} =
           insertlong
         of cmdArgument:
           discard
-  var i1 = rep.parentOf("insertshort")
-  var i2 = rep.parentOf("insertlong")
-  i1.del(n = i1.len)
-  i2.del(n = i2.len)
-  echo "insertion point 1: ", i1.astGenRepr
-  echo "insertion point 2: ", i2.astGenRepr
-  echo "rep: ", rep.astGenRepr
-  result = newEmptyNode()
-
-proc instantiateParser(builder: var Builder): NimNode {.compileTime.} =
-  result = newStmtList(
-    # var parser = someParser()
-    newNimNode(nnkVarSection).add(
-      newIdentDefs(
-        ident("parser"),
-        newEmptyNode(),
-        newCall("Parser"),
-      )
-    ),
-    # parser.help = thehelptext
-    newNimNode(nnkAsgn).add(
-      newDotExpr(
-        ident("parser"),
-        ident("help"),
-      ),
-      newLit(builder.generateHelp()),
-    ),
-    # parser
-    ident("parser"),
   )
-
+  var shorts = rep.getInsertionPoint("insertshort")
+  var longs = rep.getInsertionPoint("insertlong")
+  shorts.add(handleShortOptions(builder))
+  result = rep
 
 proc mkParser*(name: string, content: proc()): NimNode {.compileTime.} =
   hint("mkParser start")
@@ -191,22 +155,28 @@ proc mkParser*(name: string, content: proc()): NimNode {.compileTime.} =
 
   var builder = builderstack.pop()
   
+  # Generate help
+  let helptext = builder.generateHelp()
+
   # Create the parser return type
   result.add(builder.generateReturnType())
 
   # Create the parser type
-  # type
-  #   Parser = object
-  var parser = newObjectTypeDef("Parser")
-  #     help*: string
-  parser.addObjectField("help", "string")
-  result.add(parser.root)
+  result.add(replaceNodes(quote do:
+    type
+      Parser = object
+        help*: string
+  ))
 
   # Create the parse proc
   result.add(builder.genParseProc())
 
   # Instantiate a parser and return an instance
-  result.add(builder.instantiateParser())
+  result.add(replaceNodes(quote do:
+    var parser = Parser()
+    parser.help = `helptext`
+    parser
+  ))
   hint("mkParser end")
 
 proc flag*(shortflag: string) {.compileTime.} =

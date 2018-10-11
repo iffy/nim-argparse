@@ -3,6 +3,7 @@ import macros
 import unittest
 import argparse
 import strutils
+import parseopt
 
 suite "flags":
   test "simplest short option":
