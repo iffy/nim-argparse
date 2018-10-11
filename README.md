@@ -1,6 +1,6 @@
 # argparse
 
-WIP argument command line argument parsing library.  It generates the parser at compile time so that the object returned by `parse` has a well-defined type.
+WIP command line argument parsing library.  It generates the parser at compile time so that the object returned by `parse` has a well-defined type.
 
 For full usage, see the [tests/](./tests/)
 
