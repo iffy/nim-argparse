@@ -9,19 +9,21 @@ import argparse
 
 macro makeParser(): untyped =
   mkParser("My Program"):
-    flag("-a")
+    flag("-a", "--apple")
     flag("-b")
 var p = makeParser()
 
-assert p.parse("-a").a == true
+assert p.parse("-a").apple == true
 assert p.parse("-b").b == true
-assert p.parse("-a)).b == false
+assert p.parse("--apple")).b == false
+assert p.parse("--apple")).apple == true
 ```
 
 
 # TODO
 
-- [ ] --long-opts
+- [X] --long-opts
 - [ ] Access to object types (so you can do `handleOpts(opts: TheGeneratedType) = ...`)
+- [ ] Make it so you don't have to use a wrapping macro
 - [ ] --arguments=withvalues
 - [ ] sub commands (git-style)

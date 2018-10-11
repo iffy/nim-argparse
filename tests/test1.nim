@@ -6,7 +6,7 @@ import strutils
 import parseopt
 
 suite "flags":
-  test "simplest short option":
+  test "short flags":
     macro makeParser(): untyped =
       mkParser("some name"):
         flag("-a")
@@ -19,3 +19,35 @@ suite "flags":
     check "some name" in p.help
     check "-a" in p.help
     check "-b" in p.help
+  
+  test "long flags":
+    macro makeParser(): untyped =
+      mkParser("some name"):
+        flag("--apple")
+        flag("--banana")
+    var p = makeParser()
+    
+    echo "Help is: ", p.help
+    check p.parse("--apple").apple == true
+    check p.parse("--apple").banana == false
+    check p.parse("--banana").banana == true
+    check "some name" in p.help
+    check "--apple" in p.help
+    check "--banana" in p.help
+  
+  # test "short and long flags":
+  #   macro makeParser(): untyped =
+  #     mkParser("some name"):
+  #       flag("-a", "--apple")
+  #       flag("--banana", "-b")
+  #   var p = makeParser()
+    
+  #   echo "Help is: ", p.help
+  #   check p.parse("--apple").apple == true
+  #   check p.parse("--apple").banana == false
+  #   check p.parse("-b").banana == true
+  #   check "some name" in p.help
+  #   check "--apple" in p.help
+  #   check "-a" in p.help
+  #   check "--banana" in p.help
+  #   check "-b" in p.help
