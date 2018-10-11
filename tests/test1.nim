@@ -13,7 +13,7 @@ suite "flags":
         flag("-b")
     var p = makeParser()
     
-    echo p.help
+    echo "Help is: ", p.help
     check p.parse("-a").a == true
     check p.parse("-a").b == false
     check "some name" in p.help

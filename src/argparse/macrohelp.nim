@@ -1,5 +1,15 @@
 import macros
 
+type
+  InsertableTree = object
+    root*: NimNode
+    insertion*: NimNode
+  
+  UnfinishedCase = object
+    root*: NimNode
+    cases*: seq[NimNode]
+    elsenode*: NimNode
+
 proc replaceNodes*(ast: NimNode): NimNode =
   ## Replace NimIdent and NimSym by a fresh ident node
   ##
@@ -40,3 +50,59 @@ proc getInsertionPoint*(node: var NimNode, name:string): NimNode =
   ## with the parent node emptied out, first.
   result = node.parentOf(name)
   result.del(n = result.len)
+
+proc newObjectTypeDef*(name: string): InsertableTree {.compileTime.} =
+  ## Creates:
+  ## root ->
+  ##            type
+  ##              {name} = object
+  ## insertion ->    ...
+  ##
+  var insertion = newNimNode(nnkRecList)
+  var root = newNimNode(nnkTypeSection).add(
+    newNimNode(nnkTypeDef).add(
+      ident(name),
+      newEmptyNode(),
+      newNimNode(nnkObjectTy).add(
+        newEmptyNode(),
+        newEmptyNode(),
+        insertion,
+      )
+    )
+  )
+  result = InsertableTree(root: root, insertion: insertion)
+
+proc addObjectField*(objtypedef: InsertableTree, name: string, kind: string) {.compileTime.} =
+  ## Adds a field to an object definition created by newObjectTypeDef
+  objtypedef.insertion.add(newIdentDefs(
+    newNimNode(nnkPostfix).add(
+      ident("*"),
+      ident(name),
+    ),
+    ident(kind),
+    newEmptyNode(),
+  ))
+
+proc newCaseStatement*(key: string):UnfinishedCase =
+  result = UnfinishedCase()
+  result.root = nnkCaseStmt.newTree(
+    ident(key),
+  )
+
+proc add*(n:var UnfinishedCase, opt:string, body: NimNode) =
+  ## Adds a branch to an UnfinishedCase
+  var branch = nnkOfBranch.newTree()
+  branch.add(newStrLitNode(opt))
+  branch.add(body)
+  n.cases.add(branch)
+
+proc addElse*(n: var UnfinishedCase, body: NimNode) =
+  ## Add an else: to an UnfinishedCase
+  n.elsenode = body
+
+proc finalize*(n:UnfinishedCase): NimNode =
+  for branch in n.cases:
+    n.root.add(branch)
+  if n.elsenode != nil:
+    n.root.add(nnkElse.newTree(n.elsenode))
+  result = n.root

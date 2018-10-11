@@ -20,11 +20,6 @@ type
     name*: string
     components*: seq[Component]
 
-  ObjTypeDef = object
-    root*: NimNode
-    insertion*: NimNode
-  
-
 
 var builderstack {.global.} : seq[Builder] = @[]
 
@@ -45,37 +40,6 @@ proc generateHelp(builder: var Builder):string {.compileTime.} =
     result.add(parts.join(" "))
     result.add("\L")
 
-proc newObjectTypeDef(name: string): ObjTypeDef {.compileTime.} =
-  ## Creates:
-  ## root ->
-  ##            type
-  ##              {name} = object
-  ## insertion ->    ...
-  ##
-  var insertion = newNimNode(nnkRecList)
-  var root = newNimNode(nnkTypeSection).add(
-    newNimNode(nnkTypeDef).add(
-      ident(name),
-      newEmptyNode(),
-      newNimNode(nnkObjectTy).add(
-        newEmptyNode(),
-        newEmptyNode(),
-        insertion,
-      )
-    )
-  )
-  result = ObjTypeDef(root: root, insertion: insertion)
-
-proc addObjectField(objtypedef: ObjTypeDef, name: string, kind: string) {.compileTime.} =
-  ## Adds a field to an object definition created by newObjectTypeDef
-  objtypedef.insertion.add(newIdentDefs(
-    newNimNode(nnkPostfix).add(
-      ident("*"),
-      ident(name),
-    ),
-    ident(kind),
-    newEmptyNode(),
-  ))
 
 proc generateReturnType(builder: var Builder): NimNode {.compileTime.} =
   var objdef = newObjectTypeDef("Opts")
@@ -95,36 +59,18 @@ proc genShortOf(component: Component): NimNode {.compileTime.} =
     if component.shortflag != "":
       discard
 
-proc genShortCase(builder: var Builder): NimNode {.compileTime.} =
-  ## Generate the case statement for the short flag cases
-  result = newNimNode(nnkCaseStmt).add(
-    ident("key"),
-  )
-  for comp in builder.components:
-    for o in comp.genShortOf():
-      result.add(o)
-  result.add(
-    newNimNode(nnkElse).add(
-      newStmtList(
-        newNimNode(nnkCommand).add(
-          ident("echo"),
-          newStrLitNode("Unknown flag"),
-        )
-      )
-    )
-  )
-
-
-
-
 proc handleShortOptions(builder: Builder): NimNode {.compileTime.} =
-  hint("in something macro")
+  var cs = newCaseStatement("key")
+  cs.addElse(replaceNodes(quote do:
+    echo "unknown flag: -" & key
+  ))
   for comp in builder.components:
-    echo "comp ", comp.repr
-  result = replaceNodes(quote do:
-    echo "handling short option"
-    echo "key ", key
-  )
+    let shortflag = comp.shortflag
+    let identshortflag = ident(shortflag)
+    cs.add(comp.shortflag, replaceNodes(quote do:
+      result.`identshortflag` = true
+    ))
+  result = cs.finalize()
 
 proc genParseProc(builder: var Builder): NimNode {.compileTime.} =
   var rep = replaceNodes(quote do:
@@ -148,7 +94,6 @@ proc genParseProc(builder: var Builder): NimNode {.compileTime.} =
   result = rep
 
 proc mkParser*(name: string, content: proc()): NimNode {.compileTime.} =
-  hint("mkParser start")
   result = newStmtList()
   builderstack.add(newBuilder(name))
   content()
@@ -177,7 +122,6 @@ proc mkParser*(name: string, content: proc()): NimNode {.compileTime.} =
     parser.help = `helptext`
     parser
   ))
-  hint("mkParser end")
 
 proc flag*(shortflag: string) {.compileTime.} =
   var component = Component()
