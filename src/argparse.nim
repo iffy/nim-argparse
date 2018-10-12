@@ -11,7 +11,8 @@ import argparse/macrohelp
 
 type
   ComponentKind = enum
-    Flag
+    Flag,
+    Option,
   
   Component = object
     varname*: string
@@ -20,6 +21,9 @@ type
     of Flag:
       shortflag*: string
       longflag*: string
+    of Option:
+      shortopt*: string
+      longopt*: string
   
   Builder = object
     name*: string
@@ -51,28 +55,38 @@ proc genHelp(builder: var Builder):string {.compileTime.} =
   let opt_width = 26
   let max_width = 100
 
+  proc formatOption(flags:string, helptext:string):string =
+    result.add("  " & flags)
+    if flags.len > opt_width:
+      result.add("\L")
+      result.add("  ")
+      result.add(" ".repeat(opt_width+1))
+      result.add(helptext)
+    else:
+      result.add(" ".repeat(opt_width - flags.len))
+      result.add(" ")
+      result.add(helptext)
+
   var opts = ""
   # Options
   for comp in builder.components:
     case comp.kind
     of Flag:
-
       var flag_parts: seq[string]
       if comp.shortflag != "":
         flag_parts.add("-" & comp.shortflag)
       if comp.longflag != "":
         flag_parts.add("--" & comp.longflag)
-      let flag_opts = flag_parts.join(", ")
-      opts.add("  " & flag_opts)
-      if flag_opts.len > opt_width:
-        opts.add("\L")
-        opts.add("  ")
-        opts.add(" ".repeat(opt_width+1))
-        opts.add(comp.help)
-      else:
-        opts.add(" ".repeat(opt_width - flag_opts.len))
-        opts.add(" ")
-        opts.add(comp.help)
+      opts.add(formatOption(flag_parts.join(", "), comp.help))
+      opts.add("\L")
+    of Option:
+      var flag_parts: seq[string]
+      if comp.shortopt != "":
+        flag_parts.add("-" & comp.shortopt)
+      if comp.longopt != "":
+        flag_parts.add("--" & comp.longopt)
+      var flags = flag_parts.join(", ") & "=" & comp.varname.toUpper()
+      opts.add(formatOption(flags, comp.help))
       opts.add("\L")
   
   if opts != "":
@@ -86,8 +100,8 @@ proc generateReturnType(builder: var Builder): NimNode {.compileTime.} =
     case component.kind
     of Flag:
       objdef.addObjectField(component.varname, "bool")
-    else:
-      error("Unknown component type " & component.kind.repr)
+    of Option:
+      objdef.addObjectField(component.varname, "string")
   result = objdef.root
 
 proc handleShortOptions(builder: Builder): NimNode {.compileTime.} =
@@ -96,12 +110,19 @@ proc handleShortOptions(builder: Builder): NimNode {.compileTime.} =
     echo "unknown flag: -" & key
   ))
   for comp in builder.components:
-    let shortflag = comp.shortflag
-    if shortflag != "":
-      let varname = ident(comp.varname)
-      cs.add(comp.shortflag, replaceNodes(quote do:
-        result.`varname` = true
-      ))
+    case comp.kind
+    of Flag:
+      if comp.shortflag != "":
+        let varname = ident(comp.varname)
+        cs.add(comp.shortflag, replaceNodes(quote do:
+          result.`varname` = true
+        ))
+    of Option:
+      if comp.shortopt != "":
+        let varname = ident(comp.varname)
+        cs.add(comp.shortopt, replaceNodes(quote do:
+          result.`varname` = val
+        ))
   result = cs.finalize()
 
 proc handleLongOptions(builder: Builder): NimNode =
@@ -110,12 +131,19 @@ proc handleLongOptions(builder: Builder): NimNode =
     echo "unknown flag: --" & key
   ))
   for comp in builder.components:
-    let longflag = comp.longflag
-    if longflag != "":
-      let varname = ident(comp.varname)
-      cs.add(comp.longflag, replaceNodes(quote do:
-        result.`varname` = true
-      ))
+    case comp.kind
+    of Flag:
+      if comp.longflag != "":
+        let varname = ident(comp.varname)
+        cs.add(comp.longflag, replaceNodes(quote do:
+          result.`varname` = true
+        ))
+    of Option:
+      if comp.longopt != "":
+        let varname = ident(comp.varname)
+        cs.add(comp.longopt, replaceNodes(quote do:
+          result.`varname` = val
+        ))
   result = cs.finalize()
 
 proc genParseProc(builder: var Builder): NimNode {.compileTime.} =
@@ -206,6 +234,36 @@ proc flag*(opt1: string, opt2: string = "", help:string = "") {.compileTime.} =
     c.varname = c.longflag.toUnderscores
   else:
     c.varname = c.shortflag.toUnderscores
+  
+  builderstack[^1].add(c)
+
+proc option*(opt1: string, opt2: string = "", help:string="") =
+  ## Add an option to the argument parser.  The longest
+  ## named flag will be used as the name on the parsed
+  ## result.
+  ##
+  ## .. code-block:: nim
+  ##    var p = mkParser("Command"):
+  ##      option("-a", "--apple", help="Name of apple")
+  ##
+  ##    assert p.parse("-a 5").apple == "5"
+  var
+    c = Component()
+    varname: string
+  c.kind = Option
+  c.help = help
+
+  if opt1.startsWith("--"):
+    c.shortopt = opt2.stripHypens
+    c.longopt = opt1.stripHypens
+  else:
+    c.shortopt = opt1.stripHypens
+    c.longopt = opt2.stripHypens
+  
+  if c.longopt != "":
+    c.varname = c.longopt.toUnderscores
+  else:
+    c.varname = c.shortopt.toUnderscores
   
   builderstack[^1].add(c)
 

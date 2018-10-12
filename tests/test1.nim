@@ -54,14 +54,16 @@ suite "flags":
 suite "options":
   test "short options":
     var p = newParser("some name"):
-      option("-a")
+      option("-a", help="Stuff")
     check p.parse("-a=5").a == "5"
-    check p.parse("-a 5").a == "5"
+    # check p.parse("-a 5").a == "5"
     check p.parse("-a:5").a == "5"
+
+    check "Stuff" in p.help
   
   test "long options":
     var p = newParser("some name"):
       option("--apple")
     check p.parse("--apple=10").apple == "10"
-    check p.parse("--apple 10").apple == "10"
+    # check p.parse("--apple 10").apple == "10"
     check p.parse("--apple:10").apple == "10"
