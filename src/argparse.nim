@@ -101,9 +101,6 @@ proc genHelp(builder: var Builder):string {.compileTime.} =
   if opts != "":
     result.add("Options:\L")
     result.add(opts)
-  
-  # Arguments
-
 
 proc genReturnType(builder: var Builder): NimNode {.compileTime.} =
   var objdef = newObjectTypeDef(builder.optsIdent.strVal)

@@ -13,12 +13,14 @@ var p = newParser("My Program"):
   flag("-a", "--apple")
   flag("-b", help="Show a banana")
   option("-o", "--output", help="Output to this file")
+  arg("name")
 
-assert p.parse("-a").apple == true
-assert p.parse("-b").b == true
-assert p.parse("--apple").b == false
-assert p.parse("--apple").apple == true
-assert p.parse("-o=foo").output == "foo"
+assert p.parse("-a hi").apple == true
+assert p.parse("-b hi").b == true
+assert p.parse("--apple hi").b == false
+assert p.parse("--apple hi").apple == true
+assert p.parse("-o=foo hi").output == "foo"
+assert p.parse("hi").name == "hi"
 
 echo p.help
 ```
