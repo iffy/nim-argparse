@@ -1,3 +1,5 @@
+## Some module documentation.
+##
 import sequtils
 import strutils
 import macros
@@ -5,12 +7,15 @@ import strformat
 import parseopt
 import argparse/macrohelp
 
+# export parseopt
+
 type
   ComponentKind = enum
     Flag
   
   Component = object
     varname*: string
+    help*: string
     case kind*: ComponentKind
     of Flag:
       shortflag*: string
@@ -41,33 +46,38 @@ proc add(builder: var Builder, component: Component) {.compileTime.} =
 proc genHelp(builder: var Builder):string {.compileTime.} =
   ## Generate the usage/help text for the parser.
   result.add(builder.name)
-  result.add("\L")
-  var widths: seq[int]
-  var rows: seq[seq[string]]
+  result.add("\L\L")
+
+  let opt_width = 26
+  let max_width = 100
+
+  var opts = ""
+  # Options
   for comp in builder.components:
     case comp.kind
     of Flag:
-      var row: seq[string]
 
       var flag_parts: seq[string]
       if comp.shortflag != "":
         flag_parts.add("-" & comp.shortflag)
       if comp.longflag != "":
         flag_parts.add("--" & comp.longflag)
-      
-      row.add(flag_parts.join(", "))
-      row.add("")
-      rows.add(row)
+      let flag_opts = flag_parts.join(", ")
+      opts.add("  " & flag_opts)
+      if flag_opts.len > opt_width:
+        opts.add("\L")
+        opts.add("  ")
+        opts.add(" ".repeat(opt_width+1))
+        opts.add(comp.help)
+      else:
+        opts.add(" ".repeat(opt_width - flag_opts.len))
+        opts.add(" ")
+        opts.add(comp.help)
+      opts.add("\L")
   
-  for row in rows:
-    for i,col in row:
-      if i >= widths.len:
-        widths.add(0)
-      if col.len > widths[i]:
-        widths[i] = col.len
-    # For now, just display everything space-separated
-    result.add(row.join(" "))
-    result.add("\L")
+  if opts != "":
+    result.add("Options:\L")
+    result.add(opts)
 
 
 proc generateReturnType(builder: var Builder): NimNode {.compileTime.} =
@@ -132,7 +142,8 @@ proc genParseProc(builder: var Builder): NimNode {.compileTime.} =
   longs.add(handleLongOptions(builder))
   result = rep
 
-proc mkParser*(name: string, content: proc()): NimNode {.compileTime.} =
+proc mkParser(name: string, content: proc()): NimNode {.compileTime.} =
+  ## Where all the magic starts
   result = newStmtList()
   builderstack.add(newBuilder(name))
   content()
@@ -170,11 +181,19 @@ proc toUnderscores(s:string):string =
   s.replace('-','_').strip(chars={'_'})
 
 
-proc flag*(opt1: string, opt2: string = "") {.compileTime.} =
+proc flag*(opt1: string, opt2: string = "", help:string = "") {.compileTime.} =
+  ## Add a boolean flag to the argument parser.  The boolean
+  ## will be available on the parsed options object as the
+  ## longest named flag.
+  ##
+  ## .. code-block:: nim
+  ##   mkParser("Some Thing"):
+  ##     flag("-n", "--dryrun", help="Don't actually run")
   var
     c = Component()
     varname: string
   c.kind = Flag
+  c.help = help
 
   if opt1.startsWith("--"):
     c.shortflag = opt2.stripHypens
@@ -190,5 +209,15 @@ proc flag*(opt1: string, opt2: string = "") {.compileTime.} =
   
   builderstack[^1].add(c)
 
-
+template newParser*(name: string, content: untyped): untyped =
+  ## Entry point for making command-line parsers.
+  ##
+  ## .. code-block:: nim
+  ##    var p = newParser("My program"):
+  ##      flag("-a")
+  ##    assert p.parse("-a").a == true
+  macro tmpmkParser(): untyped =
+    mkParser(name):
+      content
+  tmpmkParser()
 

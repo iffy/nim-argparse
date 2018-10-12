@@ -2,28 +2,33 @@
 
 WIP command line argument parsing library.  It generates the parser at compile time so that the object returned by `parse` has a well-defined type.
 
-For full usage, see the [tests/](./tests/)
+# Usage
+
+Define an argument parser with `newParser`:
 
 ```nim
 import argparse
 
-macro makeParser(): untyped =
-  mkParser("My Program"):
-    flag("-a", "--apple")
-    flag("-b")
-var p = makeParser()
+var p = newParser("My Program"):
+  flag("-a", "--apple")
+  flag("-b", help="Show a banana")
 
 assert p.parse("-a").apple == true
 assert p.parse("-b").b == true
 assert p.parse("--apple")).b == false
 assert p.parse("--apple")).apple == true
+
+echo p.help
 ```
 
 
 # TODO
 
 - [X] --long-flags
-- [ ] Access to object types (so you can do `handleOpts(opts: TheGeneratedType) = ...`)
-- [ ] Make it so you don't have to use a wrapping macro
 - [ ] --arguments=withvalues
+- [X] help argument
+- [ ] --help
+- [ ] --version
 - [ ] sub commands (git-style)
+- [ ] Access to object types (so you can do `handleOpts(opts: TheGeneratedType) = ...`)
+- [X] Make it so you don't have to use a wrapping macro

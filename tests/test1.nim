@@ -7,11 +7,9 @@ import parseopt
 
 suite "flags":
   test "short flags":
-    macro makeParser(): untyped =
-      mkParser("some name"):
-        flag("-a")
-        flag("-b")
-    var p = makeParser()
+    var p = newParser("some name"):
+      flag("-a")
+      flag("-b")
     
     check p.parse("-a").a == true
     check p.parse("-a").b == false
@@ -20,11 +18,9 @@ suite "flags":
     check "-b" in p.help
   
   test "long flags":
-    macro makeParser(): untyped =
-      mkParser("some name"):
-        flag("--apple")
-        flag("--banana")
-    var p = makeParser()
+    var p = newParser("some name"):
+      flag("--apple")
+      flag("--banana")
     
     check p.parse("--apple").apple == true
     check p.parse("--apple").banana == false
@@ -34,11 +30,9 @@ suite "flags":
     check "--banana" in p.help
   
   test "short and long flags":
-    macro makeParser(): untyped =
-      mkParser("some name"):
-        flag("-a", "--apple")
-        flag("--banana", "-b")
-    var p = makeParser()
+    var p = newParser("some name"):
+      flag("-a", "--apple")
+      flag("--banana", "-b")
     
     check p.parse("--apple").apple == true
     check p.parse("--apple").banana == false
@@ -48,3 +42,26 @@ suite "flags":
     check "-a" in p.help
     check "--banana" in p.help
     check "-b" in p.help
+  
+  test "help text":
+    var p = newParser("some name"):
+      flag("-a", "--apple", help="Some apples")
+      flag("--banana-split-and-ice-cream", help="More help")
+    
+    check "Some apples" in p.help
+    check "More help" in p.help
+
+suite "options":
+  test "short options":
+    var p = newParser("some name"):
+      option("-a")
+    check p.parse("-a=5").a == "5"
+    check p.parse("-a 5").a == "5"
+    check p.parse("-a:5").a == "5"
+  
+  test "long options":
+    var p = newParser("some name"):
+      option("--apple")
+    check p.parse("--apple=10").apple == "10"
+    check p.parse("--apple 10").apple == "10"
+    check p.parse("--apple:10").apple == "10"
