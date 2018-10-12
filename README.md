@@ -22,7 +22,7 @@ assert p.parse("--apple")).apple == true
 
 # TODO
 
-- [X] --long-opts
+- [X] --long-flags
 - [ ] Access to object types (so you can do `handleOpts(opts: TheGeneratedType) = ...`)
 - [ ] Make it so you don't have to use a wrapping macro
 - [ ] --arguments=withvalues

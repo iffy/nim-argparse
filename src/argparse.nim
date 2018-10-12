@@ -75,7 +75,6 @@ proc generateReturnType(builder: var Builder): NimNode {.compileTime.} =
   for component in builder.components:
     case component.kind
     of Flag:
-      hint("adding object field " & component.varname)
       objdef.addObjectField(component.varname, "bool")
     else:
       error("Unknown component type " & component.kind.repr)
@@ -146,7 +145,6 @@ proc mkParser*(name: string, content: proc()): NimNode {.compileTime.} =
 
   # Create the parser return type
   result.add(builder.generateReturnType())
-  hint(builder.generateReturnType().astGenRepr)
 
   # Create the parser type
   result.add(replaceNodes(quote do:
