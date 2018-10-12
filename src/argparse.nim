@@ -13,6 +13,7 @@ type
   ComponentKind = enum
     Flag,
     Option,
+    Argument,
   
   Component = object
     varname*: string
@@ -24,6 +25,8 @@ type
     of Option:
       shortopt*: string
       longopt*: string
+    of Argument:
+      discard
   
   Builder = object
     name*: string
@@ -52,10 +55,7 @@ proc genHelp(builder: var Builder):string {.compileTime.} =
   result.add(builder.name)
   result.add("\L\L")
 
-  let opt_width = 26
-  let max_width = 100
-
-  proc formatOption(flags:string, helptext:string):string =
+  proc formatOption(flags:string, helptext:string, opt_width = 26, max_width = 100):string =
     result.add("  " & flags)
     if flags.len > opt_width:
       result.add("\L")
@@ -68,7 +68,9 @@ proc genHelp(builder: var Builder):string {.compileTime.} =
       result.add(helptext)
 
   var opts = ""
-  # Options
+  var args = ""
+
+  # Options and Arguments
   for comp in builder.components:
     case comp.kind
     of Flag:
@@ -88,19 +90,30 @@ proc genHelp(builder: var Builder):string {.compileTime.} =
       var flags = flag_parts.join(", ") & "=" & comp.varname.toUpper()
       opts.add(formatOption(flags, comp.help))
       opts.add("\L")
+    of Argument:
+      args.add(formatOption(comp.varname, comp.help, opt_width = 10))
+      args.add("\L")
   
+  if args != "":
+    result.add("Arguments:\L")
+    result.add(args)
+
   if opts != "":
     result.add("Options:\L")
     result.add(opts)
+  
+  # Arguments
 
 
-proc generateReturnType(builder: var Builder): NimNode {.compileTime.} =
+proc genReturnType(builder: var Builder): NimNode {.compileTime.} =
   var objdef = newObjectTypeDef(builder.optsIdent.strVal)
   for component in builder.components:
     case component.kind
     of Flag:
       objdef.addObjectField(component.varname, "bool")
     of Option:
+      objdef.addObjectField(component.varname, "string")
+    of Argument:
       objdef.addObjectField(component.varname, "string")
   result = objdef.root
 
@@ -111,6 +124,8 @@ proc handleShortOptions(builder: Builder): NimNode {.compileTime.} =
   ))
   for comp in builder.components:
     case comp.kind
+    of Argument:
+      discard
     of Flag:
       if comp.shortflag != "":
         let varname = ident(comp.varname)
@@ -132,6 +147,8 @@ proc handleLongOptions(builder: Builder): NimNode =
   ))
   for comp in builder.components:
     case comp.kind
+    of Argument:
+      discard
     of Flag:
       if comp.longflag != "":
         let varname = ident(comp.varname)
@@ -146,6 +163,24 @@ proc handleLongOptions(builder: Builder): NimNode =
         ))
   result = cs.finalize()
 
+proc handleArguments(builder: Builder): NimNode =
+  var cs = newCaseStatement("argnum")
+  cs.addElse(replaceNodes(quote do:
+    echo "unexpected argument: " & key
+  ))
+  var argnum = 0
+  for comp in builder.components:
+    case comp.kind
+    of Flag, Option:
+      discard
+    of Argument:
+      let varname = ident(comp.varname)
+      cs.add(argnum, replaceNodes(quote do:
+        result.`varname` = key
+      ))
+      inc(argnum)
+  result = cs.finalize()
+
 proc genParseProc(builder: var Builder): NimNode {.compileTime.} =
   let OptsIdent = builder.optsIdent()
   let ParserIdent = builder.parserIdent()
@@ -153,6 +188,7 @@ proc genParseProc(builder: var Builder): NimNode {.compileTime.} =
     proc parse(p:`ParserIdent`, input:string):`OptsIdent` =
       result = `OptsIdent`()
       var p = initOptParser(input)
+      var argnum = 0
       for kind, key, val in p.getopt():
         case kind
         of cmdEnd:
@@ -162,12 +198,16 @@ proc genParseProc(builder: var Builder): NimNode {.compileTime.} =
         of cmdLongOption:
           insertlong
         of cmdArgument:
-          discard
+          block:
+            insertargs
+          inc(argnum)
   )
   var shorts = rep.getInsertionPoint("insertshort")
   var longs = rep.getInsertionPoint("insertlong")
+  var args = rep.getInsertionPoint("insertargs")
   shorts.add(handleShortOptions(builder))
   longs.add(handleLongOptions(builder))
+  args.add(handleArguments(builder))
   result = rep
 
 proc mkParser(name: string, content: proc()): NimNode {.compileTime.} =
@@ -183,7 +223,7 @@ proc mkParser(name: string, content: proc()): NimNode {.compileTime.} =
   let helptext = builder.genHelp()
 
   # Create the parser return type
-  result.add(builder.generateReturnType())
+  result.add(builder.genReturnType())
 
   # Create the parser type
   result.add(replaceNodes(quote do:
@@ -217,9 +257,7 @@ proc flag*(opt1: string, opt2: string = "", help:string = "") {.compileTime.} =
   ## .. code-block:: nim
   ##   mkParser("Some Thing"):
   ##     flag("-n", "--dryrun", help="Don't actually run")
-  var
-    c = Component()
-    varname: string
+  var c = Component()
   c.kind = Flag
   c.help = help
 
@@ -247,9 +285,7 @@ proc option*(opt1: string, opt2: string = "", help:string="") =
   ##      option("-a", "--apple", help="Name of apple")
   ##
   ##    assert p.parse("-a 5").apple == "5"
-  var
-    c = Component()
-    varname: string
+  var c = Component()
   c.kind = Option
   c.help = help
 
@@ -265,6 +301,20 @@ proc option*(opt1: string, opt2: string = "", help:string="") =
   else:
     c.varname = c.shortopt.toUnderscores
   
+  builderstack[^1].add(c)
+
+proc arg*(varname: string, help:string="") =
+  ## Add an argument to the argument parser.
+  ##
+  ## .. code-block:: nim
+  ##    var p = mkParser("Command"):
+  ##      arg("name", help="Name of apple")
+  ##
+  ##    assert p.parse("cameo").name == "cameo"
+  var c = Component()
+  c.kind = Argument
+  c.help = help
+  c.varname = varname
   builderstack[^1].add(c)
 
 template newParser*(name: string, content: untyped): untyped =

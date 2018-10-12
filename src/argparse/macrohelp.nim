@@ -89,12 +89,20 @@ proc newCaseStatement*(key: string):UnfinishedCase =
     ident(key),
   )
 
-proc add*(n:var UnfinishedCase, opt:string, body: NimNode) =
+proc add*(n:var UnfinishedCase, opt: NimNode, body: NimNode) =
   ## Adds a branch to an UnfinishedCase
   var branch = nnkOfBranch.newTree()
-  branch.add(newStrLitNode(opt))
+  branch.add(opt)
   branch.add(body)
   n.cases.add(branch)
+
+proc add*(n:var UnfinishedCase, opt:string, body: NimNode) =
+  ## Adds a branch to an UnfinishedCase
+  add(n, newStrLitNode(opt), body)
+
+proc add*(n:var UnfinishedCase, opt:int, body: NimNode) =
+  ## Adds an integer branch to an UnfinishedCase
+  add(n, newLit(opt), body)
 
 proc addElse*(n: var UnfinishedCase, body: NimNode) =
   ## Add an else: to an UnfinishedCase

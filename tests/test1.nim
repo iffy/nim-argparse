@@ -67,3 +67,25 @@ suite "options":
     check p.parse("--apple=10").apple == "10"
     # check p.parse("--apple 10").apple == "10"
     check p.parse("--apple:10").apple == "10"
+
+suite "args":
+  test "single, required arg":
+    var p = newParser("prog"):
+      arg("name")
+    check p.parse("foo").name == "foo"
+    check "name" in p.help
+  
+  test "2 args":
+    var p = newParser("prog"):
+      arg("name")
+      arg("age")
+    check p.parse("foo bar").name == "foo"
+    check p.parse("foo bar").age == "bar"
+    check "name" in p.help
+    check "age" in p.help
+  
+  test "arg help":
+    var p = newParser("prog"):
+      arg("name", help="Something")
+    check "Something" in p.help
+    echo p.help

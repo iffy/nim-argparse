@@ -29,12 +29,12 @@ echo p.help
 - [X] --long-flags
 - [X] --arguments=withvalues
 - [X] help argument
+- [X] arguments
+- [ ] sub commands (git-style)
+- [ ] variable args
 - [ ] --help special case
 - [ ] --version
 - [ ] raise exception on invalid args
 - [ ] Handle `--arg val --nother-arg val2` (spaces instead of `=` or `:` between key and value)
-- [ ] sub commands (git-style)
-- [ ] arguments
-- [ ] variable args
 - [ ] Access to object types (so you can do `handleOpts(opts: TheGeneratedType) = ...`)
 - [X] Make it so you don't have to use a wrapping macro
