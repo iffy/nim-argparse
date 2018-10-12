@@ -72,16 +72,20 @@ proc newObjectTypeDef*(name: string): InsertableTree {.compileTime.} =
   )
   result = InsertableTree(root: root, insertion: insertion)
 
-proc addObjectField*(objtypedef: InsertableTree, name: string, kind: string) {.compileTime.} =
+proc addObjectField*(objtypedef: InsertableTree, name: string, kind: NimNode) {.compileTime.} =
   ## Adds a field to an object definition created by newObjectTypeDef
   objtypedef.insertion.add(newIdentDefs(
     newNimNode(nnkPostfix).add(
       ident("*"),
       ident(name),
     ),
-    ident(kind),
+    kind,
     newEmptyNode(),
   ))
+
+proc addObjectField*(objtypedef: InsertableTree, name: string, kind: string) {.compileTime.} =
+  ## Adds a field to an object definition created by newObjectTypeDef
+  addObjectField(objtypedef, name, ident(kind))
 
 proc newCaseStatement*(key: string):UnfinishedCase =
   result = UnfinishedCase()

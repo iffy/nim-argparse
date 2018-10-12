@@ -88,4 +88,42 @@ suite "args":
     var p = newParser("prog"):
       arg("name", help="Something")
     check "Something" in p.help
-    echo p.help
+  
+  test "nargs=2":
+    var p = newParser("prog"):
+      arg("name", nargs=2)
+    check p.parse("a b").name == @["a", "b"]
+  
+  test "nargs=-1":
+    var p = newParser("prog"):
+      arg("thing", nargs = -1)
+    check p.parse("").thing.len == 0
+    check p.parse("a").thing == @["a"]
+    check p.parse("a b c").thing == @["a", "b", "c"]
+
+  test "nargs=-1 at the end":
+    var p = newParser("prog"):
+      arg("first")
+      arg("thing", nargs = -1)
+    check p.parse("first").thing.len == 0
+    check p.parse("first a").thing == @["a"]
+    check p.parse("first a b c").thing == @["a", "b", "c"]
+  
+  test "nargs=-1 in the middle":
+    var p = newParser("prog"):
+      arg("first")
+      arg("thing", nargs = -1)
+      arg("last")
+    check p.parse("first last").thing.len == 0
+    check p.parse("first a last").thing == @["a"]
+    check p.parse("first a b c last").thing == @["a", "b", "c"]
+  
+  test "nargs=-1 at the beginning":
+    var p = newParser("prog"):
+      flag("-a")
+      arg("thing", nargs = -1)
+      arg("last", nargs = 2)
+    check p.parse("last 2").thing.len == 0
+    check p.parse("a last 2").thing == @["a"]
+    check p.parse("a b c last 2").thing == @["a", "b", "c"]
+    check p.parse("last 2").last == @["last", "2"]

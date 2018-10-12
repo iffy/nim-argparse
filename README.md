@@ -14,6 +14,7 @@ var p = newParser("My Program"):
   flag("-b", help="Show a banana")
   option("-o", "--output", help="Output to this file")
   arg("name")
+  arg("others", nargs=-1)
 
 assert p.parse("-a hi").apple == true
 assert p.parse("-b hi").b == true
@@ -21,6 +22,7 @@ assert p.parse("--apple hi").b == false
 assert p.parse("--apple hi").apple == true
 assert p.parse("-o=foo hi").output == "foo"
 assert p.parse("hi").name == "hi"
+assert p.parse("hi my friends").others == @["my", "friends"]
 
 echo p.help
 ```
@@ -32,10 +34,11 @@ echo p.help
 - [X] --arguments=withvalues
 - [X] help argument
 - [X] arguments
+- [X] variable args
 - [ ] sub commands (git-style)
-- [ ] variable args
 - [ ] --help special case
 - [ ] --version
+- [ ] default values
 - [ ] raise exception on invalid args
 - [ ] Handle `--arg val --nother-arg val2` (spaces instead of `=` or `:` between key and value)
 - [ ] Access to object types (so you can do `handleOpts(opts: TheGeneratedType) = ...`)
