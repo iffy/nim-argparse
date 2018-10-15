@@ -4,11 +4,13 @@ import sequtils
 import strutils
 import algorithm
 import macros
+import os
 import strformat
 import parseopt
 import argparse/macrohelp
 
-# export parseopt
+export parseopt
+export os
 
 type
   ComponentKind = enum
@@ -20,12 +22,9 @@ type
     varname*: string
     help*: string
     case kind*: ComponentKind
-    of Flag:
+    of Flag, Option:
       shortflag*: string
       longflag*: string
-    of Option:
-      shortopt*: string
-      longopt*: string
     of Argument:
       nargs*: int
   
@@ -81,17 +80,17 @@ proc genHelp(builder: var Builder):string {.compileTime.} =
     of Flag:
       var flag_parts: seq[string]
       if comp.shortflag != "":
-        flag_parts.add("-" & comp.shortflag)
+        flag_parts.add(comp.shortflag)
       if comp.longflag != "":
-        flag_parts.add("--" & comp.longflag)
+        flag_parts.add(comp.longflag)
       opts.add(formatOption(flag_parts.join(", "), comp.help))
       opts.add("\L")
     of Option:
       var flag_parts: seq[string]
-      if comp.shortopt != "":
-        flag_parts.add("-" & comp.shortopt)
-      if comp.longopt != "":
-        flag_parts.add("--" & comp.longopt)
+      if comp.shortflag != "":
+        flag_parts.add(comp.shortflag)
+      if comp.longflag != "":
+        flag_parts.add(comp.longflag)
       var flags = flag_parts.join(", ") & "=" & comp.varname.toUpper()
       opts.add(formatOption(flags, comp.help))
       opts.add("\L")
@@ -144,49 +143,35 @@ proc genReturnType(builder: var Builder): NimNode {.compileTime.} =
         ))
   result = objdef.root
 
-proc handleShortOptions(builder: Builder): NimNode {.compileTime.} =
-  var cs = newCaseStatement("key")
+proc handleOptions(builder: Builder): NimNode =
+  # This is called within the context of genParseProcs
+  #
+  # argi  = index of current argument
+  # input = seq[string] of all arguments
+  # arg   = current string argument
+  var cs = newCaseStatement("arg")
   cs.addElse(replaceNodes(quote do:
-    echo "unknown flag: -" & key
+    echo "unknown option: " & arg
   ))
   for comp in builder.components:
     case comp.kind
     of Argument:
       discard
-    of Flag:
+    of Flag, Option:
+      var ofs:seq[NimNode] = @[]
       if comp.shortflag != "":
-        let varname = ident(comp.varname)
-        cs.add(comp.shortflag, replaceNodes(quote do:
-          result.`varname` = true
-        ))
-    of Option:
-      if comp.shortopt != "":
-        let varname = ident(comp.varname)
-        cs.add(comp.shortopt, replaceNodes(quote do:
-          result.`varname` = val
-        ))
-  result = cs.finalize()
-
-proc handleLongOptions(builder: Builder): NimNode =
-  var cs = newCaseStatement("key")
-  cs.addElse(replaceNodes(quote do:
-    echo "unknown flag: --" & key
-  ))
-  for comp in builder.components:
-    case comp.kind
-    of Argument:
-      discard
-    of Flag:
+        ofs.add(newLit(comp.shortflag))
       if comp.longflag != "":
-        let varname = ident(comp.varname)
-        cs.add(comp.longflag, replaceNodes(quote do:
+        ofs.add(newLit(comp.longflag))
+      let varname = ident(comp.varname)
+      if comp.kind == Flag:
+        cs.add(ofs, replaceNodes(quote do:
           result.`varname` = true
         ))
-    of Option:
-      if comp.longopt != "":
-        let varname = ident(comp.varname)
-        cs.add(comp.longopt, replaceNodes(quote do:
-          result.`varname` = val
+      elif comp.kind == Option:
+        cs.add(ofs, replaceNodes(quote do:
+          inc(argi)
+          result.`varname` = input[argi]
         ))
   result = cs.finalize()
 
@@ -194,11 +179,25 @@ proc popleft*[T](s: var seq[T]):T =
   result = s[0]
   s.delete(0, 0)
 
-proc handleArguments(builder: Builder): NimNode =
-  ## The result is used in the context defined by genParseProc
-  result = newStmtList()
+proc handleArguments(builder: Builder): tuple[handler:NimNode, flusher:NimNode] =
+  ## The result is used in the context defined by genParseProcs
+  ## This is called within the context of genParseProcs
+  ##
+  ## argi  = index of current argument
+  ## input = seq[string] of all arguments
+  ## arg   = current string argument
+  ## unclaimed_args = seq of args not yet assigned to things.
+  ## args_encountered = number of non-flag arguments encountered
+  
+  # run when an argument is encountered
+  var handler = newStmtList()
+
+  # run after all arguments have been processed
+  var flusher = newStmtList()
+
   var unlimited_taker:NimNode
   var fromend:seq[NimNode] # this will be added to the tree in reverse order
+  var arg_pointer = 0
   for comp in builder.components:
     case comp.kind
     of Flag, Option:
@@ -208,57 +207,106 @@ proc handleArguments(builder: Builder): NimNode =
       if comp.nargs == -1:
         # any number of args
         unlimited_taker = replaceNodes(quote do:
-          result.`varname` = leftover
+          res.`varname` = unclaimed_args
         )
+        let start = newLit(arg_pointer)
+        handler.add(replaceNodes(quote do:
+          if args_encountered >= `start`:
+            unclaimed_args.add(arg)
+        ))
       else:
         # specific number of args
         if unlimited_taker == nil:
           # before unlimited taker
-          for i in 0..comp.nargs-1:
-            result.add(replaceNodes(quote do:
-              result.`varname`.add(leftover.popleft())
-            ))
+          var start = newLit(arg_pointer)
+          inc(arg_pointer, comp.nargs)
+          var endval = newLit(arg_pointer)
+          handler.add(replaceNodes(quote do:
+            if args_encountered >= `start` and args_encountered < `endval`:
+              result.`varname`.add(arg)
+          ))
         else:
           # after unlimited taker
           for i in 0..comp.nargs-1:
             fromend.add(replaceNodes(quote do:
-              result.`varname`.insert(leftover.pop(), 0)
+              res.`varname`.insert(unclaimed_args.pop(), 0)
             ))
   for node in reversed(fromend):
-    result.add(node)
+    flusher.add(node)
   if unlimited_taker != nil:
-    result.add(unlimited_taker)
+    flusher.add(unlimited_taker)
+  
+  result = (handler: handler, flusher: flusher)
 
-
-
-proc genParseProc(builder: var Builder): NimNode {.compileTime.} =
+proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
+  result = newStmtList()
   let OptsIdent = builder.optsIdent()
   let ParserIdent = builder.parserIdent()
-  var rep = replaceNodes(quote do:
-    proc parse(p:`ParserIdent`, input:string):`OptsIdent` =
+
+  # parse(seq[string])
+  var parse_seq_string = replaceNodes(quote do:
+    proc parse(p:`ParserIdent`, orig_input: seq[string]):`OptsIdent` {.used.} =
       result = `OptsIdent`()
-      var p = initOptParser(input)
-      var leftover:seq[string]
-      for kind, key, val in p.getopt():
-        case kind
-        of cmdEnd:
-          discard
-        of cmdShortOption:
-          insertshort
-        of cmdLongOption:
-          insertlong
-        of cmdArgument:
-          leftover.add(key)
-      block:
-        insertargs
+      var argi = 0
+      var input = orig_input
+      var unclaimed_args:seq[string]
+      var args_encountered = 0
+      proc flushUnclaimed(res:var `OptsIdent`) =
+        block:
+          HEYflush
+      while argi < input.len:
+        var arg = input[argi]
+        if arg.startsWith("-"):
+          if arg.find("=") > 1:
+            var parts = arg.split({'='})
+            input.insert(parts[1], argi+1)
+            arg = parts[0]
+          block:
+            HEYoptions
+        else:
+          block:
+            HEYarg
+          inc(args_encountered)
+        inc(argi)
+      flushUnclaimed(result)
+      # var leftover:seq[string]
+      # for kind, key, val in p.getopt():
+      #   case kind
+      #   of cmdEnd:
+      #     discard
+      #   of cmdShortOption:
+      #     insertshort
+      #   of cmdLongOption:
+      #     insertlong
+      #   of cmdArgument:
+      #     leftover.add(key)
+      # block:
+      #   insertargs
   )
-  var shorts = rep.getInsertionPoint("insertshort")
-  var longs = rep.getInsertionPoint("insertlong")
-  var args = rep.getInsertionPoint("insertargs")
-  shorts.add(handleShortOptions(builder))
-  longs.add(handleLongOptions(builder))
-  args.add(handleArguments(builder))
-  result = rep
+  var opts = parse_seq_string.getInsertionPoint("HEYoptions")
+  var args = parse_seq_string.getInsertionPoint("HEYarg")
+  var flushUnclaimed = parse_seq_string.getInsertionPoint("HEYflush")
+  var arghandlers = handleArguments(builder)
+  opts.add(handleOptions(builder))
+  args.add(arghandlers.handler)
+  flushUnclaimed.add(arghandlers.flusher)
+  result.add(parse_seq_string)
+
+  when declared(commandLineParams):
+    # parse()
+    var parse_cli = replaceNodes(quote do:
+      proc parse(p:`ParserIdent`):`OptsIdent` {.used.} =
+        return parse(p, commandLineParams())
+    )
+    result.add(parse_cli)
+
+proc genRunProc(builder: var Builder): NimNode {.compileTime.} =
+  let OptsIdent = builder.optsIdent()
+  let ParserIdent = builder.parserIdent()
+  result = replaceNodes(quote do:
+    proc run(p:`ParserIdent`, input:seq[string]) {.used.} =
+      echo "hi"
+  )
 
 proc mkParser(name: string, content: proc()): NimNode {.compileTime.} =
   ## Where all the magic starts
@@ -282,8 +330,10 @@ proc mkParser(name: string, content: proc()): NimNode {.compileTime.} =
         help*: string
   ))
 
-  # Create the parse proc
-  result.add(builder.genParseProc())
+  # Create the parse procs
+  result.add(builder.genParseProcs())
+  # Create the run proc
+  result.add(builder.genRunProc())
 
   # Instantiate a parser and return an instance
   result.add(replaceNodes(quote do:
@@ -291,9 +341,6 @@ proc mkParser(name: string, content: proc()): NimNode {.compileTime.} =
     parser.help = `helptext`
     parser
   ))
-
-proc stripHypens(s:string):string =
-  s.strip(leading=true, chars={'-'})
 
 proc toUnderscores(s:string):string =
   s.replace('-','_').strip(chars={'_'})
@@ -312,11 +359,11 @@ proc flag*(opt1: string, opt2: string = "", help:string = "") {.compileTime.} =
   c.help = help
 
   if opt1.startsWith("--"):
-    c.shortflag = opt2.stripHypens
-    c.longflag = opt1.stripHypens
+    c.shortflag = opt2
+    c.longflag = opt1
   else:
-    c.shortflag = opt1.stripHypens
-    c.longflag = opt2.stripHypens
+    c.shortflag = opt1
+    c.longflag = opt2
   
   if c.longflag != "":
     c.varname = c.longflag.toUnderscores
@@ -340,16 +387,16 @@ proc option*(opt1: string, opt2: string = "", help:string="") =
   c.help = help
 
   if opt1.startsWith("--"):
-    c.shortopt = opt2.stripHypens
-    c.longopt = opt1.stripHypens
+    c.shortflag = opt2
+    c.longflag = opt1
   else:
-    c.shortopt = opt1.stripHypens
-    c.longopt = opt2.stripHypens
+    c.shortflag = opt1
+    c.longflag = opt2
   
-  if c.longopt != "":
-    c.varname = c.longopt.toUnderscores
+  if c.longflag != "":
+    c.varname = c.longflag.toUnderscores
   else:
-    c.varname = c.shortopt.toUnderscores
+    c.varname = c.shortflag.toUnderscores
   
   builderstack[^1].add(c)
 
@@ -368,6 +415,18 @@ proc arg*(varname: string, nargs=1, help:string="") =
   c.varname = varname
   c.nargs = nargs
   builderstack[^1].add(c)
+
+macro run*(content: untyped): untyped =
+  ## Define a handler for a command/subcommand.
+  ##
+  echo "in parser run def"
+
+template command*(name: string, content: untyped) =
+  ## Add a sub-command to the argument parser.
+  macro tmpCommand(): untyped =
+    mkParser(name):
+      content
+  discard tmpCommand()
 
 template newParser*(name: string, content: untyped): untyped =
   ## Entry point for making command-line parsers.
