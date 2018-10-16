@@ -30,11 +30,14 @@ type
   
   Builder = object
     name*: string
+    help*: string
     symbol*: string
     components*: seq[Component]
+    children*: seq[Builder]
+    run: proc()
 
 
-var builderstack {.global.} : seq[Builder] = @[]
+var builderstack {.compileTime.} : seq[Builder] = @[]
 
 proc newBuilder(name: string): Builder {.compileTime.} =
   result = Builder()
@@ -50,6 +53,9 @@ proc parserIdent(builder: Builder): NimNode =
 proc add(builder: var Builder, component: Component) {.compileTime.} =
   builder.components.add(component)
 
+proc add(builder: var Builder, child: Builder) {.compileTime.} =
+  builder.children.add(child)
+
 proc genHelp(builder: var Builder):string {.compileTime.} =
   ## Generate the usage/help text for the parser.
   result.add(builder.name)
@@ -57,6 +63,9 @@ proc genHelp(builder: var Builder):string {.compileTime.} =
 
   # usage
   var usage_parts:seq[string]
+
+  proc firstline(s:string):string =
+    s.split("\L")[0]
 
   proc formatOption(flags:string, helptext:string, opt_width = 26, max_width = 100):string =
     result.add("  " & flags)
@@ -73,6 +82,7 @@ proc genHelp(builder: var Builder):string {.compileTime.} =
 
   var opts = ""
   var args = ""
+  var commands = ""
 
   # Options and Arguments
   for comp in builder.components:
@@ -106,6 +116,13 @@ proc genHelp(builder: var Builder):string {.compileTime.} =
       args.add(formatOption(leftside, comp.help, opt_width=10))
       args.add("\L")
   
+  if builder.children.len > 0:
+    usage_parts.add("COMMAND")
+    for subbuilder in builder.children:
+      var leftside = subbuilder.name
+      commands.add(formatOption(leftside, subbuilder.help.firstline, opt_width=10))
+      commands.add("\L")
+  
   if usage_parts.len > 0:
     result.add("Usage:\L")
     result.add("  ")
@@ -114,6 +131,11 @@ proc genHelp(builder: var Builder):string {.compileTime.} =
       result.add("[options] ")
     result.add(usage_parts.join(" "))
     result.add("\L\L")
+
+  if commands != "":
+    result.add("Commands:\L")
+    result.add(commands)
+    result.add("\L")
 
   if args != "":
     result.add("Arguments:\L")
@@ -304,17 +326,21 @@ proc genRunProc(builder: var Builder): NimNode {.compileTime.} =
   let OptsIdent = builder.optsIdent()
   let ParserIdent = builder.parserIdent()
   result = replaceNodes(quote do:
-    proc run(p:`ParserIdent`, input:seq[string]) {.used.} =
-      echo "hi"
+    proc run(p:`ParserIdent`, orig_input:seq[string]) {.used.} =
+      var input = orig_input
+      echo "hi from run", input.repr
   )
 
 proc mkParser(name: string, content: proc()): NimNode {.compileTime.} =
   ## Where all the magic starts
+  echo "mkParser ", name
   result = newStmtList()
   builderstack.add(newBuilder(name))
   content()
 
   var builder = builderstack.pop()
+  if builderstack.len > 0:
+    builderstack[^1].add(builder)
   let parserIdent = builder.parserIdent()
   
   # Generate help
@@ -352,7 +378,7 @@ proc flag*(opt1: string, opt2: string = "", help:string = "") {.compileTime.} =
   ## longest named flag.
   ##
   ## .. code-block:: nim
-  ##   mkParser("Some Thing"):
+  ##   newParser("Some Thing"):
   ##     flag("-n", "--dryrun", help="Don't actually run")
   var c = Component()
   c.kind = Flag
@@ -378,7 +404,7 @@ proc option*(opt1: string, opt2: string = "", help:string="") =
   ## result.
   ##
   ## .. code-block:: nim
-  ##    var p = mkParser("Command"):
+  ##    var p = newParser("Command"):
   ##      option("-a", "--apple", help="Name of apple")
   ##
   ##    assert p.parse("-a 5").apple == "5"
@@ -404,7 +430,7 @@ proc arg*(varname: string, nargs=1, help:string="") =
   ## Add an argument to the argument parser.
   ##
   ## .. code-block:: nim
-  ##    var p = mkParser("Command"):
+  ##    var p = newParser("Command"):
   ##      arg("name", help="Name of apple")
   ##      arg("more", nargs=-1)
   ##
@@ -416,17 +442,28 @@ proc arg*(varname: string, nargs=1, help:string="") =
   c.nargs = nargs
   builderstack[^1].add(c)
 
-macro run*(content: untyped): untyped =
+proc help*(content: string) {.compileTime.} =
+  ## Add help to a parser or subcommand.
+  ##
+  ## .. code-block:: nim
+  ##    var p = newParser("Some Program"):
+  ##      help("Some helpful description")
+  ##      command "dostuff":
+  ##        help("More helpful information")
+  builderstack[^1].help = content
+
+proc run*(content: proc()) {.compileTime.} =
   ## Define a handler for a command/subcommand.
   ##
-  echo "in parser run def"
+  echo "in parser run def: " & content.repr
+  builderstack[^1].run = content
 
-template command*(name: string, content: untyped) =
+proc command*(name: string, content: proc()) {.compileTime.} =
   ## Add a sub-command to the argument parser.
-  macro tmpCommand(): untyped =
-    mkParser(name):
-      content
-  discard tmpCommand()
+  ##
+  hint("command getting evaluated: " & builderstack.len.intToStr)
+  discard mkParser(name, content)
+  hint("command parser made: " & builderstack.len.intToStr)
 
 template newParser*(name: string, content: untyped): untyped =
   ## Entry point for making command-line parsers.

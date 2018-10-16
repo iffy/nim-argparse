@@ -148,11 +148,14 @@ suite "commands":
 
     var p = newParser("prog"):
       command "command1":
+        help("Some help text")
         flag("-a")
         run:
           echo "inside actual run proc"
           # res = $opts.a
     
+    echo p.help
+
     p.run(shlex"command1 -a")
     check res == "true"
     p.run(shlex"command1")
