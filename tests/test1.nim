@@ -159,4 +159,22 @@ suite "commands":
     check res == "true"
     p.run(shlex"command1")
     check res == "false"
+  
+  test "two commands":
+    var res:string = ""
+
+    var p = newParser("My Program"):
+      command "move":
+        arg("howmuch")
+        run:
+          res = "moving " & opts.howmuch
+      command "eat":
+        arg("what")
+        run:
+          res = "you ate " & opts.what
+    
+    p.run(shlex"move 10")
+    check res == "moving 10"
+    p.run(shlex"eat apple")
+    check res == "you ate apple"
 

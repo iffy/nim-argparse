@@ -301,6 +301,7 @@ proc mkArgHandler(builder: Builder): tuple[handler:NimNode, flusher:NimNode] =
   for command in builder.children:
     let ParserIdent = command.parserIdent()
     onPossibleCommand.add(command.name, replaceNodes(quote do:
+      state.inc()
       let subparser = `ParserIdent`()
       discard subparser.parse(state, alsorun)
     ))
