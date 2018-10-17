@@ -43,6 +43,7 @@ type
     args_encountered*: int
     unclaimed*: seq[string]
     runProcs*: seq[proc()]
+    nestlevel*: int
 
 type
   ParseResult[T] = tuple[state: ParsingState, opts: T]
@@ -347,6 +348,7 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
   # parse(seq[string])
   var parse_seq_string = replaceNodes(quote do:
     proc parse(p:`ParserIdent`, state:var ParsingState, alsorun:bool):`OptsIdent` {.used.} =
+      state.nestlevel.inc()
       var opts = `OptsIdent`()
       block:
         HEYaddRunProc
@@ -367,9 +369,10 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
         state.inc()
       block:
         HEYflush
-      if alsorun:
+      if alsorun and state.nestlevel == 1:
         for p in state.runProcs:
           p()
+      state.nestlevel.dec()
       return opts
     proc parse(p:`ParserIdent`, input: seq[string], alsorun:bool = false):`OptsIdent` {.used.} =
       var varinput = input
