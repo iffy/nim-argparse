@@ -152,13 +152,8 @@ suite "commands":
         help("Some help text")
         flag("-a")
         run:
-          bind res
-          echo "inside user-defined run proc"
-          echo &"opts.a: {opts.a}"
-          echo &"opts: {opts.repr}"
+          echo "executing command1"
           res = $opts.a
-    
-    echo p.help
 
     p.run(shlex"command1 -a")
     check res == "true"

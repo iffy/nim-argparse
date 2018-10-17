@@ -533,31 +533,18 @@ proc help*(content: string) {.compileTime.} =
   ##        help("More helpful information")
   builderstack[^1].help = content
 
-proc runhey*(body: NimNode):untyped {.compileTime.} =
+proc performRun(body: NimNode):untyped {.compileTime.} =
   ## Define a handler for a command/subcommand.
   ##
-  hint("in runhey")
-  hint("run, builder stack len:" & builderstack.len.intToStr)
-  # body.expectKind(nnkStmtList)
-  echo "in parser run def: " & body.repr
-  echo body.astGenRepr
   builderstack[^1].runProcBodies.add(body)
-  # body
 
 template run*(content: untyped): untyped =
-  echo "executing run template"
-  # macro tmpRun(): untyped =
-  #   hint("inside tmpRun macro")
-  #   runhey(content)
-  runhey(replaceNodes(quote(content)))
-  # discard tmpRun()
+  performRun(replaceNodes(quote(content)))
 
 proc command*(name: string, content: proc()) {.compileTime.} =
   ## Add a sub-command to the argument parser.
   ##
-  hint("command getting evaluated: " & builderstack.len.intToStr)
   discard mkParser(name, content, instantiate = false)
-  hint("command parser made: " & builderstack.len.intToStr)
 
 template newParser*(name: string, content: untyped): untyped =
   ## Entry point for making command-line parsers.
