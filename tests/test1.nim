@@ -3,6 +3,7 @@ import macros
 import unittest
 import argparse
 import strutils
+import strformat
 import parseopt
 
 proc shlex(x:string):seq[string] =
@@ -144,15 +145,18 @@ suite "args":
 
 suite "commands":
   test "run":
-    var res:string
+    var res:string = "hello"
 
     var p = newParser("prog"):
       command "command1":
         help("Some help text")
         flag("-a")
         run:
-          echo "inside actual run proc"
-          # res = $opts.a
+          bind res
+          echo "inside user-defined run proc"
+          echo &"opts.a: {opts.a}"
+          echo &"opts: {opts.repr}"
+          res = $opts.a
     
     echo p.help
 

@@ -1,4 +1,7 @@
 import macros
+import strformat
+import strutils
+import sequtils
 
 type
   InsertableTree = object
@@ -8,7 +11,12 @@ type
   UnfinishedCase = object
     root*: NimNode
     cases*: seq[NimNode]
-    elsenode*: NimNode
+    elsebody*: NimNode
+  
+  UnfinishedIf = object
+    root*: NimNode
+    elsebody*: NimNode
+
 
 proc replaceNodes*(ast: NimNode): NimNode =
   ## Replace NimIdent and NimSym by a fresh ident node
@@ -87,11 +95,12 @@ proc addObjectField*(objtypedef: InsertableTree, name: string, kind: string) {.c
   ## Adds a field to an object definition created by newObjectTypeDef
   addObjectField(objtypedef, name, ident(kind))
 
-proc newCaseStatement*(key: string):UnfinishedCase =
+proc newCaseStatement*(key: NimNode):UnfinishedCase =
   result = UnfinishedCase()
-  result.root = nnkCaseStmt.newTree(
-    ident(key),
-  )
+  result.root = nnkCaseStmt.newTree(key)
+
+proc newCaseStatement*(key: string):UnfinishedCase =
+  return newCaseStatement(ident(key))  
 
 proc add*(n:var UnfinishedCase, opt: seq[NimNode], body: NimNode) =
   ## Adds a branch to an UnfinishedCase
@@ -111,11 +120,68 @@ proc add*(n:var UnfinishedCase, opt:int, body: NimNode) =
 
 proc addElse*(n: var UnfinishedCase, body: NimNode) =
   ## Add an else: to an UnfinishedCase
-  n.elsenode = body
+  n.elsebody = body
+
+proc isValid*(n:UnfinishedCase): bool =
+  return n.cases.len > 0 or n.elsebody != nil
 
 proc finalize*(n:UnfinishedCase): NimNode =
-  for branch in n.cases:
-    n.root.add(branch)
-  if n.elsenode != nil:
-    n.root.add(nnkElse.newTree(n.elsenode))
+  if n.cases.len > 0:
+    for branch in n.cases:
+      n.root.add(branch)
+    if n.elsebody != nil:
+      n.root.add(nnkElse.newTree(n.elsebody))
+    result = n.root
+  else:
+    result = n.elsebody
+
+proc newIfStatement*():UnfinishedIf =
+  result = UnfinishedIf()
+  result.root = nnkIfStmt.newTree()
+
+proc add*(n: var UnfinishedIf, cond: NimNode, body: NimNode) =
+  add(n.root, nnkElifBranch.newTree(
+    cond,
+    body,
+  ))
+
+proc addElse*(n: var UnfinishedIf, body: NimNode) =
+  ## Add an else: to an UnfinishedIf
+  n.elsebody = body
+
+proc isValid*(n:UnfinishedIf): bool =
+  return n.root.len > 0 or n.elsebody != nil
+
+proc finalize*(n:UnfinishedIf): NimNode =
+  ## Finish an If statement
   result = n.root
+  if n.root.len == 0:
+    # This "if" is only an "else"
+    result = n.elsebody
+  elif n.elsebody != nil:
+      result.add(nnkElse.newTree(n.elsebody))
+
+
+proc nimRepr*(n:NimNode): string =
+  case n.kind
+  of nnkStmtList:
+    var lines:seq[string]
+    for child in n:
+      lines.add(child.nimRepr)
+    result = lines.join("\L")
+  of nnkCommand:
+    let name = n[0].nimRepr
+    var args:seq[string]
+    for i, child in n:
+      if i == 0:
+        continue
+      args.add(child.nimRepr)
+    echo n.lispRepr
+    let arglist = args.join(", ")
+    result = &"{name}({arglist})"
+  of nnkIdent:
+    result = n.strVal
+  of nnkStrLit:
+    result = "[" & n.strVal & "]"
+  else:
+    result = &"<unknown {n.kind} {n.lispRepr}>"
