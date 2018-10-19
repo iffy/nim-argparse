@@ -73,6 +73,12 @@ suite "options":
       option("--apple")
     check p.parse(shlex"--apple=10").apple == "10"
     check p.parse(shlex"--apple 10").apple == "10"
+  
+  test "option default":
+    var p = newParser("options"):
+      option("--category", default="pinball")
+    check p.parse(shlex"").category == "pinball"
+    check p.parse(shlex"--category foo").category == "foo"
 
 suite "args":
   test "single, required arg":
@@ -80,6 +86,12 @@ suite "args":
       arg("name")
     check p.parse(shlex"foo").name == "foo"
     check "name" in p.help
+  
+  test "single arg with default":
+    var p = newParser("prog"):
+      arg("name", default="foo")
+    check p.parse(shlex"").name == "foo"
+    check p.parse(shlex"something").name == "something"
   
   test "2 args":
     var p = newParser("prog"):
@@ -142,6 +154,14 @@ suite "args":
     check p.parse(shlex"a b c d").first.len == 0
     check p.parse(shlex"a b c d").middle == @["a", "b"]
     check p.parse(shlex"a b c d").last == @["c", "d"]
+  
+  test "nargs=-1 nargs=1 w/ default":
+    var p = newParser("prog"):
+      arg("first", nargs = -1)
+      arg("last", default="hey")
+    check p.parse(shlex"").last == "hey"
+    check p.parse(shlex"hoo").last == "hoo"
+    check p.parse(shlex"a b goo").last == "goo"
 
 suite "commands":
   test "run":

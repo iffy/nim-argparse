@@ -22,6 +22,7 @@ type
   Component = object
     varname*: string
     help*: string
+    default*: string
     case kind*: ComponentKind
     of Flag, Option:
       shortflag*: string
@@ -218,6 +219,25 @@ proc mkFlagHandler(builder: Builder): NimNode =
         ))
   result = cs.finalize()
 
+proc mkDefaultSetter(builder: Builder): NimNode =
+  ## The result is used in the context defined by genParseProcs
+  ## This is called within the context of genParseProcs
+  ##
+  ## state = ParsingState
+  ## opts  = options specific to the builder
+  result = newStmtList()
+  for comp in builder.components:
+    let varname = ident(comp.varname)
+    let defaultval = newLit(comp.default)
+    case comp.kind
+    of Option, Argument:
+      if comp.default != "":
+        result.add(replaceNodes(quote do:
+          opts.`varname` = `defaultval`
+        ))
+    else:
+      discard
+
 proc popleft*[T](s: var seq[T]):T =
   result = s[0]
   s.delete(0, 0)
@@ -227,7 +247,7 @@ proc mkArgHandler(builder: Builder): tuple[handler:NimNode, flusher:NimNode] =
   ## This is called within the context of genParseProcs
   ##
   ## state = ParsingState
-  ## result = options specific to the builder
+  ## opts  = options specific to the builder
 
   ## run when a flush is required
   var doFlush = newStmtList()
@@ -274,9 +294,14 @@ proc mkArgHandler(builder: Builder): tuple[handler:NimNode, flusher:NimNode] =
           let condition = replaceNodes(quote do:
             state.args_encountered in `startval`..`endval`
           )
-          let action = replaceNodes(quote do:
-            opts.`varname`.add(arg)
-          )
+          var action = if comp.nargs == 1:
+            replaceNodes(quote do:
+              opts.`varname` = arg
+            )
+          else:
+            replaceNodes(quote do:
+              opts.`varname`.add(arg)
+            )
           onArgBeforeCommand.add(condition, action)
         else:
           # after unlimited taker
@@ -284,9 +309,23 @@ proc mkArgHandler(builder: Builder): tuple[handler:NimNode, flusher:NimNode] =
             state.unclaimed.add(arg)
           ))
           for i in 0..comp.nargs-1:
-            fromEnd.add(replaceNodes(quote do:
-              opts.`varname`.insert(state.unclaimed.pop(), 0)
-            ))
+            if comp.default == "":
+              fromEnd.add(replaceNodes(quote do:
+                opts.`varname`.insert(state.unclaimed.pop(), 0)
+              ))
+            else:
+              fromEnd.add(
+                if comp.nargs == 1:
+                  replaceNodes(quote do:
+                    if state.unclaimed.len > 0:
+                      opts.`varname` = state.unclaimed.pop()
+                  )
+                else:
+                  replaceNodes(quote do:
+                    if state.unclaimed.len > 0:
+                      opts.`varname`.insert(state.unclaimed.pop(), 0)
+                  )
+              )
   
   # define doFlush
   for node in reversed(fromEnd):
@@ -353,6 +392,8 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
       state.nestlevel.inc()
       var opts = `OptsIdent`()
       block:
+        HEYsetdefaults
+      block:
         HEYaddRunProc
       while not state.isdone:
         var arg = state.current
@@ -384,6 +425,8 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
   var opts = parse_seq_string.getInsertionPoint("HEYoptions")
   var args = parse_seq_string.getInsertionPoint("HEYarg")
   var flushUnclaimed = parse_seq_string.getInsertionPoint("HEYflush")
+  parse_seq_string.getInsertionPoint("HEYsetdefaults").add(builder.mkDefaultSetter())
+  
   var arghandlers = mkArgHandler(builder)
   flushUnclaimed.add(arghandlers.flusher)
   args.add(arghandlers.handler)
@@ -408,7 +451,6 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
     result.add(parse_cli)
 
 proc genRunProc(builder: var Builder): NimNode {.compileTime.} =
-  let OptsIdent = builder.optsIdent()
   let ParserIdent = builder.parserIdent()
   result = newStmtList()
   result.add(replaceNodes(quote do:
@@ -491,7 +533,7 @@ proc flag*(opt1: string, opt2: string = "", help:string = "") {.compileTime.} =
   
   builderstack[^1].add(c)
 
-proc option*(opt1: string, opt2: string = "", help:string="") =
+proc option*(opt1: string, opt2: string = "", help:string="", default:string="") =
   ## Add an option to the argument parser.  The longest
   ## named flag will be used as the name on the parsed
   ## result.
@@ -504,6 +546,7 @@ proc option*(opt1: string, opt2: string = "", help:string="") =
   var c = Component()
   c.kind = Option
   c.help = help
+  c.default = default
 
   if opt1.startsWith("--"):
     c.shortflag = opt2
@@ -519,7 +562,7 @@ proc option*(opt1: string, opt2: string = "", help:string="") =
   
   builderstack[^1].add(c)
 
-proc arg*(varname: string, nargs=1, help:string="") =
+proc arg*(varname: string, nargs=1, help:string="", default:string="") =
   ## Add an argument to the argument parser.
   ##
   ## .. code-block:: nim
@@ -528,11 +571,14 @@ proc arg*(varname: string, nargs=1, help:string="") =
   ##      arg("more", nargs=-1)
   ##
   ##    assert p.parse("cameo").name == "cameo"
+  ##
+  ##
   var c = Component()
   c.kind = Argument
   c.help = help
   c.varname = varname
   c.nargs = nargs
+  c.default = default
   builderstack[^1].add(c)
 
 proc help*(content: string) {.compileTime.} =

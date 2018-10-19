@@ -59,7 +59,7 @@ p.run(@["eat", "apple"])
 - [ ] render docs
 - [ ] --help special case
 - [ ] --version
-- [ ] default values
+- [X] default values
 - [ ] raise exception on invalid args
 - [ ] Handle `--arg val --nother-arg val2` (spaces instead of `=` or `:` between key and value)
 - [ ] Access to object types (so you can do `handleOpts(opts: TheGeneratedType) = ...`)
