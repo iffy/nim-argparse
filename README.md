@@ -54,7 +54,9 @@ p.run(@["eat", "apple"])
 - [X] help argument
 - [X] arguments
 - [X] variable args
-- [ ] sub commands (git-style)
+- [X] sub commands (git-style)
+- [ ] sub commands access parent opts
+- [ ] render docs
 - [ ] --help special case
 - [ ] --version
 - [ ] default values
@@ -62,3 +64,4 @@ p.run(@["eat", "apple"])
 - [ ] Handle `--arg val --nother-arg val2` (spaces instead of `=` or `:` between key and value)
 - [ ] Access to object types (so you can do `handleOpts(opts: TheGeneratedType) = ...`)
 - [X] Make it so you don't have to use a wrapping macro
+- [ ] parse strings into sequences (shlex-like)

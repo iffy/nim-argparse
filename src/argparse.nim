@@ -11,6 +11,7 @@ import argparse/macrohelp
 
 export parseopt
 export os
+export strutils
 
 type
   ComponentKind = enum
@@ -136,7 +137,7 @@ proc genHelp(builder: Builder):string {.compileTime.} =
       commands.add(formatOption(leftside, subbuilder.help.firstline, opt_width=10))
       commands.add("\L")
   
-  if usage_parts.len > 0:
+  if usage_parts.len > 0 or opts != "":
     result.add("Usage:\L")
     result.add("  ")
     result.add(builder.name & " ")
@@ -409,10 +410,17 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
 proc genRunProc(builder: var Builder): NimNode {.compileTime.} =
   let OptsIdent = builder.optsIdent()
   let ParserIdent = builder.parserIdent()
-  result = replaceNodes(quote do:
+  result = newStmtList()
+  result.add(replaceNodes(quote do:
     proc run(p:`ParserIdent`, orig_input:seq[string]) {.used.} =
       discard p.parse(orig_input, alsorun=true)
-  )
+  ))
+  when declared(commandLineParams):
+    # parse()
+    result.add(replaceNodes(quote do:
+      proc run(p:`ParserIdent`) {.used.} =
+        p.run(commandLineParams())
+    ))
 
 proc mkParser(name: string, content: proc(), instantiate:bool = true): NimNode {.compileTime.} =
   ## Where all the magic starts
