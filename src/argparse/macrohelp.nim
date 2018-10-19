@@ -4,7 +4,7 @@ import strutils
 import sequtils
 
 type
-  InsertableTree = object
+  UnfinishedObjectTypeDef* = object
     root*: NimNode
     insertion*: NimNode
   
@@ -16,6 +16,10 @@ type
   UnfinishedIf = object
     root*: NimNode
     elsebody*: NimNode
+  
+  InsertionPoint = object
+    parent: NimNode
+    child: NimNode
 
 
 proc replaceNodes*(ast: NimNode): NimNode =
@@ -25,8 +29,10 @@ proc replaceNodes*(ast: NimNode): NimNode =
   ## ASTs without symbol resolution having been done already.
   proc inspect(node: NimNode): NimNode =
     case node.kind:
-    of {nnkIdent, nnkSym}:
-      return ident($node)
+    of nnkIdent:
+      return ident(node.strVal)
+    of nnkSym:
+      return ident(node.strVal)
     of nnkEmpty:
       return node
     of nnkLiterals:
@@ -40,7 +46,7 @@ proc replaceNodes*(ast: NimNode): NimNode =
       return rTree
   result = inspect(ast)
 
-proc parentOf*(node: NimNode, name:string): NimNode =
+proc parentOf*(node: NimNode, name:string): InsertionPoint =
   ## Recursively search for an ident node of the given name and return
   ## the parent of that node.
   var stack:seq[NimNode] = @[node]
@@ -48,18 +54,30 @@ proc parentOf*(node: NimNode, name:string): NimNode =
     var n = stack.pop()
     for child in n.children:
       if child.kind == nnkIdent and child.strVal == name:
-        return n
+        return InsertionPoint(parent:n, child:child)
       else:
         stack.add(child)
   error("node not found: " & name)
 
-proc getInsertionPoint*(node: var NimNode, name:string): NimNode =
-  ## Return the parent node of the ident node named `name`
-  ## with the parent node emptied out, first.
-  result = node.parentOf(name)
-  result.del(n = result.len)
+proc getInsertionPoint*(node: var NimNode, name:string): InsertionPoint =
+  ## Return a node pair that you can replace with something else
+  return node.parentOf(name)
 
-proc newObjectTypeDef*(name: string): InsertableTree {.compileTime.} =
+proc clear*(point: InsertionPoint):int =
+  var i = 0
+  for child in point.parent.children:
+    if child == point.child:
+      break
+    inc(i)
+  point.parent.del(i, 1)
+  result = i
+
+proc replace*(point: InsertionPoint, newnode: NimNode) =
+  ## Replace the child
+  let i = point.clear()
+  point.parent.insert(i, newnode)
+
+proc newObjectTypeDef*(name: string, isref:bool = false): UnfinishedObjectTypeDef {.compileTime.} =
   ## Creates:
   ## root ->
   ##            type
@@ -67,20 +85,23 @@ proc newObjectTypeDef*(name: string): InsertableTree {.compileTime.} =
   ## insertion ->    ...
   ##
   var insertion = newNimNode(nnkRecList)
+  var objectty = nnkObjectTy.newTree(
+    newEmptyNode(),
+    newEmptyNode(),
+    insertion,
+  )
+  if isref:
+    objectty = nnkRefTy.newTree(objectty)
   var root = newNimNode(nnkTypeSection).add(
     newNimNode(nnkTypeDef).add(
       ident(name),
       newEmptyNode(),
-      newNimNode(nnkObjectTy).add(
-        newEmptyNode(),
-        newEmptyNode(),
-        insertion,
-      )
+      objectty
     )
   )
-  result = InsertableTree(root: root, insertion: insertion)
+  result = UnfinishedObjectTypeDef(root: root, insertion: insertion)
 
-proc addObjectField*(objtypedef: InsertableTree, name: string, kind: NimNode) {.compileTime.} =
+proc addObjectField*(objtypedef: UnfinishedObjectTypeDef, name: string, kind: NimNode) {.compileTime.} =
   ## Adds a field to an object definition created by newObjectTypeDef
   objtypedef.insertion.add(newIdentDefs(
     newNimNode(nnkPostfix).add(
@@ -91,9 +112,12 @@ proc addObjectField*(objtypedef: InsertableTree, name: string, kind: NimNode) {.
     newEmptyNode(),
   ))
 
-proc addObjectField*(objtypedef: InsertableTree, name: string, kind: string) {.compileTime.} =
+proc addObjectField*(objtypedef: UnfinishedObjectTypeDef, name: string, kind: string, isref: bool = false) {.compileTime.} =
   ## Adds a field to an object definition created by newObjectTypeDef
-  addObjectField(objtypedef, name, ident(kind))
+  if isref:
+    addObjectField(objtypedef, name, nnkRefTy.newTree(ident(kind)))
+  else:
+    addObjectField(objtypedef, name, ident(kind))
 
 proc newCaseStatement*(key: NimNode):UnfinishedCase =
   result = UnfinishedCase()

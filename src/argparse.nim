@@ -30,22 +30,27 @@ type
     of Argument:
       nargs*: int
   
-  Builder = object
+  Builder = ref BuilderObj
+  BuilderObj {.acyclic.} = object
     name*: string
     help*: string
     symbol*: string
     components*: seq[Component]
+    parent*: Builder
+    alltypes*: UnfinishedObjectTypeDef
     children*: seq[Builder]
-    node*: NimNode
+    typenode*: NimNode
+    bodynode*: NimNode
     runProcBodies*: seq[NimNode]
   
-  ParsingState* = object
+  ParsingState*[T] = object
     input*: seq[string]
     i*: int
     args_encountered*: int
     unclaimed*: seq[string]
     runProcs*: seq[proc()]
     nestlevel*: int
+    allopts*: T
 
 type
   ParseResult[T] = tuple[state: ParsingState, opts: T]
@@ -58,6 +63,12 @@ proc newBuilder(name: string): Builder {.compileTime.} =
   result = Builder()
   result.name = name
   result.symbol = genSym(nskLet, "argparse").toStrLit.strVal
+
+proc alloptsIdent(builder: Builder): NimNode =
+  if builder.parent != nil:
+    result = builder.parent.alloptsIdent()
+  else:
+    result = ident("AllOpts"&builder.symbol)
 
 proc optsIdent(builder: Builder): NimNode =
   result = ident("Opts"&builder.symbol)
@@ -172,6 +183,10 @@ proc genHelpProc(builder: Builder): NimNode {.compileTime.} =
 
 proc genReturnType(builder: var Builder): NimNode {.compileTime.} =
   var objdef = newObjectTypeDef(builder.optsIdent.strVal)
+  if builder.parent != nil:
+    # Add the parent Opts type to this one
+    objdef.addObjectField("parentOpts", builder.parent.optsIdent())
+
   for comp in builder.components:
     case comp.kind
     of Flag:
@@ -186,6 +201,13 @@ proc genReturnType(builder: var Builder): NimNode {.compileTime.} =
           ident("seq"),
           ident("string"),
         ))
+  result = objdef.root
+
+proc genReturnMapping(builder: var Builder): NimNode {.compileTime.} =
+  var objdef = newObjectTypeDef(builder.alloptsIdent.strVal)
+  objdef.addObjectField(builder.optsIdent.strVal, builder.optsIdent.strVal)
+  for child in builder.children:
+    objdef.addObjectField(child.optsIdent.strVal, child.optsIdent.strVal)
   result = objdef.root
 
 proc mkFlagHandler(builder: Builder): NimNode =
@@ -385,16 +407,17 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
   result = newStmtList()
   let OptsIdent = builder.optsIdent()
   let ParserIdent = builder.parserIdent()
+  let AllOptsIdent = builder.alloptsIdent()
 
   # parse(seq[string])
   var parse_seq_string = replaceNodes(quote do:
     proc parse(p:`ParserIdent`, state:var ParsingState, alsorun:bool):`OptsIdent` {.used.} =
       state.nestlevel.inc()
       var opts = `OptsIdent`()
-      block:
-        HEYsetdefaults
-      block:
-        HEYaddRunProc
+      echo "opts", opts
+      state.allopts.`OptsIdent` = opts
+      HEYsetdefaults
+      HEYaddRunProc
       while not state.isdone:
         var arg = state.current
         if arg.startsWith("-"):
@@ -403,15 +426,14 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
             state.replace(parts[0])
             state.insertArg(parts[1])
             arg = state.current
-          block:
-            HEYoptions
+          HEYoptions
         else:
-          block:
-            HEYarg
+          HEYarg
           state.args_encountered.inc()
         state.inc()
-      block:
-        HEYflush
+      HEYflush
+      HEYparentOpts
+      echo "setting state.allopts.xxx = ", opts
       if alsorun and state.nestlevel == 1:
         for p in state.runProcs:
           p()
@@ -419,26 +441,40 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
       return opts
     proc parse(p:`ParserIdent`, input: seq[string], alsorun:bool = false):`OptsIdent` {.used.} =
       var varinput = input
-      var state = ParsingState(input: varinput)
+      var state = ParsingState[`AllOptsIdent`](input: varinput)
       return parse(p, state, alsorun)
   )
   var opts = parse_seq_string.getInsertionPoint("HEYoptions")
   var args = parse_seq_string.getInsertionPoint("HEYarg")
   var flushUnclaimed = parse_seq_string.getInsertionPoint("HEYflush")
-  parse_seq_string.getInsertionPoint("HEYsetdefaults").add(builder.mkDefaultSetter())
+  parse_seq_string.getInsertionPoint("HEYsetdefaults").replace(builder.mkDefaultSetter())
   
   var arghandlers = mkArgHandler(builder)
-  flushUnclaimed.add(arghandlers.flusher)
-  args.add(arghandlers.handler)
-  opts.add(mkFlagHandler(builder))
+  flushUnclaimed.replace(arghandlers.flusher)
+  args.replace(arghandlers.handler)
+  opts.replace(mkFlagHandler(builder))
 
-  var addRunProc = parse_seq_string.getInsertionPoint("HEYaddRunProc")
+  let parentOptsProc = parse_seq_string.getInsertionPoint("HEYparentOpts")
+  if builder.parent != nil:
+    let ParentOptsIdent = builder.parent.optsIdent()
+    parentOptsProc.replace(
+      replaceNodes(quote do:
+        opts.parentOpts = state.allopts.`ParentOptsIdent`
+        # proc parentOpts(opts:`OptsIdent`):`ParentOptsIdent` =
+        #   return state.allopts.`ParentOptsIdent`
+      )
+    )
+  else:
+    discard parentOptsProc.clear()
+
+  var addRunProcs = newStmtList()
   for p in builder.runProcBodies:
-    addRunProc.add(quote do:
+    addRunProcs.add(quote do:
       state.runProcs.add(proc() =
         `p`
       )
     )
+  parse_seq_string.getInsertionPoint("HEYaddRunProc").replace(addRunProcs)
 
   result.add(parse_seq_string)
 
@@ -464,41 +500,53 @@ proc genRunProc(builder: var Builder): NimNode {.compileTime.} =
         p.run(commandLineParams())
     ))
 
-proc mkParser(name: string, content: proc(), instantiate:bool = true): NimNode {.compileTime.} =
+proc mkParser(name: string, content: proc(), instantiate:bool = true): tuple[types: NimNode, body:NimNode] {.compileTime.} =
   ## Where all the magic starts
-  result = newStmtList()
   builderstack.add(newBuilder(name))
   content()
 
   var builder = builderstack.pop()
-  builder.node = result
+  builder.typenode = newStmtList()
+  builder.bodynode = newStmtList()
+  result = (types: builder.typenode, body: builder.bodynode)
+
   if builderstack.len > 0:
+    # subcommand
     builderstack[^1].add(builder)
+    builder.parent = builderstack[^1]
+  else:
+    # top-most parser
+    builder.alltypes = newObjectTypeDef(builder.alloptsIdent.strVal)
 
   # Create the parser return type
-  result.add(builder.genReturnType())
+  builder.typenode.add(builder.genReturnType())
 
   # Create the parser type
   let parserIdent = builder.parserIdent()
-  result.add(replaceNodes(quote do:
+  builder.typenode.add(replaceNodes(quote do:
     type
       `parserIdent` = object
   ))
 
   # Add child definitions
   for child in builder.children:
-    result.add(child.node)
+    builder.typenode.add(child.typenode)
+    builder.bodynode.add(child.bodynode)
+  
+  if builder.parent == nil:
+    # Create the object that will hold all return types
+    builder.typenode.add(builder.genReturnMapping())
 
   # Create the help proc
-  result.add(builder.genHelpProc())
+  builder.bodynode.add(builder.genHelpProc())
   # Create the parse procs
-  result.add(builder.genParseProcs())
+  builder.bodynode.add(builder.genParseProcs())
   # Create the run proc
-  result.add(builder.genRunProc())
+  builder.bodynode.add(builder.genRunProc())
 
   # Instantiate a parser and return an instance
   if instantiate:
-    result.add(replaceNodes(quote do:
+    builder.bodynode.add(replaceNodes(quote do:
       var parser = `parserIdent`()
       parser
     ))
@@ -612,7 +660,11 @@ template newParser*(name: string, content: untyped): untyped =
   ##      flag("-a")
   ##    assert p.parse("-a").a == true
   macro tmpmkParser(): untyped =
-    mkParser(name):
+    var res = mkParser(name):
       content
+    newStmtList(
+      res.types,
+      res.body,
+    )
   tmpmkParser()
 
