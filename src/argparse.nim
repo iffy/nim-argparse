@@ -49,7 +49,6 @@ type
     args_encountered*: int
     unclaimed*: seq[string]
     runProcs*: seq[proc()]
-    nestlevel*: int
 
 type
   ParseResult[T] = tuple[state: ParsingState, opts: T]
@@ -397,7 +396,6 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
   # parse(seq[string])
   var parse_seq_string = replaceNodes(quote do:
     proc parse(p:`ParserIdent`, state:var ParsingState, alsorun:bool, EXTRA):`OptsIdent` {.used.} =
-      state.nestlevel.inc()
       var opts = `OptsIdent`()
       HEYparentOpts
       HEYsetdefaults
@@ -416,10 +414,7 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
           state.args_encountered.inc()
         state.inc()
       HEYflush
-      if alsorun and state.nestlevel == 1:
-        for p in state.runProcs:
-          p()
-      state.nestlevel.dec()
+      HEYrun
       return opts
   )
 
@@ -435,6 +430,7 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
   var opts = parse_seq_string.getInsertionPoint("HEYoptions")
   var args = parse_seq_string.getInsertionPoint("HEYarg")
   var flushUnclaimed = parse_seq_string.getInsertionPoint("HEYflush")
+  var runsection = parse_seq_string.getInsertionPoint("HEYrun")
   parse_seq_string.getInsertionPoint("HEYsetdefaults").replace(builder.mkDefaultSetter())
   
   var arghandlers = mkArgHandler(builder)
@@ -444,14 +440,25 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
 
   let parentOptsProc = parse_seq_string.getInsertionPoint("HEYparentOpts")
   if builder.parent != nil:
+    # Subcommand
     let ParentOptsIdent = builder.parent.optsIdent()
     parentOptsProc.replace(
       replaceNodes(quote do:
         opts.parentOpts = parentOpts
       )
     )
+    discard runsection.clear()
   else:
+    # Top-most parser
     discard parentOptsProc.clear()
+    runsection.replace(
+      replaceNodes(quote do:
+        if alsorun:
+          for p in state.runProcs:
+            p()
+      )
+    )
+
 
   var addRunProcs = newStmtList()
   for p in builder.runProcBodies:
