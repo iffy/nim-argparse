@@ -33,10 +33,12 @@ You can run subcommands
 import argparse
 
 var p = newParser("My Program"):
+  flag("--dryrun")
   command "move":
     arg("howmuch")
     run:
       echo "moving", opts.howmuch
+      echo $opts.parentOpts.dryrun
   command "eat":
     arg("what")
     run:
@@ -55,7 +57,7 @@ p.run(@["eat", "apple"])
 - [X] arguments
 - [X] variable args
 - [X] sub commands (git-style)
-- [ ] sub commands access parent opts
+- [X] sub commands access parent opts
 - [ ] render docs
 - [ ] --help special case
 - [ ] --version

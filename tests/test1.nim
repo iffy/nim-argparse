@@ -201,17 +201,12 @@ suite "commands":
   test "access parent":
     var res:string = ""
 
-    expandMacros:
-      var p = newParser("Nested"):
+    var p = newParser("Nested"):
+      option("-a")
+      command "sub":
         option("-a")
         run:
-          echo "parent running with opts: ", opts
-        command "sub":
-          option("-a")
-          run:
-            echo "child running with opts: ", opts
-            echo "parentOpts", opts
-            # res = &"{opts.parentOpts().a},{opts.a}" 
+          res = &"{opts.parentOpts.a},{opts.a}" 
     
     p.run(shlex"-a parent sub -a child")
     check res == "parent,child"

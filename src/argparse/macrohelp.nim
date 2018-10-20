@@ -18,8 +18,8 @@ type
     elsebody*: NimNode
   
   InsertionPoint = object
-    parent: NimNode
-    child: NimNode
+    parent*: NimNode
+    child*: NimNode
 
 
 proc replaceNodes*(ast: NimNode): NimNode =
@@ -58,6 +58,19 @@ proc parentOf*(node: NimNode, name:string): InsertionPoint =
       else:
         stack.add(child)
   error("node not found: " & name)
+
+proc parentOf*(node: NimNode, child:NimNode): InsertionPoint =
+  ## Recursively search for an ident node of the given name and return
+  ## the parent of that node.
+  var stack:seq[NimNode] = @[node]
+  while stack.len > 0:
+    var n = stack.pop()
+    for c in n.children:
+      if c == child:
+        return InsertionPoint(parent:n, child:c)
+      else:
+        stack.add(c)
+  error("node not found: " & child.repr)
 
 proc getInsertionPoint*(node: var NimNode, name:string): InsertionPoint =
   ## Return a node pair that you can replace with something else
