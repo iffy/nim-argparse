@@ -85,8 +85,11 @@ proc genHelp(builder: Builder):string {.compileTime.} =
   proc firstline(s:string):string =
     s.split("\L")[0]
 
-  proc formatOption(flags:string, helptext:string, opt_width = 26, max_width = 100):string =
+  proc formatOption(flags:string, helptext:string, defaultval:string = "", opt_width = 26, max_width = 100):string =
     result.add("  " & flags)
+    var helptext = helptext
+    if defaultval != "":
+      helptext.add(&" (default: {defaultval})")
     if helptext != "":
       if flags.len > opt_width:
         result.add("\L")
@@ -120,25 +123,27 @@ proc genHelp(builder: Builder):string {.compileTime.} =
       if comp.longflag != "":
         flag_parts.add(comp.longflag)
       var flags = flag_parts.join(", ") & "=" & comp.varname.toUpper()
-      opts.add(formatOption(flags, comp.help))
+      opts.add(formatOption(flags, comp.help, defaultval = comp.default))
       opts.add("\L")
     of Argument:
       var leftside:string
       if comp.nargs == 1:
         leftside = comp.varname
+        if comp.default != "":
+          leftside = &"[{comp.varname}]"
       elif comp.nargs == -1:
         leftside = &"[{comp.varname} ...]"
       else:
         leftside = (&"{comp.varname} ").repeat(comp.nargs)
       usage_parts.add(leftside)
-      args.add(formatOption(leftside, comp.help, opt_width=10))
+      args.add(formatOption(leftside, comp.help, defaultval = comp.default, opt_width=16))
       args.add("\L")
   
   if builder.children.len > 0:
     usage_parts.add("COMMAND")
     for subbuilder in builder.children:
       var leftside = subbuilder.name
-      commands.add(formatOption(leftside, subbuilder.help.firstline, opt_width=10))
+      commands.add(formatOption(leftside, subbuilder.help.firstline, opt_width=16))
       commands.add("\L")
   
   if usage_parts.len > 0 or opts != "":
