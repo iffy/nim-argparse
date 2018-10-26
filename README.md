@@ -1,6 +1,6 @@
 # argparse
 
-![Build status](https://travis-ci.org/iffy/nim-argparse.svg?branch=master)
+[![Build Status](https://travis-ci.org/iffy/nim-argparse.svg?branch=master)](https://travis-ci.org/iffy/nim-argparse)
 
 WIP command line argument parsing library.  It generates the parser at compile time so that the object returned by `parse` has a well-defined type.
 
