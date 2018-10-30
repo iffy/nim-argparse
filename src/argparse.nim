@@ -49,11 +49,14 @@ type
     args_encountered*: int
     unclaimed*: seq[string]
     runProcs*: seq[proc()]
+  
+  UsageError* = object of CatchableError
 
 type
   ParseResult[T] = tuple[state: ParsingState, opts: T]
 
-
+template throwUsageError*(message:string) =
+  raise newException(UsageError, message)
 
 var builderstack {.compileTime.} : seq[Builder] = @[]
 
@@ -207,7 +210,7 @@ proc mkFlagHandler(builder: Builder): NimNode =
   ## result = options specific to the builder
   var cs = newCaseStatement("arg")
   cs.addElse(replaceNodes(quote do:
-    echo "unknown option: " & state.current
+    throwUsageError("unknown option: " & state.current)
   ))
   for comp in builder.components:
     case comp.kind
@@ -357,6 +360,10 @@ proc mkArgHandler(builder: Builder): tuple[handler:NimNode, flusher:NimNode] =
       let subparser = `ParserIdent`()
       discard subparser.parse(state, alsorun, opts)
     ))
+  if builder.children.len > 0:
+    onPossibleCommand.addElse(replaceNodes(quote do:
+      state.unclaimed.add(arg)
+    ))
 
   
   var mainIf = newIfStatement()
@@ -419,6 +426,8 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
           state.args_encountered.inc()
         state.inc()
       HEYflush
+      if state.unclaimed.len > 0:
+        throwUsageError("Unknown arguments: " & $state.unclaimed)
       HEYrun
       return opts
   )

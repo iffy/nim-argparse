@@ -58,6 +58,13 @@ suite "flags":
     
     check "Some apples" in p.help
     check "More help" in p.help
+  
+  test "unknown flag":
+    var p = newParser("prog"):
+      flag("-a")
+    expect UsageError:
+      discard p.parse(shlex"-b")
+
 
 suite "options":
   test "short options":
@@ -79,6 +86,12 @@ suite "options":
       option("--category", default="pinball")
     check p.parse(shlex"").category == "pinball"
     check p.parse(shlex"--category foo").category == "foo"
+  
+  test "unknown option":
+    var p = newParser("prog"):
+      option("-a")
+    expect UsageError:
+      discard p.parse(shlex"-b")
 
 suite "args":
   test "single, required arg":
@@ -210,4 +223,17 @@ suite "commands":
     
     p.run(shlex"-a parent sub -a child")
     check res == "parent,child"
+  
+  test "unknown command":
+    var res:string = ""
+
+    var p = newParser("prog"):
+      command "sub":
+        option("-a")
+        run:
+          res = "did run"
+    expect UsageError:
+      discard p.parse(shlex"madeupcommand")
+    
+    check res == ""
 
