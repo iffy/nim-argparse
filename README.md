@@ -4,9 +4,7 @@
 
 WIP command line argument parsing library.  It generates the parser at compile time so that the object returned by `parse` has a well-defined type.
 
-# Usage
-
-Define an argument parser with `newParser` then use it to parse command line arguments.  If you call `parse` without any arguments, it will parse the arguments passed in to the program.
+# Example
 
 ```nim
 import argparse
@@ -18,38 +16,17 @@ var p = newParser("My Program"):
   arg("name")
   arg("others", nargs=-1)
 
-assert p.parse(@["-a", "hi"]).apple == true
-assert p.parse(@["-b", "hi"]).b == true
-assert p.parse(@["--apple", "hi"]).b == false
-assert p.parse(@["--apple", "hi"]).apple == true
-assert p.parse(@["-o=foo", "hi"]).output == "foo"
-assert p.parse(@["hi"]).name == "hi"
-assert p.parse(@["hi", "my", "friends"]).others == @["my", "friends"]
+var opts = p.parse(@["--apple", "-o=foo", "hi"])
+assert opts.apple == true
+assert opts.b == false
+assert opts.output == "foo"
+assert opts.name == "hi"
+assert opts.others == @[]
 
 echo p.help
 ```
 
-You can run subcommands
-
-```nim
-import argparse
-
-var p = newParser("My Program"):
-  flag("--dryrun")
-  command("move"):
-    arg("howmuch")
-    run:
-      echo "moving", opts.howmuch
-      echo $opts.parentOpts.dryrun
-  command("eat"):
-    arg("what")
-    run:
-      echo "you ate ", opts.what
-
-p.run(@["move", "10"])
-p.run(@["eat", "apple"])
-```
-
+[See the docs for more info](https://www.iffycan.com/nim-argparse/argparse.html)
 
 # TODO
 
