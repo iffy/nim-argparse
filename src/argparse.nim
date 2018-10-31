@@ -1,5 +1,60 @@
-## Some module documentation.
+## argparse is an explicit, strongly-typed command line argument
+## parser.
 ##
+## Because this module makes heavy use of macros, there are several exported procs, types and templates that aren't intended for direct use but which are exported because the macros make use of them.  The documentation and examples should make the distinction clear.
+##
+## Use ``newParser`` to create a parser.  Within the body
+## of the parser use the following:
+##
+## - ``flag`` - for boolean flags (e.g. ``--dryrun``)
+## - ``option`` - for options which have arguments (e.g. ``--output foo``)
+## - ``arg`` - for positional arguments (e.g. ``file1 file2``)
+## - ``command`` - for sub commands
+## - ``run`` - to define code to run when the parser is used in run mode rather than parse mode.  See the documentation for more information.
+## - ``help`` - to define a help string for the parser/subcommand
+##
+## The specials variables ``opts`` and ``opts.parentOpts`` are available within ``run`` blocks.
+##
+## If ``Parser.parse()`` and ``Parser.run()`` are called without arguments, they use the arguments from the command line.
+
+runnableExamples:
+  var p = newParser("My Program"):
+    help("A description of this program")
+    flag("-h", "--help")
+    flag("-n", "--dryrun")
+    option("-o", "--output", help="Write output to this file", default="somewhere.txt")
+    arg("input")
+  
+  let opts = p.parse(@["-n", "--output", "another.txt", "cranberry"])
+  assert opts.dryrun == true
+  assert opts.output == "another.txt"
+  assert opts.input == "cranberry"
+  if opts.help:
+    echo p.help
+
+runnableExamples:
+  var res:string
+  var p = newParser("Something"):
+    flag("-h", "--help")
+    flag("-n", "--dryrun")
+    run:
+      if opts.help:
+        echo p.help
+    command("ls"):
+      run:
+        res = "did ls"
+    command("run"):
+      option("-c", "--command")
+      run:
+        if opts.parentOpts.dryrun:
+          res = "would have run: " & opts.command
+        else:
+          res = "ran " & opts.command
+  
+  p.run(@["-n", "run", "--command", "something"])
+  assert res == "would have run: something"
+  
+
 import sequtils
 import strutils
 import algorithm
@@ -56,6 +111,7 @@ type
   ParseResult[T] = tuple[state: ParsingState, opts: T]
 
 template throwUsageError*(message:string) =
+  ## INTERNAL
   raise newException(UsageError, message)
 
 var builderstack {.compileTime.} : seq[Builder] = @[]
@@ -254,6 +310,7 @@ proc mkDefaultSetter(builder: Builder): NimNode =
       discard
 
 proc popleft*[T](s: var seq[T]):T =
+  ## INTERNAL: pop from the front of a seq
   result = s[0]
   s.delete(0, 0)
 
@@ -382,22 +439,24 @@ proc mkArgHandler(builder: Builder): tuple[handler:NimNode, flusher:NimNode] =
   result = (handler: handler, flusher: doFlush)
 
 proc isdone*(state: var ParsingState):bool =
+  ## INTERNAL: true if the parser is done
   state.i >= state.input.len
 
 proc inc*(state: var ParsingState) =
+  ## INTERNAL: move to the next token
   if not state.isdone:
     inc(state.i)
 
 proc current*(state: ParsingState):string =
-  ## Return the current argument to be processed
+  ## INTERNAL: Return the current argument to be processed
   state.input[state.i]
 
 proc replace*(state: var ParsingState, val: string) =
-  ## Replace the current argument with another one
+  ## INTERNAL: Replace the current argument with another one
   state.input[state.i] = val
 
 proc insertArg*(state: var ParsingState, val: string) =
-  ## Insert an argument after the current argument
+  ## INTERNAL: Insert an argument after the current argument
   state.input.insert(val, state.i+1)
 
 proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
@@ -568,10 +627,9 @@ proc flag*(opt1: string, opt2: string = "", help:string = "") {.compileTime.} =
   ## Add a boolean flag to the argument parser.  The boolean
   ## will be available on the parsed options object as the
   ## longest named flag.
-  ##
-  ## .. code-block:: nim
-  ##   newParser("Some Thing"):
-  ##     flag("-n", "--dryrun", help="Don't actually run")
+  runnableExamples:
+    var p = newParser("Some Thing"):
+      flag("-n", "--dryrun", help="Don't actually run")
   var c = Component()
   c.kind = Flag
   c.help = help
@@ -595,11 +653,11 @@ proc option*(opt1: string, opt2: string = "", help:string="", default:string="")
   ## named flag will be used as the name on the parsed
   ## result.
   ##
-  ## .. code-block:: nim
-  ##    var p = newParser("Command"):
-  ##      option("-a", "--apple", help="Name of apple")
-  ##
-  ##    assert p.parse("-a 5").apple == "5"
+  runnableExamples:
+    var p = newParser("Command"):
+      option("-a", "--apple", help="Name of apple")
+    assert p.parse(@["-a", "5"]).apple == "5"
+
   var c = Component()
   c.kind = Option
   c.help = help
@@ -622,14 +680,12 @@ proc option*(opt1: string, opt2: string = "", help:string="", default:string="")
 proc arg*(varname: string, nargs=1, help:string="", default:string="") =
   ## Add an argument to the argument parser.
   ##
-  ## .. code-block:: nim
-  ##    var p = newParser("Command"):
-  ##      arg("name", help="Name of apple")
-  ##      arg("more", nargs=-1)
-  ##
-  ##    assert p.parse("cameo").name == "cameo"
-  ##
-  ##
+  runnableExamples:
+    var p = newParser("Command"):
+      arg("name", help = "Name of apple")
+      arg("more", nargs = -1)
+    assert p.parse(@["cameo"]).name == "cameo"
+
   var c = Component()
   c.kind = Argument
   c.help = help
@@ -641,11 +697,12 @@ proc arg*(varname: string, nargs=1, help:string="", default:string="") =
 proc help*(content: string) {.compileTime.} =
   ## Add help to a parser or subcommand.
   ##
-  ## .. code-block:: nim
-  ##    var p = newParser("Some Program"):
-  ##      help("Some helpful description")
-  ##      command "dostuff":
-  ##        help("More helpful information")
+  runnableExamples:
+    var p = newParser("Some Program"):
+      help("Some helpful description")
+      command("dostuff"):
+        help("More helpful information")
+    echo p.help
   builderstack[^1].help = content
 
 proc performRun(body: NimNode):untyped {.compileTime.} =
@@ -654,20 +711,37 @@ proc performRun(body: NimNode):untyped {.compileTime.} =
   builderstack[^1].runProcBodies.add(body)
 
 template run*(content: untyped): untyped =
+  ## Specify code that should run when this command/sub-command is reached.
+  runnableExamples:
+    var p = newParser("Some Program"):
+      command("dostuff"):
+        run:
+          echo "Actually do stuff"
+
+    p.run(@["dostuff"])
+
   performRun(replaceNodes(quote(content)))
 
 proc command*(name: string, content: proc()) {.compileTime.} =
   ## Add a sub-command to the argument parser.
   ##
+  runnableExamples:
+    var p = newParser("Some Program"):
+      command("dostuff"):
+        run:
+          echo "Actually do stuff"
+    p.run(@["dostuff"])
+
   discard mkParser(name, content, instantiate = false)
 
 template newParser*(name: string, content: untyped): untyped =
   ## Entry point for making command-line parsers.
   ##
-  ## .. code-block:: nim
-  ##    var p = newParser("My program"):
-  ##      flag("-a")
-  ##    assert p.parse("-a").a == true
+  runnableExamples:
+    var p = newParser("My program"):
+      flag("-a")
+    assert p.parse(@["-a"]).a == true
+
   macro tmpmkParser(): untyped =
     var res = mkParser(name):
       content

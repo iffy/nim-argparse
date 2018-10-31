@@ -36,12 +36,12 @@ import argparse
 
 var p = newParser("My Program"):
   flag("--dryrun")
-  command "move":
+  command("move"):
     arg("howmuch")
     run:
       echo "moving", opts.howmuch
       echo $opts.parentOpts.dryrun
-  command "eat":
+  command("eat"):
     arg("what")
     run:
       echo "you ate ", opts.what
