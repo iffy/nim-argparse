@@ -37,7 +37,7 @@ echo p.help
 - [X] variable args
 - [X] sub commands (git-style)
 - [X] sub commands access parent opts
-- [ ] render docs
+- [X] render docs
 - [ ] --help special case
 - [ ] --version
 - [X] default values
