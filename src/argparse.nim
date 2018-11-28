@@ -29,8 +29,6 @@ runnableExamples:
   assert opts.dryrun == true
   assert opts.output == "another.txt"
   assert opts.input == "cranberry"
-  if opts.help:
-    echo p.help
 
 runnableExamples:
   var res:string
