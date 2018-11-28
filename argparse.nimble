@@ -1,8 +1,8 @@
 # Package
 
-version       = "0.1.0"
+version       = "0.2.0"
 author        = "Matt Haggard"
-description   = "A new awesome nimble package"
+description   = "A command line argument parser"
 license       = "MIT"
 srcDir        = "src"
 

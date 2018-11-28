@@ -1256,6 +1256,8 @@ function main() {
   runProcs*: seq[proc ()]"><wbr />Parsing<wbr />State<span class="attachedType" style="visibility:hidden"></span></a></li>
   <li><a class="reference" href="#UsageError"
     title="UsageError = object of CatchableError"><wbr />Usage<wbr />Error<span class="attachedType" style="visibility:hidden"></span></a></li>
+  <li><a class="reference" href="#ShortCircuit"
+    title="ShortCircuit = object of CatchableError"><wbr />Short<wbr />Circuit<span class="attachedType" style="visibility:hidden"></span></a></li>
 
   </ul>
 </li>
@@ -1282,6 +1284,8 @@ function main() {
     title="arg(varname: string; nargs = 1; help: string = &quot;&quot;; default: string = &quot;&quot;)"><wbr />arg<span class="attachedType" style="visibility:hidden"></span></a></li>
   <li><a class="reference" href="#help%2Cstring"
     title="help(content: string)"><wbr />help<span class="attachedType" style="visibility:hidden"></span></a></li>
+  <li><a class="reference" href="#nohelpflag%2C"
+    title="nohelpflag()"><wbr />nohelpflag<span class="attachedType" style="visibility:hidden"></span></a></li>
   <li><a class="reference" href="#command%2Cstring%2Cproc%29"
     title="command(name: string; content: proc ())"><wbr />command<span class="attachedType" style="visibility:hidden"></span></a></li>
 
@@ -1314,6 +1318,7 @@ function main() {
 <li><tt class="docutils literal"><span class="pre">command</span></tt> - for sub commands</li>
 <li><tt class="docutils literal"><span class="pre">run</span></tt> - to define code to run when the parser is used in run mode rather than parse mode.  See the documentation for more information.</li>
 <li><tt class="docutils literal"><span class="pre">help</span></tt> - to define a help string for the parser/subcommand</li>
+<li><tt class="docutils literal"><span class="pre">nohelpflag</span></tt> - to disable the automatic <cite>-h/--help</cite> flag</li>
 </ul>
 <p>The specials variables <tt class="docutils literal"><span class="pre">opts</span></tt> and <tt class="docutils literal"><span class="pre">opts.parentOpts</span></tt> are available within <tt class="docutils literal"><span class="pre">run</span></tt> blocks.</p>
 <p>If <tt class="docutils literal"><span class="pre">Parser.parse()</span></tt> and <tt class="docutils literal"><span class="pre">Parser.run()</span></tt> are called without arguments, they use the arguments from the command line.</p>
@@ -1321,7 +1326,6 @@ function main() {
 <p><strong class="examples_text">Examples:</strong></p>
 <pre class="listing"><span class="Keyword">var</span> <span class="Identifier">p</span> <span class="Other">=</span> <span class="Identifier">newParser</span><span class="Other">(</span><span class="StringLit">&quot;My Program&quot;</span><span class="Other">)</span><span class="Other">:</span>
   <span class="Identifier">help</span><span class="Other">(</span><span class="StringLit">&quot;A description of this program&quot;</span><span class="Other">)</span>
-  <span class="Identifier">flag</span><span class="Other">(</span><span class="StringLit">&quot;-h&quot;</span><span class="Other">,</span> <span class="StringLit">&quot;--help&quot;</span><span class="Other">)</span>
   <span class="Identifier">flag</span><span class="Other">(</span><span class="StringLit">&quot;-n&quot;</span><span class="Other">,</span> <span class="StringLit">&quot;--dryrun&quot;</span><span class="Other">)</span>
   <span class="Identifier">option</span><span class="Other">(</span><span class="StringLit">&quot;-o&quot;</span><span class="Other">,</span> <span class="StringLit">&quot;--output&quot;</span><span class="Other">,</span> <span class="Identifier">help</span> <span class="Other">=</span> <span class="StringLit">&quot;Write output to this file&quot;</span><span class="Other">,</span>
          <span class="Identifier">default</span> <span class="Other">=</span> <span class="StringLit">&quot;somewhere.txt&quot;</span><span class="Other">)</span>
@@ -1329,17 +1333,11 @@ function main() {
 <span class="Keyword">let</span> <span class="Identifier">opts</span> <span class="Other">=</span> <span class="Identifier">p</span><span class="Other">.</span><span class="Identifier">parse</span><span class="Other">(</span><span class="Operator">@</span><span class="Other">[</span><span class="StringLit">&quot;-n&quot;</span><span class="Other">,</span> <span class="StringLit">&quot;--output&quot;</span><span class="Other">,</span> <span class="StringLit">&quot;another.txt&quot;</span><span class="Other">,</span> <span class="StringLit">&quot;cranberry&quot;</span><span class="Other">]</span><span class="Other">)</span>
 <span class="Identifier">assert</span> <span class="Identifier">opts</span><span class="Other">.</span><span class="Identifier">dryrun</span> <span class="Operator">==</span> <span class="Identifier">true</span>
 <span class="Identifier">assert</span> <span class="Identifier">opts</span><span class="Other">.</span><span class="Identifier">output</span> <span class="Operator">==</span> <span class="StringLit">&quot;another.txt&quot;</span>
-<span class="Identifier">assert</span> <span class="Identifier">opts</span><span class="Other">.</span><span class="Identifier">input</span> <span class="Operator">==</span> <span class="StringLit">&quot;cranberry&quot;</span>
-<span class="Keyword">if</span> <span class="Identifier">opts</span><span class="Other">.</span><span class="Identifier">help</span><span class="Other">:</span>
-  <span class="Identifier">echo</span> <span class="Identifier">p</span><span class="Other">.</span><span class="Identifier">help</span></pre>
+<span class="Identifier">assert</span> <span class="Identifier">opts</span><span class="Other">.</span><span class="Identifier">input</span> <span class="Operator">==</span> <span class="StringLit">&quot;cranberry&quot;</span></pre>
 <p><strong class="examples_text">Examples:</strong></p>
 <pre class="listing"><span class="Keyword">var</span> <span class="Identifier">res</span><span class="Other">:</span> <span class="Identifier">string</span>
 <span class="Keyword">var</span> <span class="Identifier">p</span> <span class="Other">=</span> <span class="Identifier">newParser</span><span class="Other">(</span><span class="StringLit">&quot;Something&quot;</span><span class="Other">)</span><span class="Other">:</span>
-  <span class="Identifier">flag</span><span class="Other">(</span><span class="StringLit">&quot;-h&quot;</span><span class="Other">,</span> <span class="StringLit">&quot;--help&quot;</span><span class="Other">)</span>
   <span class="Identifier">flag</span><span class="Other">(</span><span class="StringLit">&quot;-n&quot;</span><span class="Other">,</span> <span class="StringLit">&quot;--dryrun&quot;</span><span class="Other">)</span>
-  <span class="Identifier">run</span><span class="Other">:</span>
-    <span class="Keyword">if</span> <span class="Identifier">opts</span><span class="Other">.</span><span class="Identifier">help</span><span class="Other">:</span>
-      <span class="Identifier">echo</span> <span class="Identifier">p</span><span class="Other">.</span><span class="Identifier">help</span>
   <span class="Identifier">command</span><span class="Other">(</span><span class="StringLit">&quot;ls&quot;</span><span class="Other">)</span><span class="Other">:</span>
     <span class="Identifier">run</span><span class="Other">:</span>
       <span class="Identifier">res</span> <span class="Other">=</span> <span class="StringLit">&quot;did ls&quot;</span>
@@ -1374,6 +1372,12 @@ function main() {
 </dd>
 <a id="UsageError"></a>
 <dt><pre><a href="argparse.html#UsageError"><span class="Identifier">UsageError</span></a> <span class="Other">=</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <span class="Identifier">CatchableError</span></pre></dt>
+<dd>
+
+
+</dd>
+<a id="ShortCircuit"></a>
+<dt><pre><a href="argparse.html#ShortCircuit"><span class="Identifier">ShortCircuit</span></a> <span class="Other">=</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <span class="Identifier">CatchableError</span></pre></dt>
 <dd>
 
 
@@ -1464,6 +1468,15 @@ Add help to a parser or subcommand.
 <span class="Identifier">echo</span> <span class="Identifier">p</span><span class="Other">.</span><span class="Identifier">help</span></pre>
 
 </dd>
+<a id="nohelpflag,"></a>
+<dt><pre><span class="Keyword">proc</span> <span class="Identifier">nohelpflag</span><span class="Other">(</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">compileTime</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+Disable the -h/--help flag that is usually added.
+<p><strong class="examples_text">Examples:</strong></p>
+<pre class="listing"><span class="Keyword">var</span> <span class="Identifier">p</span> <span class="Other">=</span> <span class="Identifier">newParser</span><span class="Other">(</span><span class="StringLit">&quot;Some Thing&quot;</span><span class="Other">)</span><span class="Other">:</span>
+  <span class="Identifier">nohelpflag</span><span class="Other">(</span><span class="Other">)</span></pre>
+
+</dd>
 <a id="command,string,proc)"></a>
 <dt><pre><span class="Keyword">proc</span> <span class="Identifier">command</span><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">content</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Other">)</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">compileTime</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
@@ -1519,7 +1532,7 @@ Entry point for making command-line parsers.
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small>Made with Nim. Generated: 2018-10-31 04:58:28 UTC</small>
+        <small>Made with Nim. Generated: 2018-11-28 18:58:14 UTC</small>
       </div>
     </div>
   </div>

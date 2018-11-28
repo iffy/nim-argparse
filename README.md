@@ -38,11 +38,11 @@ echo p.help
 - [X] sub commands (git-style)
 - [X] sub commands access parent opts
 - [X] render docs
-- [ ] --help special case
+- [X] --help special case
 - [ ] --version
 - [X] default values
 - [X] raise exception on invalid args
 - [X] Handle `--arg val --nother-arg val2` (spaces instead of `=` or `:` between key and value)
-- [ ] Access to object types (so you can do `handleOpts(opts: TheGeneratedType) = ...`)
+- [ ] Access to object type names (so you can do `handleOpts(opts: TheGeneratedType) = ...`)
 - [X] Make it so you don't have to use a wrapping macro
 - [ ] parse strings into sequences (shlex-like)
