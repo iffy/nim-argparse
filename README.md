@@ -46,3 +46,5 @@ echo p.help
 - [ ] Access to object type names (so you can do `handleOpts(opts: TheGeneratedType) = ...`)
 - [X] Make it so you don't have to use a wrapping macro
 - [ ] parse strings into sequences (shlex-like)
+- [ ] fail on unknown arguments
+- [ ] let options have a list of acceptable values (choices)
