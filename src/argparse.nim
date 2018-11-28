@@ -12,6 +12,7 @@
 ## - ``command`` - for sub commands
 ## - ``run`` - to define code to run when the parser is used in run mode rather than parse mode.  See the documentation for more information.
 ## - ``help`` - to define a help string for the parser/subcommand
+## - ``nohelpflag`` - to disable the automatic `-h/--help` flag
 ##
 ## The specials variables ``opts`` and ``opts.parentOpts`` are available within ``run`` blocks.
 ##
@@ -20,7 +21,6 @@
 runnableExamples:
   var p = newParser("My Program"):
     help("A description of this program")
-    flag("-h", "--help")
     flag("-n", "--dryrun")
     option("-o", "--output", help="Write output to this file", default="somewhere.txt")
     arg("input")
@@ -35,11 +35,7 @@ runnableExamples:
 runnableExamples:
   var res:string
   var p = newParser("Something"):
-    flag("-h", "--help")
     flag("-n", "--dryrun")
-    run:
-      if opts.help:
-        echo p.help
     command("ls"):
       run:
         res = "did ls"
@@ -89,6 +85,7 @@ type
   BuilderObj {.acyclic.} = object
     name*: string
     help*: string
+    nohelpflag*: bool
     symbol*: string
     components*: seq[Component]
     parent*: Builder
@@ -106,6 +103,7 @@ type
     runProcs*: seq[proc()]
   
   UsageError* = object of CatchableError
+  ShortCircuit* = object of CatchableError
 
 type
   ParseResult[T] = tuple[state: ParsingState, opts: T]
@@ -280,9 +278,15 @@ proc mkFlagHandler(builder: Builder): NimNode =
         ofs.add(newLit(comp.longflag))
       let varname = ident(comp.varname)
       if comp.kind == Flag:
-        cs.add(ofs, replaceNodes(quote do:
-          opts.`varname` = true
-        ))
+        if comp.varname == "help__special":
+          cs.add(ofs, replaceNodes(quote do:
+            echo p.help
+            raise newException(ShortCircuit, "")
+          ))
+        else:
+          cs.add(ofs, replaceNodes(quote do:
+            opts.`varname` = true
+          ))
       elif comp.kind == Option:
         cs.add(ofs, replaceNodes(quote do:
           state.inc()
@@ -565,14 +569,18 @@ proc genRunProc(builder: var Builder): NimNode {.compileTime.} =
   result = newStmtList()
   if builder.parent == nil:
     result.add(replaceNodes(quote do:
-      proc run(p:`ParserIdent`, orig_input:seq[string]) {.used.} =
-        discard p.parse(orig_input, alsorun=true)
+      proc run(p:`ParserIdent`, orig_input:seq[string], quitOnHelp:bool = true) {.used.} =
+        try:
+          discard p.parse(orig_input, alsorun=true)
+        except ShortCircuit:
+          if quitOnHelp:
+            quit(0)
     ))
     when declared(commandLineParams):
       # parse()
       result.add(replaceNodes(quote do:
-        proc run(p:`ParserIdent`) {.used.} =
-          p.run(commandLineParams())
+        proc run(p:`ParserIdent`, quitOnHelp:bool = true) {.used.} =
+          p.run(commandLineParams(), quitOnHelp)
       ))
 
 proc mkParser(name: string, content: proc(), instantiate:bool = true): tuple[types: NimNode, body:NimNode] {.compileTime.} =
@@ -584,6 +592,16 @@ proc mkParser(name: string, content: proc(), instantiate:bool = true): tuple[typ
   builder.typenode = newStmtList()
   builder.bodynode = newStmtList()
   result = (types: builder.typenode, body: builder.bodynode)
+
+  # -h/--help nohelpflag
+  if not builder.nohelpflag:
+    var helpflag = Component()
+    helpflag.kind = Flag
+    helpflag.help = "Show this help"
+    helpflag.shortflag = "-h"
+    helpflag.longflag = "--help"
+    helpflag.varname = "help__special"
+    builder.components.add(helpflag)
 
   if builderstack.len > 0:
     # subcommand
@@ -704,6 +722,13 @@ proc help*(content: string) {.compileTime.} =
         help("More helpful information")
     echo p.help
   builderstack[^1].help = content
+
+proc nohelpflag*() {.compileTime.} =
+  ## Disable the -h/--help flag that is usually added.
+  runnableExamples:
+    var p = newParser("Some Thing"):
+      nohelpflag()
+  builderstack[^1].nohelpflag = true
 
 proc performRun(body: NimNode):untyped {.compileTime.} =
   ## Define a handler for a command/subcommand.

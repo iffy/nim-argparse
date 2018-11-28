@@ -176,6 +176,37 @@ suite "args":
     check p.parse(shlex"hoo").last == "hoo"
     check p.parse(shlex"a b goo").last == "goo"
 
+suite "autohelp":
+  test "helpbydefault":
+    var res:string
+    var p = newParser("helptest"):
+      run:
+        res.add("main ran")
+      command("something"):
+        run:
+          res.add("sub ran")
+    
+    p.run(shlex"-h", quitOnHelp = false)
+    p.run(shlex"something --help", quitOnHelp = false)
+    check res == ""
+  
+  test "nohelpflag":
+    var res:string
+    var p = newParser("helptest"):
+      nohelpflag()
+      run:
+        res.add("main ran")
+      command("something"):
+        nohelpflag()
+        run:
+          res.add("sub ran")
+    
+    expect UsageError:
+      p.run(shlex"-h", quitOnHelp = false)
+    
+    expect UsageError:
+      p.run(shlex"something --help", quitOnHelp = false)
+
 suite "commands":
   test "run":
     var res:string = "hello"
