@@ -23,6 +23,7 @@ runnableExamples:
     help("A description of this program")
     flag("-n", "--dryrun")
     option("-o", "--output", help="Write output to this file", default="somewhere.txt")
+    option("-k", "--kind", choices = @["fruit", "vegetable"])
     arg("input")
   
   let opts = p.parse(@["-n", "--output", "another.txt", "cranberry"])
@@ -72,6 +73,7 @@ type
     varname*: string
     help*: string
     default*: string
+    choices*: seq[string]
     case kind*: ComponentKind
     of Flag, Option:
       shortflag*: string
@@ -140,11 +142,14 @@ proc genHelp(builder: Builder):string {.compileTime.} =
   proc firstline(s:string):string =
     s.split("\L")[0]
 
-  proc formatOption(flags:string, helptext:string, defaultval:string = "", opt_width = 26, max_width = 100):string =
+  proc formatOption(flags:string, helptext:string, defaultval:string = "", choices:seq[string] = @[], opt_width = 26, max_width = 100):string =
     result.add("  " & flags)
     var helptext = helptext
+    if choices.len > 0:
+      helptext.add(" Possible values: [" & choices.join(", ") & "]")
     if defaultval != "":
       helptext.add(&" (default: {defaultval})")
+    helptext = helptext.strip()
     if helptext != "":
       if flags.len > opt_width:
         result.add("\L")
@@ -178,7 +183,7 @@ proc genHelp(builder: Builder):string {.compileTime.} =
       if comp.longflag != "":
         flag_parts.add(comp.longflag)
       var flags = flag_parts.join(", ") & "=" & comp.varname.toUpper()
-      opts.add(formatOption(flags, comp.help, defaultval = comp.default))
+      opts.add(formatOption(flags, comp.help, defaultval = comp.default, choices = comp.choices))
       opts.add("\L")
     of Argument:
       var leftside:string
@@ -286,10 +291,22 @@ proc mkFlagHandler(builder: Builder): NimNode =
             opts.`varname` = true
           ))
       elif comp.kind == Option:
-        cs.add(ofs, replaceNodes(quote do:
-          state.inc()
-          opts.`varname` = state.current
-        ))
+        if comp.choices.len > 0:
+          # Restrict value to set of choices
+          let choices = comp.choices
+          cs.add(ofs, replaceNodes(quote do:
+            state.inc()
+            if state.current in `choices`:
+              opts.`varname` = state.current
+            else:
+              throwUsageError("Unacceptable value: " & state.current)
+          ))
+        else:
+          # Open-ended values accepted
+          cs.add(ofs, replaceNodes(quote do:
+            state.inc()
+            opts.`varname` = state.current
+          ))
   result = cs.finalize()
 
 proc mkDefaultSetter(builder: Builder): NimNode =
@@ -664,7 +681,7 @@ proc flag*(opt1: string, opt2: string = "", help:string = "") {.compileTime.} =
   
   builderstack[^1].add(c)
 
-proc option*(opt1: string, opt2: string = "", help:string="", default:string="") =
+proc option*(opt1: string, opt2: string = "", help:string="", default:string="", choices:seq[string] = @[]) =
   ## Add an option to the argument parser.  The longest
   ## named flag will be used as the name on the parsed
   ## result.
@@ -678,6 +695,7 @@ proc option*(opt1: string, opt2: string = "", help:string="", default:string="")
   c.kind = Option
   c.help = help
   c.default = default
+  c.choices = choices
 
   if opt1.startsWith("--"):
     c.shortflag = opt2

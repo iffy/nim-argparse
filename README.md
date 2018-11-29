@@ -47,4 +47,19 @@ echo p.help
 - [X] Make it so you don't have to use a wrapping macro
 - [ ] parse strings into sequences (shlex-like)
 - [ ] fail on unknown arguments
-- [ ] let options have a list of acceptable values (choices)
+- [X] let options have a list of acceptable values (choices)
+
+
+## Running tests
+
+Run tests with:
+
+```
+nimble test
+```
+
+Run a single test with:
+
+```
+nim c -r tests/test1.nim -g "somepatternmatchingthetestname"
+```

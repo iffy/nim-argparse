@@ -1278,8 +1278,9 @@ function main() {
     title="insertArg(state: var ParsingState; val: string)"><wbr />insert<wbr />Arg<span class="attachedType" style="visibility:hidden">ParsingState</span></a></li>
   <li><a class="reference" href="#flag%2Cstring%2Cstring%2Cstring"
     title="flag(opt1: string; opt2: string = &quot;&quot;; help: string = &quot;&quot;)"><wbr />flag<span class="attachedType" style="visibility:hidden"></span></a></li>
-  <li><a class="reference" href="#option%2Cstring%2Cstring%2Cstring%2Cstring"
-    title="option(opt1: string; opt2: string = &quot;&quot;; help: string = &quot;&quot;; default: string = &quot;&quot;)"><wbr />option<span class="attachedType" style="visibility:hidden"></span></a></li>
+  <li><a class="reference" href="#option%2Cstring%2Cstring%2Cstring%2Cstring%2Cseq%5Bstring%5D"
+    title="option(opt1: string; opt2: string = &quot;&quot;; help: string = &quot;&quot;; default: string = &quot;&quot;;
+       choices: seq[string] = @[])"><wbr />option<span class="attachedType" style="visibility:hidden"></span></a></li>
   <li><a class="reference" href="#arg%2Cstring%2Cint%2Cstring%2Cstring"
     title="arg(varname: string; nargs = 1; help: string = &quot;&quot;; default: string = &quot;&quot;)"><wbr />arg<span class="attachedType" style="visibility:hidden"></span></a></li>
   <li><a class="reference" href="#help%2Cstring"
@@ -1329,6 +1330,7 @@ function main() {
   <span class="Identifier">flag</span><span class="Other">(</span><span class="StringLit">&quot;-n&quot;</span><span class="Other">,</span> <span class="StringLit">&quot;--dryrun&quot;</span><span class="Other">)</span>
   <span class="Identifier">option</span><span class="Other">(</span><span class="StringLit">&quot;-o&quot;</span><span class="Other">,</span> <span class="StringLit">&quot;--output&quot;</span><span class="Other">,</span> <span class="Identifier">help</span> <span class="Other">=</span> <span class="StringLit">&quot;Write output to this file&quot;</span><span class="Other">,</span>
          <span class="Identifier">default</span> <span class="Other">=</span> <span class="StringLit">&quot;somewhere.txt&quot;</span><span class="Other">)</span>
+  <span class="Identifier">option</span><span class="Other">(</span><span class="StringLit">&quot;-k&quot;</span><span class="Other">,</span> <span class="StringLit">&quot;--kind&quot;</span><span class="Other">,</span> <span class="Identifier">choices</span> <span class="Other">=</span> <span class="Operator">@</span><span class="Other">[</span><span class="StringLit">&quot;fruit&quot;</span><span class="Other">,</span> <span class="StringLit">&quot;vegetable&quot;</span><span class="Other">]</span><span class="Other">)</span>
   <span class="Identifier">arg</span><span class="Other">(</span><span class="StringLit">&quot;input&quot;</span><span class="Other">)</span>
 <span class="Keyword">let</span> <span class="Identifier">opts</span> <span class="Other">=</span> <span class="Identifier">p</span><span class="Other">.</span><span class="Identifier">parse</span><span class="Other">(</span><span class="Operator">@</span><span class="Other">[</span><span class="StringLit">&quot;-n&quot;</span><span class="Other">,</span> <span class="StringLit">&quot;--output&quot;</span><span class="Other">,</span> <span class="StringLit">&quot;another.txt&quot;</span><span class="Other">,</span> <span class="StringLit">&quot;cranberry&quot;</span><span class="Other">]</span><span class="Other">)</span>
 <span class="Identifier">assert</span> <span class="Identifier">opts</span><span class="Other">.</span><span class="Identifier">dryrun</span> <span class="Operator">==</span> <span class="Identifier">true</span>
@@ -1433,9 +1435,9 @@ Add a boolean flag to the argument parser.  The boolean will be available on the
   <span class="Identifier">flag</span><span class="Other">(</span><span class="StringLit">&quot;-n&quot;</span><span class="Other">,</span> <span class="StringLit">&quot;--dryrun&quot;</span><span class="Other">,</span> <span class="Identifier">help</span> <span class="Other">=</span> <span class="StringLit">&quot;Don\'t actually run&quot;</span><span class="Other">)</span></pre>
 
 </dd>
-<a id="option,string,string,string,string"></a>
-<dt><pre><span class="Keyword">proc</span> <span class="Identifier">option</span><span class="Other">(</span><span class="Identifier">opt1</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">opt2</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">;</span> <span class="Identifier">help</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">;</span> <span class="Identifier">default</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma">
-    <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="option,string,string,string,string,seq[string]"></a>
+<dt><pre><span class="Keyword">proc</span> <span class="Identifier">option</span><span class="Other">(</span><span class="Identifier">opt1</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">opt2</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">;</span> <span class="Identifier">help</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">;</span> <span class="Identifier">default</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">;</span>
+           <span class="Identifier">choices</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span> <span class="Other">=</span> <span class="Operator">@</span><span class="Other">[</span><span class="Other">]</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 Add an option to the argument parser.  The longest named flag will be used as the name on the parsed result. 
 <p><strong class="examples_text">Examples:</strong></p>
@@ -1532,7 +1534,7 @@ Entry point for making command-line parsers.
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small>Made with Nim. Generated: 2018-11-28 18:58:14 UTC</small>
+        <small>Made with Nim. Generated: 2018-11-29 16:30:03 UTC</small>
       </div>
     </div>
   </div>
