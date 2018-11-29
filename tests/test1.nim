@@ -92,6 +92,14 @@ suite "options":
       option("-a")
     expect UsageError:
       discard p.parse(shlex"-b")
+  
+  test "choices":
+    var p = newParser("choiceprog"):
+      option("-b", choices = @["first", "second", "third"])
+
+    check p.parse(shlex"-b first").b == "first"
+    expect UsageError:
+      discard p.parse(shlex"-b unknown")
 
 suite "args":
   test "single, required arg":
