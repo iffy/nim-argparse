@@ -746,7 +746,7 @@ proc nohelpflag*() {.compileTime.} =
       nohelpflag()
   builderstack[^1].nohelpflag = true
 
-proc performRun(body: NimNode):untyped {.compileTime.} =
+proc performRun(body: NimNode) {.compileTime.} =
   ## Define a handler for a command/subcommand.
   ##
   builderstack[^1].runProcBodies.add(body)
