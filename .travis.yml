@@ -1,10 +1,40 @@
-sudo: required
-services:
-  - docker
-before_install:
-  - docker pull nimlang/nim
-script:
-  - docker run nimlang/nim nim --version
-  - docker run -v "$(pwd):/project" -w /project nimlang/nim sh -c "nimble install -dy && nimble test"
-  - docker run -v "$(pwd):/project" -w /project nimlang/nim sh -c "find src/ -name '*.nim' -type f -exec nim doc {} \;"
 
+
+language: c
+
+cache: ccache
+cache:
+  directories:
+  - .cache
+
+matrix:
+  include:
+    # Build and test against the master (stable) and devel branches of Nim
+    - os: linux
+      env: CHANNEL=stable
+      compiler: gcc
+
+    - os: linux
+      env: CHANNEL=devel
+      compiler: gcc
+
+  allow_failures:
+    - env: CHANNEL=devel
+  fast_finish: true
+
+install:
+  - export CHOOSENIM_NO_ANALYTICS=1
+  - curl https://nim-lang.org/choosenim/init.sh -sSf > init.sh
+  - sh init.sh -y
+  - export PATH=~/.nimble/bin:$PATH
+  - echo "export PATH=~/.nimble/bin:$PATH" >> ~/.profile
+  - choosenim $CHANNEL
+
+script:
+  - nimble refresh
+  - nimble test
+  - ./builddocs.sh
+
+branches:
+  except:
+    - gh-pages
