@@ -51,10 +51,19 @@ suite "flags":
     check "--banana" in p.help
     check "-b" in p.help
   
+  test "multiple flags":
+    var p = newParser("hi"):
+      flag("-b", multiple=true)
+    
+    check p.parse(shlex("-b")).b == 1
+    check p.parse(shlex("-b -b")).b == 2
+    check p.parse(shlex("")).b == 0
+  
   test "help text":
     var p = newParser("some name"):
       flag("-a", "--apple", help="Some apples")
       flag("--banana-split-and-ice-cream", help="More help")
+      flag("-c", multiple=true)
     
     check "Some apples" in p.help
     check "More help" in p.help
@@ -93,6 +102,13 @@ suite "options":
     expect UsageError:
       discard p.parse(shlex"-b")
   
+  test "multiple options":
+    var p = newParser("hey"):
+      option("-a", multiple=true)
+    check p.parse(shlex"-a 10 -a 20").a == @["10", "20"]
+    check p.parse(shlex"").a == []
+    check p.parse(shlex"-a 20").a == @["20"]
+  
   test "choices":
     var p = newParser("choiceprog"):
       option("-b", choices = @["first", "second", "third"])
@@ -100,6 +116,13 @@ suite "options":
     check p.parse(shlex"-b first").b == "first"
     expect UsageError:
       discard p.parse(shlex"-b unknown")
+  
+  test "choices multiple":
+    var p = newParser("choiceprog"):
+      option("-b", multiple=true, choices = @["first", "second", "third"])
+
+    check p.parse(shlex"-b first").b == @["first"]
+    check p.parse(shlex"-b first -b second").b == @["first", "second"]
 
 suite "args":
   test "single, required arg":

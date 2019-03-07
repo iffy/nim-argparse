@@ -78,6 +78,7 @@ type
     of Flag, Option:
       shortflag*: string
       longflag*: string
+      multiple*: bool
     of Argument:
       nargs*: int
   
@@ -239,6 +240,7 @@ proc genHelpProc(builder: Builder): NimNode {.compileTime.} =
   )
 
 proc genReturnType(builder: var Builder): NimNode {.compileTime.} =
+  ## Generate a node to describe the return type for a given Builder
   var objdef = newObjectTypeDef(builder.optsIdent.strVal)
   if builder.parent != nil:
     # Add the parent Opts type to this one
@@ -247,9 +249,18 @@ proc genReturnType(builder: var Builder): NimNode {.compileTime.} =
   for comp in builder.components:
     case comp.kind
     of Flag:
-      objdef.addObjectField(comp.varname, "bool")
+      if comp.multiple:
+        objdef.addObjectField(comp.varname, "int")
+      else:
+        objdef.addObjectField(comp.varname, "bool")
     of Option:
-      objdef.addObjectField(comp.varname, "string")
+      if comp.multiple:
+        objdef.addObjectField(comp.varname, nnkBracketExpr.newTree(
+          ident("seq"),
+          ident("string"),
+        ))
+      else:
+        objdef.addObjectField(comp.varname, "string")
     of Argument:
       if comp.nargs == 1:
         objdef.addObjectField(comp.varname, "string")
@@ -287,26 +298,46 @@ proc mkFlagHandler(builder: Builder): NimNode =
             raise newException(ShortCircuit, "")
           ))
         else:
-          cs.add(ofs, replaceNodes(quote do:
-            opts.`varname` = true
-          ))
+          if comp.multiple:
+            cs.add(ofs, replaceNodes(quote do:
+              opts.`varname`.inc()
+            ))
+          else:
+            cs.add(ofs, replaceNodes(quote do:
+              opts.`varname` = true
+            ))
       elif comp.kind == Option:
         if comp.choices.len > 0:
           # Restrict value to set of choices
           let choices = comp.choices
-          cs.add(ofs, replaceNodes(quote do:
-            state.inc()
-            if state.current in `choices`:
-              opts.`varname` = state.current
-            else:
-              throwUsageError("Unacceptable value: " & state.current)
-          ))
+          if comp.multiple:
+            cs.add(ofs, replaceNodes(quote do:
+              state.inc()
+              if state.current in `choices`:
+                opts.`varname`.add(state.current)
+              else:
+                throwUsageError("Unacceptable value: " & state.current)
+            ))
+          else:
+            cs.add(ofs, replaceNodes(quote do:
+              state.inc()
+              if state.current in `choices`:
+                opts.`varname` = state.current
+              else:
+                throwUsageError("Unacceptable value: " & state.current)
+            ))
         else:
           # Open-ended values accepted
-          cs.add(ofs, replaceNodes(quote do:
-            state.inc()
-            opts.`varname` = state.current
-          ))
+          if comp.multiple:
+            cs.add(ofs, replaceNodes(quote do:
+              state.inc()
+              opts.`varname`.add(state.current)
+            ))
+          else:
+            cs.add(ofs, replaceNodes(quote do:
+              state.inc()
+              opts.`varname` = state.current
+            ))
   result = cs.finalize()
 
 proc mkDefaultSetter(builder: Builder): NimNode =
@@ -656,16 +687,20 @@ proc toUnderscores(s:string):string =
   s.replace('-','_').strip(chars={'_'})
 
 
-proc flag*(opt1: string, opt2: string = "", help:string = "") {.compileTime.} =
+proc flag*(opt1: string, opt2: string = "", multiple = false, help:string = "") {.compileTime.} =
   ## Add a boolean flag to the argument parser.  The boolean
   ## will be available on the parsed options object as the
   ## longest named flag.
+  ##
+  ## If ``multiple`` is true then the flag can be specified multiple
+  ## times and the datatype will be an int.
   runnableExamples:
     var p = newParser("Some Thing"):
       flag("-n", "--dryrun", help="Don't actually run")
   var c = Component()
   c.kind = Flag
   c.help = help
+  c.multiple = multiple
 
   if opt1.startsWith("--"):
     c.shortflag = opt2
@@ -681,10 +716,12 @@ proc flag*(opt1: string, opt2: string = "", help:string = "") {.compileTime.} =
   
   builderstack[^1].add(c)
 
-proc option*(opt1: string, opt2: string = "", help:string="", default:string="", choices:seq[string] = @[]) =
+proc option*(opt1: string, opt2: string = "", multiple = false, help:string="", default:string="", choices:seq[string] = @[]) =
   ## Add an option to the argument parser.  The longest
   ## named flag will be used as the name on the parsed
   ## result.
+  ##
+  ## Set ``multiple`` to true to accept multiple options
   ##
   runnableExamples:
     var p = newParser("Command"):
@@ -696,6 +733,10 @@ proc option*(opt1: string, opt2: string = "", help:string="", default:string="",
   c.help = help
   c.default = default
   c.choices = choices
+  c.multiple = multiple
+
+  if multiple:
+    assert default == "", "You may not specify a default for option(..., multiple=true)"
 
   if opt1.startsWith("--"):
     c.shortflag = opt2
