@@ -50,6 +50,8 @@ echo p.help
 - [X] let options have a list of acceptable values (choices)
 
 
+# Development
+
 ## Running tests
 
 Run tests with:
@@ -63,3 +65,7 @@ Run a single test with:
 ```
 nim c -r tests/test1.nim -g "somepatternmatchingthetestname"
 ```
+
+## Building the docs
+
+When you publish a new version, publish the docs by running `make` then pushing `master`.
