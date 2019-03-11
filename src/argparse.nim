@@ -232,6 +232,8 @@ proc genHelp(builder: Builder):string {.compileTime.} =
     result.add(opts)
     result.add("\L")
 
+  result.setLen(result.high) # equivalent to new Nim .stripLineEnd
+
 proc genHelpProc(builder: Builder): NimNode {.compileTime.} =
   let ParserIdent = builder.parserIdent()
   let helptext = builder.genHelp()
