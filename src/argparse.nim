@@ -12,7 +12,7 @@
 ## - ``command`` - for sub commands
 ## - ``run`` - to define code to run when the parser is used in run mode rather than parse mode.  See the documentation for more information.
 ## - ``help`` - to define a help string for the parser/subcommand
-## - ``nohelpflag`` - to disable the automatic `-h/--help` flag
+## - ``nohelpflag`` - to disable the automatic `-h/--help` flag.  When using ``parse()``, ``.help`` will be a boolean flag.
 ##
 ## The specials variables ``opts`` and ``opts.parentOpts`` are available within ``run`` blocks.
 ##
@@ -62,6 +62,7 @@ import argparse/macrohelp
 export parseopt
 export os
 export strutils
+export macros
 
 type
   ComponentKind = enum
@@ -95,7 +96,7 @@ type
     typenode*: NimNode
     bodynode*: NimNode
     runProcBodies*: seq[NimNode]
-  
+
   ParsingState* = object
     input*: seq[string]
     i*: int
@@ -292,10 +293,10 @@ proc mkFlagHandler(builder: Builder): NimNode =
         ofs.add(newLit(comp.longflag))
       let varname = ident(comp.varname)
       if comp.kind == Flag:
-        if comp.varname == "help__special":
+        if comp.varname == "help":
           cs.add(ofs, replaceNodes(quote do:
-            echo p.help
-            raise newException(ShortCircuit, "")
+            opts.help = true
+            raise newException(ShortCircuit, "-h/--help")
           ))
         else:
           if comp.multiple:
@@ -521,22 +522,26 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
       HEYparentOpts
       HEYsetdefaults
       HEYaddRunProc
-      while not state.isdone:
-        var arg = state.current
-        if arg.startsWith("-"):
-          if arg.find("=") > 1:
-            var parts = arg.split({'='})
-            state.replace(parts[0])
-            state.insertArg(parts[1])
-            arg = state.current
-          HEYoptions
-        else:
-          HEYarg
-          state.args_encountered.inc()
-        state.inc()
-      HEYflush
-      if state.unclaimed.len > 0:
-        throwUsageError("Unknown arguments: " & $state.unclaimed)
+      try:
+        while not state.isdone:
+          var arg = state.current
+          if arg.startsWith("-"):
+            if arg.find("=") > 1:
+              var parts = arg.split({'='})
+              state.replace(parts[0])
+              state.insertArg(parts[1])
+              arg = state.current
+            HEYoptions
+          else:
+            HEYarg
+            state.args_encountered.inc()
+          state.inc()
+        HEYflush
+        if state.unclaimed.len > 0:
+          throwUsageError("Unknown arguments: " & $state.unclaimed)
+      except ShortCircuit:
+        if alsorun:
+          raise
       HEYrun
       return opts
   )
@@ -603,7 +608,7 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
         return parse(p, state, alsorun)
     ))
     when declared(commandLineParams):
-      # parse()
+      # parse() convenience method with no args
       var parse_cli = replaceNodes(quote do:
         proc parse(p:`ParserIdent`, alsorun:bool = false):`OptsIdent` {.used.} =
           return parse(p, commandLineParams(), alsorun)
@@ -619,11 +624,12 @@ proc genRunProc(builder: var Builder): NimNode {.compileTime.} =
         try:
           discard p.parse(orig_input, alsorun=true)
         except ShortCircuit:
+          echo p.help
           if quitOnHelp:
             quit(0)
     ))
     when declared(commandLineParams):
-      # parse()
+      # run() convenience method with no args.
       result.add(replaceNodes(quote do:
         proc run(p:`ParserIdent`, quitOnHelp:bool = true) {.used.} =
           p.run(commandLineParams(), quitOnHelp)
@@ -646,7 +652,7 @@ proc mkParser(name: string, content: proc(), instantiate:bool = true): tuple[typ
     helpflag.help = "Show this help"
     helpflag.shortflag = "-h"
     helpflag.longflag = "--help"
-    helpflag.varname = "help__special"
+    helpflag.varname = "help"
     builder.components.add(helpflag)
 
   if builderstack.len > 0:
