@@ -237,6 +237,12 @@ suite "autohelp":
     
     expect UsageError:
       p.run(shlex"something --help", quitOnHelp = false)
+  
+  test "parse help":
+    let
+      p = newParser("helptest"): discard
+      opts = p.parse(@["-h"])
+    check opts.help == true
 
 suite "commands":
   test "run":
