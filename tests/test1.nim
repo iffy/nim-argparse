@@ -308,8 +308,13 @@ suite "commands":
   test "command groups":
     var p = newParser("prog"):
       command("first", group = "groupA"):
+        help "A first command"
         run: discard
       command("second", group = "groupB"):
+        help "A second command"
+        run: discard
+      command("third", group="groupA"):
+        help "A third command"
         run: discard
     
     check "groupA" in p.help

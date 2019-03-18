@@ -226,15 +226,15 @@ proc genHelp(builder: Builder):string {.compileTime.} =
 
   if commands.len == 1:
     let key = toSeq(commands.keys())[0]
-    result.add("Commands:\L")
+    result.add("Commands:\L\L")
     result.add(commands[key])
     result.add("\L")
   elif commands.len > 0:
-    result.add("Commands:\L")
+    result.add("Commands:\L\L")
     for key in commands.keys():
-      result.add("  " & key & ":\L")
+      result.add("  " & key & ":\L\L")
       result.add(commands[key])
-    result.add("\L")
+      result.add("\L")
 
   if args != "":
     result.add("Arguments:\L")
