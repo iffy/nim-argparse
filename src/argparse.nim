@@ -57,6 +57,7 @@ import macros
 import os
 import strformat
 import parseopt
+import tables
 import argparse/macrohelp
 
 export parseopt
@@ -96,6 +97,7 @@ type
     typenode*: NimNode
     bodynode*: NimNode
     runProcBodies*: seq[NimNode]
+    group*: string
 
   ParsingState* = object
     input*: seq[string]
@@ -165,7 +167,6 @@ proc genHelp(builder: Builder):string {.compileTime.} =
 
   var opts = ""
   var args = ""
-  var commands = ""
 
   # Options and Arguments
   for comp in builder.components:
@@ -201,12 +202,18 @@ proc genHelp(builder: Builder):string {.compileTime.} =
       args.add(formatOption(leftside, comp.help, defaultval = comp.default, opt_width=16))
       args.add("\L")
   
+  var commands = newTable[string,string](2)
+
   if builder.children.len > 0:
     usage_parts.add("COMMAND")
     for subbuilder in builder.children:
       var leftside = subbuilder.name
-      commands.add(formatOption(leftside, subbuilder.help.firstline, opt_width=16))
-      commands.add("\L")
+      let group = subbuilder.group
+      if not commands.hasKey(group):
+        commands[group] = ""
+      let indent = if group == "": "" else: "  "
+      commands[group].add(indent & formatOption(leftside, subbuilder.help.firstline, opt_width=16))
+      commands[group].add("\L")
   
   if usage_parts.len > 0 or opts != "":
     result.add("Usage:\L")
@@ -217,9 +224,16 @@ proc genHelp(builder: Builder):string {.compileTime.} =
     result.add(usage_parts.join(" "))
     result.add("\L\L")
 
-  if commands != "":
+  if commands.len == 1:
+    let key = toSeq(commands.keys())[0]
     result.add("Commands:\L")
-    result.add(commands)
+    result.add(commands[key])
+    result.add("\L")
+  elif commands.len > 0:
+    result.add("Commands:\L")
+    for key in commands.keys():
+      result.add("  " & key & ":\L")
+      result.add(commands[key])
     result.add("\L")
 
   if args != "":
@@ -637,7 +651,7 @@ proc genRunProc(builder: var Builder): NimNode {.compileTime.} =
           p.run(commandLineParams(), quitOnHelp)
       ))
 
-proc mkParser(name: string, content: proc(), instantiate:bool = true): tuple[types: NimNode, body:NimNode] {.compileTime.} =
+proc mkParser(name: string, content: proc(), instantiate:bool = true, group:string = ""): tuple[types: NimNode, body:NimNode] {.compileTime.} =
   ## Where all the magic starts
   builderstack.add(newBuilder(name))
   content()
@@ -645,6 +659,7 @@ proc mkParser(name: string, content: proc(), instantiate:bool = true): tuple[typ
   var builder = builderstack.pop()
   builder.typenode = newStmtList()
   builder.bodynode = newStmtList()
+  builder.group = group
   result = (types: builder.typenode, body: builder.bodynode)
 
   # -h/--help nohelpflag
@@ -812,9 +827,10 @@ template run*(content: untyped): untyped =
 
   performRun(replaceNodes(quote(content)))
 
-proc command*(name: string, content: proc()) {.compileTime.} =
+proc command*(name: string, content: proc(), group:string = "") {.compileTime.} =
   ## Add a sub-command to the argument parser.
   ##
+  ## group is an optional string used to group commands in help output
   runnableExamples:
     var p = newParser("Some Program"):
       command("dostuff"):
@@ -822,7 +838,10 @@ proc command*(name: string, content: proc()) {.compileTime.} =
           echo "Actually do stuff"
     p.run(@["dostuff"])
 
-  discard mkParser(name, content, instantiate = false)
+  discard mkParser(name, content, instantiate = false, group = group)
+
+proc command*(name: string, group: string, content: proc()) {.compileTime.} =
+  command(name, content, group)
 
 template newParser*(name: string, content: untyped): untyped =
   ## Entry point for making command-line parsers.

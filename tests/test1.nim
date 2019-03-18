@@ -304,4 +304,16 @@ suite "commands":
       discard p.parse(shlex"madeupcommand")
     
     check res == ""
+  
+  test "command groups":
+    var p = newParser("prog"):
+      command("first", group = "groupA"):
+        run: discard
+      command("second", group = "groupB"):
+        run: discard
+    
+    check "groupA" in p.help
+    check "groupB" in p.help
+    echo p.help
+
 
