@@ -381,7 +381,7 @@ proc popleft*[T](s: var seq[T]):T =
   result = s[0]
   s.delete(0, 0)
 
-proc mkArgHandler(builder: Builder): tuple[handler:NimNode, flusher:NimNode] =
+proc mkArgHandler(builder: Builder): tuple[handler:NimNode, flusher:NimNode, minargs:int] =
   ## The result is used in the context defined by genParseProcs
   ## This is called within the context of genParseProcs
   ##
@@ -406,6 +406,7 @@ proc mkArgHandler(builder: Builder): tuple[handler:NimNode, flusher:NimNode] =
 
   var arg_count = 0
   var minargs_before_command = 0
+  var minargs = 0
 
   for comp in builder.components:
     case comp.kind
@@ -425,6 +426,8 @@ proc mkArgHandler(builder: Builder): tuple[handler:NimNode, flusher:NimNode] =
       else:
         # specific number of args
         minargs_before_command.inc(comp.nargs)
+        if comp.default == "":
+          minargs.inc(comp.nargs)
         if unlimited_varname == "":
           # before unlimited taker
           var startval = newLit(arg_count)
@@ -453,6 +456,7 @@ proc mkArgHandler(builder: Builder): tuple[handler:NimNode, flusher:NimNode] =
                 opts.`varname`.insert(state.unclaimed.pop(), 0)
               ))
             else:
+              # argument has a default
               fromEnd.add(
                 if comp.nargs == 1:
                   replaceNodes(quote do:
@@ -470,6 +474,7 @@ proc mkArgHandler(builder: Builder): tuple[handler:NimNode, flusher:NimNode] =
   for node in reversed(fromEnd):
     doFlush.add(node)
   if unlimited_varname != "":
+    # unlimited taker will take the rest
     let varname = ident(unlimited_varname)
     doFlush.add(replaceNodes(quote do:
       opts.`varname` = state.unclaimed
@@ -499,11 +504,16 @@ proc mkArgHandler(builder: Builder): tuple[handler:NimNode, flusher:NimNode] =
 
   if onPossibleCommand.isValid:
     mainIf.addElse(onPossibleCommand.finalize())
+  else:
+    mainIf.addElse(replaceNodes(quote do:
+      state.unclaimed.add(arg)
+    ))
   
   var handler = newStmtList()
   if mainIf.isValid:
-    handler = mainIf.finalize()
-  result = (handler: handler, flusher: doFlush)
+    handler.add(mainIf.finalize())
+
+  result = (handler: handler, flusher: doFlush, minargs: minargs)
 
 proc isdone*(state: var ParsingState):bool =
   ## INTERNAL: true if the parser is done
@@ -555,6 +565,9 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
         HEYflush
         if state.unclaimed.len > 0:
           throwUsageError("Unknown arguments: " & $state.unclaimed)
+        let minargs = HEYminargs
+        if state.args_encountered < minargs:
+          throwUsageError("Expected " & $minargs & " args but only found " & $state.args_encountered)
       except ShortCircuit:
         if alsorun:
           raise
@@ -581,6 +594,11 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
   flushUnclaimed.replace(arghandlers.flusher)
   args.replace(arghandlers.handler)
   opts.replace(mkFlagHandler(builder))
+  let minargs = arghandlers.minargs
+  parse_seq_string.getInsertionPoint("HEYminargs").replace(replaceNodes(quote do:
+    `minargs`
+  ))
+
 
   let parentOptsProc = parse_seq_string.getInsertionPoint("HEYparentOpts")
   if builder.parent != nil:

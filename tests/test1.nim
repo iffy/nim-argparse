@@ -131,6 +131,18 @@ suite "args":
     check p.parse(shlex"foo").name == "foo"
     check "name" in p.help
   
+  test "args are required":
+    var p = newParser("someprog"):
+      arg("name")
+    expect UsageError:
+      discard p.parse(shlex"")
+  
+  test "extra args is an error":
+    var p = newParser("something"):
+      arg("only")
+    expect UsageError:
+      discard p.parse(shlex"one two")
+  
   test "single arg with default":
     var p = newParser("prog"):
       arg("name", default="foo")
