@@ -53,6 +53,7 @@ runnableExamples:
 import sequtils
 import strutils
 import algorithm
+import streams
 import macros
 import os
 import strformat
@@ -64,6 +65,7 @@ export parseopt
 export os
 export strutils
 export macros
+export streams
 
 type
   ComponentKind = enum
@@ -112,6 +114,8 @@ type
 type
   ParseResult[T] = tuple[state: ParsingState, opts: T]
 
+var ARGPARSE_STDOUT* = newFileStream(stdout)
+
 template throwUsageError*(message:string) =
   ## INTERNAL
   raise newException(UsageError, message)
@@ -139,6 +143,10 @@ proc genHelp(builder: Builder):string {.compileTime.} =
   ## Generate the usage/help text for the parser.
   result.add(builder.name)
   result.add("\L\L")
+
+  if builder.help != "":
+    result.add(builder.help)
+    result.add("\L\L")
 
   # usage
   var usage_parts:seq[string]
@@ -312,6 +320,7 @@ proc mkFlagHandler(builder: Builder): NimNode =
         if comp.varname == "help":
           cs.add(ofs, replaceNodes(quote do:
             opts.help = true
+            output.write(p.help)
             raise newException(ShortCircuit, "-h/--help")
           ))
         else:
@@ -487,7 +496,7 @@ proc mkArgHandler(builder: Builder): tuple[handler:NimNode, flusher:NimNode, min
     onPossibleCommand.add(command.name, replaceNodes(quote do:
       state.inc()
       let subparser = `ParserIdent`()
-      discard subparser.parse(state, alsorun, opts)
+      discard subparser.parse(state, alsorun, output, opts)
     ))
   if builder.children.len > 0:
     onPossibleCommand.addElse(replaceNodes(quote do:
@@ -543,7 +552,7 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
 
   # parse(seq[string])
   var parse_seq_string = replaceNodes(quote do:
-    proc parse(p:`ParserIdent`, state:var ParsingState, alsorun:bool, EXTRA):`OptsIdent` {.used.} =
+    proc parse(p:`ParserIdent`, state:var ParsingState, alsorun:bool, output:Stream, EXTRA):`OptsIdent` {.used.} =
       var opts = `OptsIdent`()
       HEYparentOpts
       HEYsetdefaults
@@ -636,16 +645,16 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
   if builder.parent == nil:
     # Add a convenience proc for parsing seq[string]
     result.add(replaceNodes(quote do:
-      proc parse(p:`ParserIdent`, input: seq[string], alsorun:bool = false):`OptsIdent` {.used.} =
+      proc parse(p:`ParserIdent`, input: seq[string], alsorun:bool = false, output:Stream = ARGPARSE_STDOUT):`OptsIdent` {.used.} =
         var varinput = input
         var state = ParsingState(input: varinput)
-        return parse(p, state, alsorun)
+        return parse(p, state, alsorun, output)
     ))
     when declared(commandLineParams):
       # parse() convenience method with no args
       var parse_cli = replaceNodes(quote do:
-        proc parse(p:`ParserIdent`, alsorun:bool = false):`OptsIdent` {.used.} =
-          return parse(p, commandLineParams(), alsorun)
+        proc parse(p:`ParserIdent`, alsorun:bool = false, output:Stream = ARGPARSE_STDOUT):`OptsIdent` {.used.} =
+          return parse(p, commandLineParams(), alsorun, output)
       )
       result.add(parse_cli)
 
@@ -654,11 +663,11 @@ proc genRunProc(builder: var Builder): NimNode {.compileTime.} =
   result = newStmtList()
   if builder.parent == nil:
     result.add(replaceNodes(quote do:
-      proc run(p:`ParserIdent`, orig_input:seq[string], quitOnHelp:bool = true) {.used.} =
+      proc run(p:`ParserIdent`, orig_input:seq[string], quitOnHelp:bool = true, output:Stream = ARGPARSE_STDOUT) {.used.} =
         try:
-          discard p.parse(orig_input, alsorun=true)
+          discard p.parse(orig_input, alsorun=true, output = output)
         except ShortCircuit:
-          echo p.help
+          # output.write(p.help)
           if quitOnHelp:
             quit(0)
     ))

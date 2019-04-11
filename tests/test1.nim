@@ -5,6 +5,7 @@ import argparse
 import strutils
 import strformat
 import parseopt
+import streams
 
 proc shlex(x:string):seq[string] =
   # XXX this is not accurate, but okay enough for testing
@@ -223,14 +224,29 @@ suite "autohelp":
   test "helpbydefault":
     var res:string
     var p = newParser("helptest"):
+      help("Top level help")
+      flag("--foo")
       run:
         res.add("main ran")
       command("something"):
+        help("sub help")
+        flag("--bar")
         run:
           res.add("sub ran")
     
-    p.run(shlex"-h", quitOnHelp = false)
-    p.run(shlex"something --help", quitOnHelp = false)
+    var op = newStringStream("")
+    p.run(shlex"-h", quitOnHelp = false, output = op)
+    op.setPosition(0)
+    var output = op.readAll()
+    check "--foo" in output
+    check "Top level help" in output
+
+    op = newStringStream("")
+    p.run(shlex"something --help", quitOnHelp = false, output = op)
+    op.setPosition(0)
+    output = op.readAll()
+    check "--bar" in output
+    check "sub help" in output
     check res == ""
   
   test "nohelpflag":
