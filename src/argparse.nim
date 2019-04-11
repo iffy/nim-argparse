@@ -667,7 +667,6 @@ proc genRunProc(builder: var Builder): NimNode {.compileTime.} =
         try:
           discard p.parse(orig_input, alsorun=true, output = output)
         except ShortCircuit:
-          # output.write(p.help)
           if quitOnHelp:
             quit(0)
     ))
