@@ -103,6 +103,16 @@ suite "options":
     expect UsageError:
       discard p.parse(shlex"-b")
   
+  test "multiple options on non-multi option":
+    var p = newParser("prog"):
+      option("-a")
+      option("-b", default = "something")
+    expect UsageError:
+      discard p.parse(shlex"-a 10 -a 20")
+    expect UsageError:
+      discard p.parse(shlex"-b hey -b ho")
+    check p.parse(shlex"-b foo").b == "foo"
+  
   test "multiple options":
     var p = newParser("hey"):
       option("-a", multiple=true)
