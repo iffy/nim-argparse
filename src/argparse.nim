@@ -101,10 +101,11 @@ type
     runProcBodies*: seq[NimNode]
     group*: string
 
-  ParsingState* = object
+  ParsingState* = ref object
     input*: seq[string]
     i*: int
     args_encountered*: int
+    switches_seen*: seq[string]
     unclaimed*: seq[string]
     runProcs*: seq[proc()]
   
@@ -316,6 +317,7 @@ proc mkFlagHandler(builder: Builder): NimNode =
       if comp.longflag != "":
         ofs.add(newLit(comp.longflag))
       let varname = ident(comp.varname)
+      let varname_string = newStrLitNode(comp.varname)
       if comp.kind == Flag:
         if comp.varname == "help":
           cs.add(ofs, replaceNodes(quote do:
@@ -347,8 +349,11 @@ proc mkFlagHandler(builder: Builder): NimNode =
           else:
             cs.add(ofs, replaceNodes(quote do:
               state.inc()
+              if `varname_string` in state.switches_seen:
+                throwUsageError("Value for --" & `varname_string` & " already given: " & $opts.`varname`)
               if state.current in `choices`:
                 opts.`varname` = state.current
+                state.switches_seen.add(`varname_string`)
               else:
                 throwUsageError("Unacceptable value: " & state.current)
             ))
@@ -362,7 +367,10 @@ proc mkFlagHandler(builder: Builder): NimNode =
           else:
             cs.add(ofs, replaceNodes(quote do:
               state.inc()
+              if `varname_string` in state.switches_seen:
+                throwUsageError("Value for --" & `varname_string` & " already given: " & $opts.`varname`)
               opts.`varname` = state.current
+              state.switches_seen.add(`varname_string`)
             ))
   result = cs.finalize()
 
@@ -496,7 +504,18 @@ proc mkArgHandler(builder: Builder): tuple[handler:NimNode, flusher:NimNode, min
     onPossibleCommand.add(command.name, replaceNodes(quote do:
       state.inc()
       let subparser = `ParserIdent`()
-      discard subparser.parse(state, alsorun, output, opts)
+      var substate = ParsingState(
+        input: state.input,
+        i: state.i,
+        args_encountered: state.args_encountered,
+        unclaimed: state.unclaimed,
+        runProcs: state.runProcs,
+      )
+      discard subparser.parse(substate, alsorun, output, opts)
+      state.i = substate.i
+      state.args_encountered = substate.args_encountered
+      state.unclaimed = substate.unclaimed
+      state.runProcs = substate.runProcs
     ))
   if builder.children.len > 0:
     onPossibleCommand.addElse(replaceNodes(quote do:
@@ -532,6 +551,15 @@ proc inc*(state: var ParsingState) =
   ## INTERNAL: move to the next token
   if not state.isdone:
     inc(state.i)
+
+proc subState*(state: var ParsingState): ParsingState =
+  ## INTERNAL: Generate state for subparser
+  new(result)
+  result.input = state.input
+  result.i = state.i
+  result.args_encountered = state.args_encountered
+  result.unclaimed = state.unclaimed
+  result.runProcs = state.runProcs
 
 proc current*(state: ParsingState):string =
   ## INTERNAL: Return the current argument to be processed
