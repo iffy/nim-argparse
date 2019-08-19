@@ -14,6 +14,13 @@ proc shlex(x:string):seq[string] =
   else:
     result = x.split({' '})
 
+template withEnv(name:string, value:string, body:untyped):untyped =
+  let old_value = getEnv(name, "")
+  putEnv(name, value)
+  body
+  putEnv(name, old_value)
+
+
 suite "flags":
   test "short flags":
     var p = newParser("some name"):
@@ -97,6 +104,15 @@ suite "options":
     check p.parse(shlex"").category == "pinball"
     check p.parse(shlex"--category foo").category == "foo"
   
+  test "option default from env var":
+    var p = newParser("options env"):
+      option("--category", env="HELLO", default="who")
+    check "HELLO" in p.help
+    check p.parse(shlex"").category == "who"
+    withEnv("HELLO", "Adele"):
+      check p.parse(shlex"").category == "Adele"
+    check p.parse(shlex"--category hey").category == "hey"
+  
   test "unknown option":
     var p = newParser("prog"):
       option("-a")
@@ -159,6 +175,16 @@ suite "args":
       arg("name", default="foo")
     check p.parse(shlex"").name == "foo"
     check p.parse(shlex"something").name == "something"
+  
+  test "single arg with env default":
+    var p = newParser("prog"):
+      arg("name", env="SOMETHING", default="foo")
+    check "SOMETHING" in p.help
+    check p.parse(shlex"").name == "foo"
+    check p.parse(shlex"something").name == "something"
+    withEnv("SOMETHING", "goober"):
+      check p.parse(shlex"").name == "goober"
+      check p.parse(shlex"something").name == "something"
   
   test "2 args":
     var p = newParser("prog"):

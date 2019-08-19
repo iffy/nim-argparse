@@ -77,6 +77,7 @@ type
     varname*: string
     help*: string
     default*: string
+    env*: string
     choices*: seq[string]
     case kind*: ComponentKind
     of Flag, Option:
@@ -155,13 +156,15 @@ proc genHelp(builder: Builder):string {.compileTime.} =
   proc firstline(s:string):string =
     s.split("\L")[0]
 
-  proc formatOption(flags:string, helptext:string, defaultval:string = "", choices:seq[string] = @[], opt_width = 26, max_width = 100):string =
+  proc formatOption(flags:string, helptext:string, defaultval:string = "", envvar:string = "", choices:seq[string] = @[], opt_width = 26, max_width = 100):string =
     result.add("  " & flags)
     var helptext = helptext
     if choices.len > 0:
       helptext.add(" Possible values: [" & choices.join(", ") & "]")
     if defaultval != "":
       helptext.add(&" (default: {defaultval})")
+    if envvar != "":
+      helptext.add(&" (env: {envvar})")
     helptext = helptext.strip()
     if helptext != "":
       if flags.len > opt_width:
@@ -195,7 +198,7 @@ proc genHelp(builder: Builder):string {.compileTime.} =
       if comp.longflag != "":
         flag_parts.add(comp.longflag)
       var flags = flag_parts.join(", ") & "=" & comp.varname.toUpper()
-      opts.add(formatOption(flags, comp.help, defaultval = comp.default, choices = comp.choices))
+      opts.add(formatOption(flags, comp.help, defaultval = comp.default, envvar = comp.env, choices = comp.choices))
       opts.add("\L")
     of Argument:
       var leftside:string
@@ -208,7 +211,7 @@ proc genHelp(builder: Builder):string {.compileTime.} =
       else:
         leftside = (&"{comp.varname} ").repeat(comp.nargs)
       usage_parts.add(leftside)
-      args.add(formatOption(leftside, comp.help, defaultval = comp.default, opt_width=16))
+      args.add(formatOption(leftside, comp.help, defaultval = comp.default, envvar = comp.env, opt_width=16))
       args.add("\L")
   
   var commands = newTable[string,string](2)
@@ -384,9 +387,14 @@ proc mkDefaultSetter(builder: Builder): NimNode =
   for comp in builder.components:
     let varname = ident(comp.varname)
     let defaultval = newLit(comp.default)
+    let envvar = newLit(comp.env)
     case comp.kind
     of Option, Argument:
-      if comp.default != "":
+      if comp.env != "":
+        result.add(replaceNodes(quote do:
+          opts.`varname` = getEnv(`envvar`, `defaultval`)
+        ))
+      elif comp.default != "":
         result.add(replaceNodes(quote do:
           opts.`varname` = `defaultval`
         ))
@@ -793,7 +801,7 @@ proc flag*(opt1: string, opt2: string = "", multiple = false, help:string = "") 
   
   builderstack[^1].add(c)
 
-proc option*(opt1: string, opt2: string = "", multiple = false, help:string="", default:string="", choices:seq[string] = @[]) =
+proc option*(opt1: string, opt2: string = "", multiple = false, help:string="", default:string="", env:string="", choices:seq[string] = @[]) =
   ## Add an option to the argument parser.  The longest
   ## named flag will be used as the name on the parsed
   ## result.
@@ -809,6 +817,7 @@ proc option*(opt1: string, opt2: string = "", multiple = false, help:string="", 
   c.kind = Option
   c.help = help
   c.default = default
+  c.env = env
   c.choices = choices
   c.multiple = multiple
 
@@ -829,8 +838,11 @@ proc option*(opt1: string, opt2: string = "", multiple = false, help:string="", 
   
   builderstack[^1].add(c)
 
-proc arg*(varname: string, nargs=1, help:string="", default:string="") =
+proc arg*(varname: string, nargs=1, help:string="", default:string="", env:string="") =
   ## Add an argument to the argument parser.
+  ##
+  ## `default` = a default string value, if any
+  ## `env` = an environment variable name to get a value from
   ##
   runnableExamples:
     var p = newParser("Command"):
@@ -844,6 +856,7 @@ proc arg*(varname: string, nargs=1, help:string="", default:string="") =
   c.varname = varname
   c.nargs = nargs
   c.default = default
+  c.env = env
   builderstack[^1].add(c)
 
 proc help*(content: string) {.compileTime.} =
