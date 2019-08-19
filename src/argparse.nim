@@ -806,7 +806,13 @@ proc option*(opt1: string, opt2: string = "", multiple = false, help:string="", 
   ## named flag will be used as the name on the parsed
   ## result.
   ##
-  ## Set ``multiple`` to true to accept multiple options
+  ## Set ``multiple`` to true to accept multiple options.
+  ##
+  ## Set ``default`` to the default string value.
+  ##
+  ## Set ``env`` to an environment variable name to use as the default value
+  ## 
+  ## Set ``choices`` to restrict the possible choices.
   ##
   runnableExamples:
     var p = newParser("Command"):
@@ -841,8 +847,9 @@ proc option*(opt1: string, opt2: string = "", multiple = false, help:string="", 
 proc arg*(varname: string, nargs=1, help:string="", default:string="", env:string="") =
   ## Add an argument to the argument parser.
   ##
-  ## `default` = a default string value, if any
-  ## `env` = an environment variable name to get a value from
+  ## Set ``default`` to the default string value.
+  ##
+  ## Set ``env`` to an environment variable name to use as the default value
   ##
   runnableExamples:
     var p = newParser("Command"):
