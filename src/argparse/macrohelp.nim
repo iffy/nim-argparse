@@ -30,7 +30,10 @@ proc replaceNodes*(ast: NimNode): NimNode =
   proc inspect(node: NimNode): NimNode =
     case node.kind:
     of nnkIdent:
-      return ident(node.strVal)
+      if "`gensym" in node.strVal:
+        return ident(node.strVal.split("`")[0])
+      else:
+        return ident(node.strVal)
     of nnkSym:
       return ident(node.strVal)
     of nnkEmpty:
