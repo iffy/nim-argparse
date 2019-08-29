@@ -587,8 +587,9 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
   let ParserIdent = builder.parserIdent()
 
   # parse(seq[string])
+  let ExtraNode = newIdentNode("EXTRA")
   var parse_seq_string = replaceNodes(quote do:
-    proc parse(p:`ParserIdent`, state:var ParsingState, alsorun:bool, output:Stream, EXTRA):`OptsIdent` {.used.} =
+    proc parse(p:`ParserIdent`, state:var ParsingState, alsorun:bool, output:Stream, `ExtraNode`):`OptsIdent` {.used.} =
       var opts = `OptsIdent`()
       HEYparentOpts
       HEYsetdefaults
@@ -619,6 +620,7 @@ proc genParseProcs(builder: var Builder): NimNode {.compileTime.} =
       HEYrun
       return opts
   )
+  # echo parse_seq_string.treeRepr()
 
   var extra_args = parse_seq_string.parentOf("EXTRA")
   if builder.parent != nil:
