@@ -928,8 +928,7 @@ template newParser*(name: string, content: untyped): untyped =
     assert p.parse(@["-a"]).a == true
 
   macro tmpmkParser(): untyped =
-    var res = mkParser(name):
-      content
+    var res = mkParser(name, proc() = content)
     newStmtList(
       res.types,
       res.body,
