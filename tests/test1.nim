@@ -264,7 +264,7 @@ suite "autohelp":
       flag("--foo")
       run:
         res.add("main ran")
-      command("something"):
+      command("something") do:
         help("sub help")
         flag("--bar")
         run:
@@ -291,7 +291,7 @@ suite "autohelp":
       nohelpflag()
       run:
         res.add("main ran")
-      command("something"):
+      command("something") do:
         nohelpflag()
         run:
           res.add("sub ran")
@@ -313,7 +313,7 @@ suite "commands":
     var res:string = "hello"
 
     var p = newParser("prog"):
-      command "command1":
+      command("command1") do:
         help("Some help text")
         flag("-a")
         run:
@@ -329,11 +329,11 @@ suite "commands":
     var res:string = ""
 
     var p = newParser("My Program"):
-      command "move":
+      command("move") do:
         arg("howmuch")
         run:
           res = "moving " & opts.howmuch
-      command "eat":
+      command("eat") do:
         arg("what")
         run:
           res = "you ate " & opts.what
@@ -348,7 +348,7 @@ suite "commands":
 
     var p = newParser("Nested"):
       option("-a")
-      command "sub":
+      command("sub") do:
         option("-a")
         run:
           res = &"{opts.parentOpts.a},{opts.a}" 
@@ -360,7 +360,7 @@ suite "commands":
     var res:string = ""
 
     var p = newParser("prog"):
-      command "sub":
+      command("sub") do:
         option("-a")
         run:
           res = "did run"
@@ -371,13 +371,13 @@ suite "commands":
   
   test "command groups":
     var p = newParser("prog"):
-      command("first", group = "groupA"):
+      command("first", group = "groupA") do:
         help "A first command"
         run: discard
-      command("second", group = "groupB"):
+      command("second", group = "groupB") do:
         help "A second command"
         run: discard
-      command("third", group="groupA"):
+      command("third", group="groupA") do:
         help "A third command"
         run: discard
     
