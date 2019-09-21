@@ -715,7 +715,7 @@ proc genRunProc(builder: var Builder): NimNode {.compileTime.} =
           p.run(commandLineParams(), quitOnHelp)
       ))
 
-proc mkParser(name: string, content: proc(), instantiate:bool = true, group:string = ""): tuple[types: NimNode, body:NimNode] {.compileTime.} =
+proc mkParser(name: string, instantiate:bool, group:string, content: proc()): tuple[types: NimNode, body:NimNode] {.compileTime.} =
   ## Where all the magic starts
   builderstack.add(newBuilder(name))
   content()
@@ -903,10 +903,8 @@ template run*(content: untyped): untyped =
 
   performRun(replaceNodes(quote(content)))
 
-proc command*(name: string, content: proc(), group:string = "") {.compileTime.} =
-  ## Add a sub-command to the argument parser.
-  ##
-  ## group is an optional string used to group commands in help output
+proc add_command*(name: string, group: string, content: proc()) {.compileTime.} =
+  ## INTERNAL
   runnableExamples:
     var p = newParser("Some Program"):
       command("dostuff"):
@@ -914,10 +912,19 @@ proc command*(name: string, content: proc(), group:string = "") {.compileTime.} 
           echo "Actually do stuff"
     p.run(@["dostuff"])
 
-  discard mkParser(name, content, instantiate = false, group = group)
+  discard mkParser(name, false, group, content)
 
-proc command*(name: string, group: string, content: proc()) {.compileTime.} =
-  command(name, content, group)
+template command*(name: string, group: string, content: untyped): untyped =
+  ## Add a sub-command to the argument parser.
+  ##
+  ## group is a string used to group commands in help output
+  add_command(name, group) do:
+    content
+
+template command*(name: string, content: untyped):untyped =
+  ## Add a sub-command to the argument parser.
+  add_command(name, "") do:
+    content
 
 template newParser*(name: string, content: untyped): untyped =
   ## Entry point for making command-line parsers.
@@ -928,7 +935,7 @@ template newParser*(name: string, content: untyped): untyped =
     assert p.parse(@["-a"]).a == true
 
   macro tmpmkParser(): untyped =
-    var res = mkParser(name, proc() = content)
+    var res = mkParser(name, true, "", proc() = content)
     newStmtList(
       res.types,
       res.body,
