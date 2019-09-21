@@ -905,6 +905,12 @@ template run*(content: untyped): untyped =
 
 proc add_command*(name: string, group: string, content: proc()) {.compileTime.} =
   ## INTERNAL
+  discard mkParser(name, false, group, content)
+
+template command*(name: string, group: string, content: untyped): untyped =
+  ## Add a sub-command to the argument parser.
+  ##
+  ## group is a string used to group commands in help output
   runnableExamples:
     var p = newParser("Some Program"):
       command("dostuff"):
@@ -912,12 +918,6 @@ proc add_command*(name: string, group: string, content: proc()) {.compileTime.} 
           echo "Actually do stuff"
     p.run(@["dostuff"])
 
-  discard mkParser(name, false, group, content)
-
-template command*(name: string, group: string, content: untyped): untyped =
-  ## Add a sub-command to the argument parser.
-  ##
-  ## group is a string used to group commands in help output
   add_command(name, group) do:
     content
 
