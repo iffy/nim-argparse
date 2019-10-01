@@ -14,7 +14,11 @@
 ## - ``help`` - to define a help string for the parser/subcommand
 ## - ``nohelpflag`` - to disable the automatic `-h/--help` flag.  When using ``parse()``, ``.help`` will be a boolean flag.
 ##
-## The specials variables ``opts`` and ``opts.parentOpts`` are available within ``run`` blocks.
+## The following special variables are available within ``run`` blocks:
+##
+## - ``opts`` - contains your user-defined options
+## - ``opts.parentOpts`` - a reference to parent options (i.e. from a subcommand)
+## - ``opts.argparseCommand`` - a string holding the chosen command
 ##
 ## If ``Parser.parse()`` and ``Parser.run()`` are called without arguments, they use the arguments from the command line.
 
@@ -274,6 +278,9 @@ proc genReturnType(builder: var Builder): NimNode {.compileTime.} =
   if builder.parent != nil:
     # Add the parent Opts type to this one
     objdef.addObjectField("parentOpts", builder.parent.optsIdent())
+  
+  # Add the argparseCommand type
+  objdef.addObjectField("argparseCommand", "string")
 
   for comp in builder.components:
     case comp.kind
@@ -509,6 +516,7 @@ proc mkArgHandler(builder: Builder): tuple[handler:NimNode, flusher:NimNode, min
   # handle commands
   for command in builder.children:
     let ParserIdent = command.parserIdent()
+    let command_name = command.name
     onPossibleCommand.add(command.name, replaceNodes(quote do:
       state.inc()
       let subparser = `ParserIdent`()
@@ -519,6 +527,7 @@ proc mkArgHandler(builder: Builder): tuple[handler:NimNode, flusher:NimNode, min
         unclaimed: state.unclaimed,
         runProcs: state.runProcs,
       )
+      opts.argparseCommand = `command_name`
       discard subparser.parse(substate, alsorun, output, opts)
       state.i = substate.i
       state.args_encountered = substate.args_encountered
