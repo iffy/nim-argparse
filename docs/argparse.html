@@ -922,7 +922,11 @@ function main() {
 <li><tt class="docutils literal"><span class="pre">help</span></tt> - to define a help string for the parser/subcommand</li>
 <li><tt class="docutils literal"><span class="pre">nohelpflag</span></tt> - to disable the automatic <tt class="docutils literal"><span class="pre">-h/--help</span></tt> flag.  When using <tt class="docutils literal"><span class="pre">parse()</span></tt>, <tt class="docutils literal"><span class="pre">.help</span></tt> will be a boolean flag.</li>
 </ul>
-<p>The specials variables <tt class="docutils literal"><span class="pre">opts</span></tt> and <tt class="docutils literal"><span class="pre">opts.parentOpts</span></tt> are available within <tt class="docutils literal"><span class="pre">run</span></tt> blocks.</p>
+<p>The following special variables are available within <tt class="docutils literal"><span class="pre">run</span></tt> blocks:</p>
+<ul class="simple"><li><tt class="docutils literal"><span class="pre">opts</span></tt> - contains your user-defined options</li>
+<li><tt class="docutils literal"><span class="pre">opts.parentOpts</span></tt> - a reference to parent options (i.e. from a subcommand)</li>
+<li><tt class="docutils literal"><span class="pre">opts.argparseCommand</span></tt> - a string holding the chosen command</li>
+</ul>
 <p>If <tt class="docutils literal"><span class="pre">Parser.parse()</span></tt> and <tt class="docutils literal"><span class="pre">Parser.run()</span></tt> are called without arguments, they use the arguments from the command line.</p>
 
 <p><strong class="examples_text">Examples:</strong></p>
@@ -1201,7 +1205,7 @@ Entry point for making command-line parsers.
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small>Made with Nim. Generated: 2019-09-21 14:35:01 UTC</small>
+        <small>Made with Nim. Generated: 2019-10-01 17:46:51 UTC</small>
       </div>
     </div>
   </div>
