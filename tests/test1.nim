@@ -325,6 +325,23 @@ suite "commands":
     p.run(shlex"command1")
     check res == "false"
   
+  test "run only one":
+    var res:string
+
+    var p = newParser("prog"):
+      command "command1":
+        run:
+          res.add("command1")
+      run:
+        if opts.argparse_command == "":
+          res.add("root run")
+    p.run(shlex"command1")
+    check res == "command1"
+    res.setLen(0)
+
+    p.run()
+    check res == "root run"
+  
   test "two commands":
     var res:string = ""
 
