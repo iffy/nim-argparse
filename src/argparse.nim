@@ -88,6 +88,7 @@ type
       shortflag*: string
       longflag*: string
       multiple*: bool
+      hidden*: bool  ## The component is not shown in the help
     of Argument:
       nargs*: int
   
@@ -188,22 +189,24 @@ proc genHelp(builder: Builder):string {.compileTime.} =
   for comp in builder.components:
     case comp.kind
     of Flag:
-      var flag_parts: seq[string]
-      if comp.shortflag != "":
-        flag_parts.add(comp.shortflag)
-      if comp.longflag != "":
-        flag_parts.add(comp.longflag)
-      opts.add(formatOption(flag_parts.join(", "), comp.help))
-      opts.add("\L")
+      if not comp.hidden:
+          var flag_parts: seq[string]
+          if comp.shortflag != "":
+            flag_parts.add(comp.shortflag)
+          if comp.longflag != "":
+            flag_parts.add(comp.longflag)
+          opts.add(formatOption(flag_parts.join(", "), comp.help))
+          opts.add("\L")
     of Option:
-      var flag_parts: seq[string]
-      if comp.shortflag != "":
-        flag_parts.add(comp.shortflag)
-      if comp.longflag != "":
-        flag_parts.add(comp.longflag)
-      var flags = flag_parts.join(", ") & "=" & comp.varname.toUpper()
-      opts.add(formatOption(flags, comp.help, defaultval = comp.default, envvar = comp.env, choices = comp.choices))
-      opts.add("\L")
+      if not comp.hidden:
+          var flag_parts: seq[string]
+          if comp.shortflag != "":
+            flag_parts.add(comp.shortflag)
+          if comp.longflag != "":
+            flag_parts.add(comp.longflag)
+          var flags = flag_parts.join(", ") & "=" & comp.varname.toUpper()
+          opts.add(formatOption(flags, comp.help, defaultval = comp.default, envvar = comp.env, choices = comp.choices))
+          opts.add("\L")
     of Argument:
       var leftside:string
       if comp.nargs == 1:
@@ -783,7 +786,7 @@ proc toUnderscores(s:string):string =
   s.replace('-','_').strip(chars={'_'})
 
 
-proc flag*(opt1: string, opt2: string = "", multiple = false, help:string = "") {.compileTime.} =
+proc flag*(opt1: string, opt2: string = "", multiple = false, help:string = "", hidden:bool=false) {.compileTime.} =
   ## Add a boolean flag to the argument parser.  The boolean
   ## will be available on the parsed options object as the
   ## longest named flag.
@@ -797,6 +800,7 @@ proc flag*(opt1: string, opt2: string = "", multiple = false, help:string = "") 
   c.kind = Flag
   c.help = help
   c.multiple = multiple
+  c.hidden = hidden
 
   if opt1.startsWith("--"):
     c.shortflag = opt2
@@ -812,7 +816,7 @@ proc flag*(opt1: string, opt2: string = "", multiple = false, help:string = "") 
   
   builderstack[^1].add(c)
 
-proc option*(opt1: string, opt2: string = "", multiple = false, help:string="", default:string="", env:string="", choices:seq[string] = @[]) =
+proc option*(opt1: string, opt2: string = "", multiple = false, help:string="", default:string="", env:string="", choices:seq[string] = @[], hidden:bool=false) =
   ## Add an option to the argument parser.  The longest
   ## named flag will be used as the name on the parsed
   ## result.
@@ -837,6 +841,7 @@ proc option*(opt1: string, opt2: string = "", multiple = false, help:string="", 
   c.env = env
   c.choices = choices
   c.multiple = multiple
+  c.hidden = hidden
 
   if multiple:
     assert default == "", "You may not specify a default for option(..., multiple=true)"
@@ -944,6 +949,8 @@ template newParser*(name: string, content: untyped): untyped =
     assert p.parse(@["-a"]).a == true
 
   macro tmpmkParser(): untyped =
+    # Note: getEnv() works in the compile time but does not feetch the appname as $0 unlike bash
+    # when name.len < 2 or name[0] != '$': name else: getEnv(substr(name, 0), default="<" & substr(name, 0) & ">"),
     var res = mkParser(name, true, "", proc() = content)
     newStmtList(
       res.types,
