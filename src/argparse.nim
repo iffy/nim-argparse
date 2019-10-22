@@ -949,8 +949,6 @@ template newParser*(name: string, content: untyped): untyped =
     assert p.parse(@["-a"]).a == true
 
   macro tmpmkParser(): untyped =
-    # Note: getEnv() works in the compile time but does not feetch the appname as $0 unlike bash
-    # when name.len < 2 or name[0] != '$': name else: getEnv(substr(name, 0), default="<" & substr(name, 0) & ">"),
     var res = mkParser(name, true, "", proc() = content)
     newStmtList(
       res.types,
