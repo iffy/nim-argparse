@@ -793,6 +793,9 @@ proc flag*(opt1: string, opt2: string = "", multiple = false, help:string = "", 
   ##
   ## If ``multiple`` is true then the flag can be specified multiple
   ## times and the datatype will be an int.
+  ##
+  ## If ``hidden`` is true then the flag usage is not shown in the help.
+  ##
   runnableExamples:
     var p = newParser("Some Thing"):
       flag("-n", "--dryrun", help="Don't actually run")
@@ -828,6 +831,8 @@ proc option*(opt1: string, opt2: string = "", multiple = false, help:string="", 
   ## Set ``env`` to an environment variable name to use as the default value
   ## 
   ## Set ``choices`` to restrict the possible choices.
+  ##
+  ## Set ``hidden`` to exclude the flag usage from the help.
   ##
   runnableExamples:
     var p = newParser("Command"):
