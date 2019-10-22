@@ -832,7 +832,7 @@ proc option*(opt1: string, opt2: string = "", multiple = false, help:string="", 
   ## 
   ## Set ``choices`` to restrict the possible choices.
   ##
-  ## Set ``hidden`` to exclude the flag usage from the help.
+  ## Set ``hidden`` to prevent the option usage listing in the help text.
   ##
   runnableExamples:
     var p = newParser("Command"):
