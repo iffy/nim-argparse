@@ -872,11 +872,13 @@ function main() {
     title="replace(state: var ParsingState; val: string)"><wbr />replace<span class="attachedType">ParsingState</span></a></li>
   <li><a class="reference" href="#insertArg%2CParsingState%2Cstring"
     title="insertArg(state: var ParsingState; val: string)"><wbr />insert<wbr />Arg<span class="attachedType">ParsingState</span></a></li>
-  <li><a class="reference" href="#flag%2Cstring%2Cstring%2Cstring"
-    title="flag(opt1: string; opt2: string = &quot;&quot;; multiple = false; help: string = &quot;&quot;)"><wbr />flag<span class="attachedType"></span></a></li>
-  <li><a class="reference" href="#option%2Cstring%2Cstring%2Cstring%2Cstring%2Cstring%2Cseq%5BT%5D%5Bstring%5D"
+  <li><a class="reference" href="#flag%2Cstring%2Cstring%2Cstring%2Cbool"
+    title="flag(opt1: string; opt2: string = &quot;&quot;; multiple = false; help: string = &quot;&quot;;
+     hidden: bool = false)"><wbr />flag<span class="attachedType"></span></a></li>
+  <li><a class="reference" href="#option%2Cstring%2Cstring%2Cstring%2Cstring%2Cstring%2Cseq%5BT%5D%5Bstring%5D%2Cbool"
     title="option(opt1: string; opt2: string = &quot;&quot;; multiple = false; help: string = &quot;&quot;;
-       default: string = &quot;&quot;; env: string = &quot;&quot;; choices: seq[string] = @[])"><wbr />option<span class="attachedType"></span></a></li>
+       default: string = &quot;&quot;; env: string = &quot;&quot;; choices: seq[string] = @[];
+       hidden: bool = false)"><wbr />option<span class="attachedType"></span></a></li>
   <li><a class="reference" href="#arg%2Cstring%2Cint%2Cstring%2Cstring%2Cstring"
     title="arg(varname: string; nargs = 1; help: string = &quot;&quot;; default: string = &quot;&quot;; env: string = &quot;&quot;)"><wbr />arg<span class="attachedType"></span></a></li>
   <li><a class="reference" href="#help%2Cstring"
@@ -1059,30 +1061,32 @@ INTERNAL: Replace the current argument with another one
 INTERNAL: Insert an argument after the current argument
 
 </dd>
-<a id="flag,string,string,string"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#flag%2Cstring%2Cstring%2Cstring"><span class="Identifier">flag</span></a><span class="Other">(</span><span class="Identifier">opt1</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">opt2</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">;</span> <span class="Identifier">multiple</span> <span class="Other">=</span> <span class="Identifier">false</span><span class="Other">;</span> <span class="Identifier">help</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">compileTime</span><span class="Other">,</span>
-    <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="flag,string,string,string,bool"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#flag%2Cstring%2Cstring%2Cstring%2Cbool"><span class="Identifier">flag</span></a><span class="Other">(</span><span class="Identifier">opt1</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">opt2</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">;</span> <span class="Identifier">multiple</span> <span class="Other">=</span> <span class="Identifier">false</span><span class="Other">;</span> <span class="Identifier">help</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">;</span>
+         <span class="Identifier">hidden</span><span class="Other">:</span> <span class="Identifier">bool</span> <span class="Other">=</span> <span class="Identifier">false</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">compileTime</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 <p>Add a boolean flag to the argument parser.  The boolean will be available on the parsed options object as the longest named flag.</p>
 <p>If <tt class="docutils literal"><span class="pre">multiple</span></tt> is true then the flag can be specified multiple times and the datatype will be an int.</p>
+<p>If <tt class="docutils literal"><span class="pre">hidden</span></tt> is true then the flag usage is not shown in the help. </p>
 
 <p><strong class="examples_text">Examples:</strong></p>
 <pre class="listing"><span class="Keyword">var</span> <span class="Identifier">p</span> <span class="Other">=</span> <span class="Identifier">newParser</span><span class="Other">(</span><span class="StringLit">&quot;Some Thing&quot;</span><span class="Other">)</span><span class="Other">:</span>
   <span class="Identifier">flag</span><span class="Other">(</span><span class="StringLit">&quot;-n&quot;</span><span class="Other">,</span> <span class="StringLit">&quot;--dryrun&quot;</span><span class="Other">,</span> <span class="Identifier">help</span> <span class="Other">=</span> <span class="StringLit">&quot;Don\'t actually run&quot;</span><span class="Other">)</span></pre>
 
 </dd>
-<a id="option,string,string,string,string,string,seq[T][string]"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#option%2Cstring%2Cstring%2Cstring%2Cstring%2Cstring%2Cseq%5BT%5D%5Bstring%5D"><span class="Identifier">option</span></a><span class="Other">(</span><span class="Identifier">opt1</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">opt2</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">;</span> <span class="Identifier">multiple</span> <span class="Other">=</span> <span class="Identifier">false</span><span class="Other">;</span> <span class="Identifier">help</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">;</span>
-           <span class="Identifier">default</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">;</span> <span class="Identifier">env</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">;</span> <span class="Identifier">choices</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span> <span class="Other">=</span> <span class="Operator">@</span><span class="Other">[</span><span class="Other">]</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
-    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="option,string,string,string,string,string,seq[T][string],bool"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#option%2Cstring%2Cstring%2Cstring%2Cstring%2Cstring%2Cseq%5BT%5D%5Bstring%5D%2Cbool"><span class="Identifier">option</span></a><span class="Other">(</span><span class="Identifier">opt1</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">opt2</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">;</span> <span class="Identifier">multiple</span> <span class="Other">=</span> <span class="Identifier">false</span><span class="Other">;</span> <span class="Identifier">help</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">;</span>
+           <span class="Identifier">default</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">;</span> <span class="Identifier">env</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">;</span> <span class="Identifier">choices</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span> <span class="Other">=</span> <span class="Operator">@</span><span class="Other">[</span><span class="Other">]</span><span class="Other">;</span>
+           <span class="Identifier">hidden</span><span class="Other">:</span> <span class="Identifier">bool</span> <span class="Other">=</span> <span class="Identifier">false</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 <p>Add an option to the argument parser.  The longest named flag will be used as the name on the parsed result.</p>
 <p>Set <tt class="docutils literal"><span class="pre">multiple</span></tt> to true to accept multiple options.</p>
 <p>Set <tt class="docutils literal"><span class="pre">default</span></tt> to the default string value.</p>
 <p>Set <tt class="docutils literal"><span class="pre">env</span></tt> to an environment variable name to use as the default value</p>
-<p>Set <tt class="docutils literal"><span class="pre">choices</span></tt> to restrict the possible choices. </p>
+<p>Set <tt class="docutils literal"><span class="pre">choices</span></tt> to restrict the possible choices.</p>
+<p>Set <tt class="docutils literal"><span class="pre">hidden</span></tt> to prevent the option usage listing in the help text. </p>
 
 <p><strong class="examples_text">Examples:</strong></p>
 <pre class="listing"><span class="Keyword">var</span> <span class="Identifier">p</span> <span class="Other">=</span> <span class="Identifier">newParser</span><span class="Other">(</span><span class="StringLit">&quot;Command&quot;</span><span class="Other">)</span><span class="Other">:</span>
@@ -1205,7 +1209,7 @@ Entry point for making command-line parsers.
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small>Made with Nim. Generated: 2019-10-01 17:46:51 UTC</small>
+        <small>Made with Nim. Generated: 2019-11-20 02:10:40 UTC</small>
       </div>
     </div>
   </div>
