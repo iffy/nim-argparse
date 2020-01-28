@@ -4,6 +4,8 @@ on:
   push:
     branches-ignore:
       - 'gh-pages'
+  schedule:
+    - cron: '0 0 0 0 1' # every Monday
 
 jobs:
   tests:
@@ -25,5 +27,3 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         ./builddocs.sh
-
-  
