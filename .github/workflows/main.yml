@@ -1,0 +1,28 @@
+name: tests
+
+on:
+  push:
+    branches-ignore: [gh-pages]
+  schedule:
+    - cron: '0 0 * * 1'
+
+jobs:
+  tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        nimversion: [stable, devel]
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+    steps:
+    - uses: actions/checkout@v1
+    - uses: iffy/install-nim@v1
+      with:
+        nimversion: ${{ matrix.nimversion }}
+    - name: Test
+      run: |
+        nimble test
+        nimble refresh
+    - name: Docs
+      if: runner.os == 'Linux'
+      run: |
+        ./builddocs.sh
