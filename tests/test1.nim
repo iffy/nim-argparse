@@ -1,11 +1,12 @@
-
 import macros
 import unittest
 import argparse
 import strutils
 import strformat
+import sequtils
 import parseopt
 import streams
+import algorithm
 
 proc shlex(x:string):seq[string] =
   # XXX this is not accurate, but okay enough for testing
@@ -401,5 +402,16 @@ suite "commands":
     check "groupA" in p.help
     check "groupB" in p.help
     echo p.help
+
+  test "command group ordering":
+    var p = newParser("prog"):
+      command("a", group = "AA"): discard
+      command("b", group = "BB"): discard
+      command("c", group = "CC"): discard
+      command("d", group = "DD"): discard
+      command("e", group = "EE"): discard
+      command("f", group = "FF"): discard
+    let indexes = @["AA","BB","CC","DD","EE","FF"].mapIt(p.help.find(it))
+    check indexes == indexes.sorted()
 
 

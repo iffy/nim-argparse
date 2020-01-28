@@ -221,7 +221,7 @@ proc genHelp(builder: Builder):string {.compileTime.} =
       args.add(formatOption(leftside, comp.help, defaultval = comp.default, envvar = comp.env, opt_width=16))
       args.add("\L")
   
-  var commands = newTable[string,string](2)
+  var commands = newOrderedTable[string,string](2)
 
   if builder.children.len > 0:
     usage_parts.add("COMMAND")
