@@ -2,10 +2,9 @@ name: tests
 
 on:
   push:
-    branches-ignore:
-      - 'gh-pages'
+    branches-ignore: [gh-pages]
   schedule:
-    - cron: '0 0 0 0 1'
+    - cron: '0 0 * * 1'
 
 jobs:
   tests:
