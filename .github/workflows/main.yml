@@ -15,15 +15,15 @@ jobs:
         os: [ubuntu-latest, macOS-latest, windows-latest]
     steps:
     - uses: actions/checkout@v1
-    - name: Cache nimble
-      id: cache-nimble
-      uses: actions/cache@v1
+    - name: Cache things to avoid downloading
+      uses: actions/cache@v2
       with:
-        path: ~/.nimble
-        key: ${{ runner.os }}-${{ matrix.nimversion }}-nimble-${{ hashFiles('*.nimble') }}
-    - uses: jiro4989/setup-nim-action@v1
+        path: |
+          ~/.choosenim
+        key: ${{ matrix.os }}-${{ matrix.nimversion }}
+    - uses: iffy/install-nim@v1
       with:
-        nim-version: ${{ matrix.nimversion }}
+        nimversion: ${{ matrix.nimversion }}
     - name: Test
       run: |
         nimble test
