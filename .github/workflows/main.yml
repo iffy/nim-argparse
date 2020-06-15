@@ -20,7 +20,7 @@ jobs:
       with:
         path: |
           ~/.choosenim
-        key: ${{ matrix.os }}-${{ matrix.nimversion }}
+        key: ${{ matrix.os }}-choosenim
     - uses: iffy/install-nim@v1
       with:
         nimversion: ${{ matrix.nimversion }}
