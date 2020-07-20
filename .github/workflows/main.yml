@@ -17,7 +17,7 @@ jobs:
         os:
         - ubuntu-latest
         - macOS-latest
-        #- windows-latest
+        - windows-latest
     steps:
     - uses: actions/checkout@v1
     - uses: iffy/install-nim@v1
