@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        nimversion: [stable, devel]
+        nim-version: [stable, devel]
         os:
         - ubuntu-latest
         - macOS-latest
@@ -27,7 +27,7 @@ jobs:
         key: ${{ runner.os }}-nimble-${{ hashFiles('*.nimble') }}
     - uses: jiro4989/setup-nim-action@v1
       with:
-        nimversion: ${{ matrix.nim-version }}
+        nim-version: ${{ matrix.nim-version }}
     - name: Test
       run: |
         nimble test
