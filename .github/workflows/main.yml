@@ -15,12 +15,19 @@ jobs:
         os:
         - ubuntu-latest
         - macOS-latest
-        #- windows-latest
+        - windows-latest
     steps:
     - uses: actions/checkout@v1
-    - uses: iffy/install-nim@v1
+    - name: Cache nimble
+      if: runner.os != 'Windows'
+      id: cache-nimble
+      uses: actions/cache@v1
       with:
-        nimversion: ${{ matrix.nimversion }}
+        path: ~/.nimble
+        key: ${{ runner.os }}-nimble-${{ hashFiles('*.nimble') }}
+    - uses: jiro4989/setup-nim-action@v1
+      with:
+        nimversion: ${{ matrix.nim-version }}
     - name: Test
       run: |
         nimble test
