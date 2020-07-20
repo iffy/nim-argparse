@@ -19,7 +19,7 @@ jobs:
     steps:
     - name: "Check rate limit"
       run: |
-        curl https://api.github.com/rate_limit
+        curl https://${{ secrets.GITHUB_TOKEN }}@api.github.com/rate_limit
     - uses: actions/checkout@v1
     - name: Cache nimble
       if: runner.os != 'Windows'
