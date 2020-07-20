@@ -17,6 +17,9 @@ jobs:
         - macOS-latest
         - windows-latest
     steps:
+    - name: "Check rate limit"
+      run: |
+        curl https://api.github.com/rate_limit
     - uses: actions/checkout@v1
     - name: Cache nimble
       if: runner.os != 'Windows'
