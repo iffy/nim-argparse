@@ -11,26 +11,18 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        nim-version: [stable, devel]
+        nimversion:
+        - stable
+        #- devel # uncomment once https://github.com/dom96/choosenim/issues/208 is fixed
         os:
         - ubuntu-latest
         - macOS-latest
-        - windows-latest
+        #- windows-latest
     steps:
-    - name: "Check rate limit"
-      run: |
-        curl https://${{ secrets.GITHUB_TOKEN }}@api.github.com/rate_limit
     - uses: actions/checkout@v1
-    - name: Cache nimble
-      if: runner.os != 'Windows'
-      id: cache-nimble
-      uses: actions/cache@v1
+    - uses: iffy/install-nim@v1
       with:
-        path: ~/.nimble
-        key: ${{ runner.os }}-nimble-${{ hashFiles('*.nimble') }}
-    - uses: jiro4989/setup-nim-action@v1
-      with:
-        nim-version: ${{ matrix.nim-version }}
+        nimversion: ${{ matrix.nimversion }}
     - name: Test
       run: |
         nimble test
