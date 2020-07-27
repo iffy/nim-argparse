@@ -21,6 +21,8 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - uses: iffy/install-nim@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         nimversion: ${{ matrix.nimversion }}
     - name: Test
