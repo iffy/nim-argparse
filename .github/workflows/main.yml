@@ -12,7 +12,6 @@ on:
 jobs:
   tests:
     runs-on: ${{ matrix.os }}
-    continue-on-error: '"${{ matrix.nimversion }}" == "devel"'
     strategy:
       matrix:
         nimversion:
