@@ -1,6 +1,6 @@
 # argparse
 
-[![Build Status](https://travis-ci.org/iffy/nim-argparse.svg?branch=master)](https://travis-ci.org/iffy/nim-argparse)
+[![Build Status](https://github.com/iffy/nim-argparse/workflows/tests/badge.svg?branch=master)](https://github.com/iffy/nim-argparse/actions)
 
 Command line argument parsing library.  It generates the parser at compile time so that parsed options have a well-defined type.
 
