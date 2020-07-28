@@ -1,10 +1,7 @@
 name: tests
 
-
 on:
   push:
-    branches-ignore: [gh-pages]
-  pull_request:
     branches-ignore: [gh-pages]
   schedule:
     - cron: '0 0 * * 1'
