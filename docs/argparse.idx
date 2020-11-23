@@ -1,0 +1,22 @@
+ParsingState	argparse.html#ParsingState	argparse: ParsingState	
+UsageError	argparse.html#UsageError	argparse: UsageError	
+ShortCircuit	argparse.html#ShortCircuit	argparse: ShortCircuit	
+ARGPARSE_STDOUT	argparse.html#ARGPARSE_STDOUT	argparse: ARGPARSE_STDOUT	
+throwUsageError	argparse.html#throwUsageError.t,string	argparse: throwUsageError(message: string)	
+popleft	argparse.html#popleft,seq[T]	argparse: popleft[T](s: var seq[T]): T	
+isdone	argparse.html#isdone,ParsingState	argparse: isdone(state: var ParsingState): bool	
+inc	argparse.html#inc,ParsingState	argparse: inc(state: var ParsingState)	
+subState	argparse.html#subState,ParsingState	argparse: subState(state: var ParsingState): ParsingState	
+current	argparse.html#current,ParsingState	argparse: current(state: ParsingState): string	
+replace	argparse.html#replace,ParsingState,string	argparse: replace(state: var ParsingState; val: string)	
+insertArg	argparse.html#insertArg,ParsingState,string	argparse: insertArg(state: var ParsingState; val: string)	
+flag	argparse.html#flag,string,string,string,bool	argparse: flag(opt1: string; opt2: string = &quot;&quot;; multiple = false; help: string = &quot;&quot;;\n     hidden: bool = false)	
+option	argparse.html#option,string,string,string,string,string,seq[string],bool	argparse: option(opt1: string; opt2: string = &quot;&quot;; multiple = false; help: string = &quot;&quot;;\n       default: string = &quot;&quot;; env: string = &quot;&quot;; choices: seq[string] = @[];\n       hidden: bool = false)	
+arg	argparse.html#arg,string,int,string,string,string	argparse: arg(varname: string; nargs = 1; help: string = &quot;&quot;; default: string = &quot;&quot;;\n    env: string = &quot;&quot;)	
+help	argparse.html#help,string	argparse: help(content: string)	
+nohelpflag	argparse.html#nohelpflag	argparse: nohelpflag()	
+run	argparse.html#run.t,untyped	argparse: run(content: untyped): untyped	
+add_command	argparse.html#add_command,string,string,proc)	argparse: add_command(name: string; group: string; content: proc ())	
+command	argparse.html#command.t,string,string,untyped	argparse: command(name: string; group: string; content: untyped): untyped	
+command	argparse.html#command.t,string,untyped	argparse: command(name: string; content: untyped): untyped	
+newParser	argparse.html#newParser.t,string,untyped	argparse: newParser(name: string; content: untyped): untyped	
