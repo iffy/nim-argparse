@@ -121,9 +121,9 @@ function main() {
   </ul>
   <ul class="simple nested-toc-section">newCaseStatement
       <li><a class="reference" href="#newCaseStatement%2CNimNode"
-    title="newCaseStatement(key: NimNode): UnfinishedCase">newCaseStatement,NimNode<span class="attachedType"></span></a></li>
+    title="newCaseStatement(key: NimNode): ref UnfinishedCase">newCaseStatement,NimNode<span class="attachedType"></span></a></li>
   <li><a class="reference" href="#newCaseStatement%2Cstring"
-    title="newCaseStatement(key: string): UnfinishedCase">newCaseStatement,string<span class="attachedType"></span></a></li>
+    title="newCaseStatement(key: string): ref UnfinishedCase">newCaseStatement,string<span class="attachedType"></span></a></li>
 
   </ul>
   <ul class="simple nested-toc-section">addObjectField
@@ -135,10 +135,10 @@ function main() {
 
   </ul>
   <ul class="simple nested-toc-section">isValid
-      <li><a class="reference" href="#isValid%2CUnfinishedCase"
-    title="isValid(n: UnfinishedCase): bool">isValid,UnfinishedCase<span class="attachedType"></span></a></li>
-  <li><a class="reference" href="#isValid%2CUnfinishedIf"
-    title="isValid(n: UnfinishedIf): bool">isValid,UnfinishedIf<span class="attachedType"></span></a></li>
+      <li><a class="reference" href="#isValid%2Cref.UnfinishedCase"
+    title="isValid(n: ref UnfinishedCase): bool">isValid,ref.UnfinishedCase<span class="attachedType"></span></a></li>
+  <li><a class="reference" href="#isValid%2Cref.UnfinishedIf"
+    title="isValid(n: ref UnfinishedIf): bool">isValid,ref.UnfinishedIf<span class="attachedType"></span></a></li>
 
   </ul>
   <ul class="simple nested-toc-section">getInsertionPoint
@@ -147,10 +147,10 @@ function main() {
 
   </ul>
   <ul class="simple nested-toc-section">addElse
-      <li><a class="reference" href="#addElse%2CUnfinishedCase%2CNimNode"
-    title="addElse(n: var UnfinishedCase; body: NimNode)">addElse,UnfinishedCase,NimNode<span class="attachedType"></span></a></li>
-  <li><a class="reference" href="#addElse%2CUnfinishedIf%2CNimNode"
-    title="addElse(n: var UnfinishedIf; body: NimNode)">addElse,UnfinishedIf,NimNode<span class="attachedType"></span></a></li>
+      <li><a class="reference" href="#addElse%2Cref.UnfinishedCase%2CNimNode"
+    title="addElse(n: ref UnfinishedCase; body: NimNode)">addElse,ref.UnfinishedCase,NimNode<span class="attachedType"></span></a></li>
+  <li><a class="reference" href="#addElse%2Cref.UnfinishedIf%2CNimNode"
+    title="addElse(n: ref UnfinishedIf; body: NimNode)">addElse,ref.UnfinishedIf,NimNode<span class="attachedType"></span></a></li>
 
   </ul>
   <ul class="simple nested-toc-section">parentOf
@@ -161,14 +161,16 @@ function main() {
 
   </ul>
   <ul class="simple nested-toc-section">add
-      <li><a class="reference" href="#add%2CUnfinishedCase%2Cseq%5BNimNode%5D%2CNimNode"
-    title="add(n: var UnfinishedCase; opt: seq[NimNode]; body: NimNode)">add,UnfinishedCase,seq[NimNode],NimNode<span class="attachedType"></span></a></li>
-  <li><a class="reference" href="#add%2CUnfinishedCase%2Cstring%2CNimNode"
-    title="add(n: var UnfinishedCase; opt: string; body: NimNode)">add,UnfinishedCase,string,NimNode<span class="attachedType"></span></a></li>
-  <li><a class="reference" href="#add%2CUnfinishedCase%2Cint%2CNimNode"
-    title="add(n: var UnfinishedCase; opt: int; body: NimNode)">add,UnfinishedCase,int,NimNode<span class="attachedType"></span></a></li>
-  <li><a class="reference" href="#add%2CUnfinishedIf%2CNimNode%2CNimNode"
-    title="add(n: var UnfinishedIf; cond: NimNode; body: NimNode)">add,UnfinishedIf,NimNode,NimNode<span class="attachedType"></span></a></li>
+      <li><a class="reference" href="#add%2Cref.UnfinishedCase%2Cseq%5BNimNode%5D%2CNimNode"
+    title="add(n: ref UnfinishedCase; opt: seq[NimNode]; body: NimNode)">add,ref.UnfinishedCase,seq[NimNode],NimNode<span class="attachedType"></span></a></li>
+  <li><a class="reference" href="#add%2Cref.UnfinishedCase%2Cstring%2CNimNode"
+    title="add(n: ref UnfinishedCase; opt: string; body: NimNode)">add,ref.UnfinishedCase,string,NimNode<span class="attachedType"></span></a></li>
+  <li><a class="reference" href="#add%2Cref.UnfinishedCase%2Cseq%5Bstring%5D%2CNimNode"
+    title="add(n: ref UnfinishedCase; opts: seq[string]; body: NimNode)">add,ref.UnfinishedCase,seq[string],NimNode<span class="attachedType"></span></a></li>
+  <li><a class="reference" href="#add%2Cref.UnfinishedCase%2Cint%2CNimNode"
+    title="add(n: ref UnfinishedCase; opt: int; body: NimNode)">add,ref.UnfinishedCase,int,NimNode<span class="attachedType"></span></a></li>
+  <li><a class="reference" href="#add%2Cref.UnfinishedIf%2CNimNode%2CNimNode"
+    title="add(n: ref UnfinishedIf; cond: NimNode; body: NimNode)">add,ref.UnfinishedIf,NimNode,NimNode<span class="attachedType"></span></a></li>
 
   </ul>
   <ul class="simple nested-toc-section">replaceNodes
@@ -177,10 +179,10 @@ function main() {
 
   </ul>
   <ul class="simple nested-toc-section">finalize
-      <li><a class="reference" href="#finalize%2CUnfinishedCase"
-    title="finalize(n: UnfinishedCase): NimNode">finalize,UnfinishedCase<span class="attachedType"></span></a></li>
-  <li><a class="reference" href="#finalize%2CUnfinishedIf"
-    title="finalize(n: UnfinishedIf): NimNode">finalize,UnfinishedIf<span class="attachedType"></span></a></li>
+      <li><a class="reference" href="#finalize%2Cref.UnfinishedCase"
+    title="finalize(n: ref UnfinishedCase): NimNode">finalize,ref.UnfinishedCase<span class="attachedType"></span></a></li>
+  <li><a class="reference" href="#finalize%2Cref.UnfinishedIf"
+    title="finalize(n: ref UnfinishedIf): NimNode">finalize,ref.UnfinishedIf<span class="attachedType"></span></a></li>
 
   </ul>
   <ul class="simple nested-toc-section">clear
@@ -190,7 +192,7 @@ function main() {
   </ul>
   <ul class="simple nested-toc-section">newIfStatement
       <li><a class="reference" href="#newIfStatement"
-    title="newIfStatement(): UnfinishedIf">newIfStatement<span class="attachedType"></span></a></li>
+    title="newIfStatement(): ref UnfinishedIf">newIfStatement<span class="attachedType"></span></a></li>
 
   </ul>
 
@@ -302,94 +304,119 @@ Adds a field to an object definition created by newObjectTypeDef
 
 </dd>
 <a id="newCaseStatement,NimNode"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#newCaseStatement%2CNimNode"><span class="Identifier">newCaseStatement</span></a><span class="Other">(</span><span class="Identifier">key</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">UnfinishedCase</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#newCaseStatement%2CNimNode"><span class="Identifier">newCaseStatement</span></a><span class="Other">(</span><span class="Identifier">key</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span><span class="Other">:</span> <span class="Keyword">ref</span> <span class="Identifier">UnfinishedCase</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
+<p>Create a new, unfinished case statement.  Call <tt class="docutils literal"><span class="pre">finalize</span></tt> to finish it.</p>
+<p>case(<tt class="docutils literal"><span class="pre">key</span></tt>)</p>
 
 
 </dd>
 <a id="newCaseStatement,string"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#newCaseStatement%2Cstring"><span class="Identifier">newCaseStatement</span></a><span class="Other">(</span><span class="Identifier">key</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">UnfinishedCase</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#newCaseStatement%2Cstring"><span class="Identifier">newCaseStatement</span></a><span class="Other">(</span><span class="Identifier">key</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <span class="Keyword">ref</span> <span class="Identifier">UnfinishedCase</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 
 
 </dd>
-<a id="add,UnfinishedCase,seq[NimNode],NimNode"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#add%2CUnfinishedCase%2Cseq%5BNimNode%5D%2CNimNode"><span class="Identifier">add</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">UnfinishedCase</span><span class="Other">;</span> <span class="Identifier">opt</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">NimNode</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+<a id="add,ref.UnfinishedCase,seq[NimNode],NimNode"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#add%2Cref.UnfinishedCase%2Cseq%5BNimNode%5D%2CNimNode"><span class="Identifier">add</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Keyword">ref</span> <span class="Identifier">UnfinishedCase</span><span class="Other">;</span> <span class="Identifier">opt</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">NimNode</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
-Adds a branch to an UnfinishedCase
+Adds a branch to an UnfinishedCase<dl class="docutils"><dt>Usage:</dt>
+<dd>var c = newCaseStatement(&quot;foo&quot;)<dl class="docutils"><dt>c.add(@[newLit(&quot;apple&quot;), newLit(&quot;banana&quot;)], quote do:</dt>
+<dd>echo &quot;apple or banana&quot;</dd>
+</dl>
+<p>)</p>
+</dd>
+</dl>
+
 
 </dd>
-<a id="add,UnfinishedCase,string,NimNode"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#add%2CUnfinishedCase%2Cstring%2CNimNode"><span class="Identifier">add</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">UnfinishedCase</span><span class="Other">;</span> <span class="Identifier">opt</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+<a id="add,ref.UnfinishedCase,string,NimNode"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#add%2Cref.UnfinishedCase%2Cstring%2CNimNode"><span class="Identifier">add</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Keyword">ref</span> <span class="Identifier">UnfinishedCase</span><span class="Other">;</span> <span class="Identifier">opt</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
-Adds a branch to an UnfinishedCase
+Adds a branch to an UnfinishedCase<dl class="docutils"><dt>c.add(&quot;foo&quot;, quote do:</dt>
+<dd>echo &quot;value was foo&quot;</dd>
+</dl>
+<p>)</p>
+
 
 </dd>
-<a id="add,UnfinishedCase,int,NimNode"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#add%2CUnfinishedCase%2Cint%2CNimNode"><span class="Identifier">add</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">UnfinishedCase</span><span class="Other">;</span> <span class="Identifier">opt</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">;</span> <span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="add,ref.UnfinishedCase,seq[string],NimNode"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#add%2Cref.UnfinishedCase%2Cseq%5Bstring%5D%2CNimNode"><span class="Identifier">add</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Keyword">ref</span> <span class="Identifier">UnfinishedCase</span><span class="Other">;</span> <span class="Identifier">opts</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+
+Adds a branch to an UnfinishedCase<dl class="docutils"><dt>c.add(@[&quot;foo&quot;, &quot;foo-also&quot;], quote do:</dt>
+<dd>echo &quot;value was foo&quot;</dd>
+</dl>
+<p>)</p>
+
+
+</dd>
+<a id="add,ref.UnfinishedCase,int,NimNode"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#add%2Cref.UnfinishedCase%2Cint%2CNimNode"><span class="Identifier">add</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Keyword">ref</span> <span class="Identifier">UnfinishedCase</span><span class="Other">;</span> <span class="Identifier">opt</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">;</span> <span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 Adds an integer branch to an UnfinishedCase
 
 </dd>
-<a id="addElse,UnfinishedCase,NimNode"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#addElse%2CUnfinishedCase%2CNimNode"><span class="Identifier">addElse</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">UnfinishedCase</span><span class="Other">;</span> <span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="addElse,ref.UnfinishedCase,NimNode"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#addElse%2Cref.UnfinishedCase%2CNimNode"><span class="Identifier">addElse</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Keyword">ref</span> <span class="Identifier">UnfinishedCase</span><span class="Other">;</span> <span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 Add an else: to an UnfinishedCase
 
 </dd>
-<a id="isValid,UnfinishedCase"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#isValid%2CUnfinishedCase"><span class="Identifier">isValid</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Identifier">UnfinishedCase</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="isValid,ref.UnfinishedCase"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#isValid%2Cref.UnfinishedCase"><span class="Identifier">isValid</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Keyword">ref</span> <span class="Identifier">UnfinishedCase</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 
 
 </dd>
-<a id="finalize,UnfinishedCase"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#finalize%2CUnfinishedCase"><span class="Identifier">finalize</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Identifier">UnfinishedCase</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="finalize,ref.UnfinishedCase"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#finalize%2Cref.UnfinishedCase"><span class="Identifier">finalize</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Keyword">ref</span> <span class="Identifier">UnfinishedCase</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 
 
 </dd>
 <a id="newIfStatement"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#newIfStatement"><span class="Identifier">newIfStatement</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">UnfinishedIf</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#newIfStatement"><span class="Identifier">newIfStatement</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <span class="Keyword">ref</span> <span class="Identifier">UnfinishedIf</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
-
+Create an unfinished if statement. 
 
 </dd>
-<a id="add,UnfinishedIf,NimNode,NimNode"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#add%2CUnfinishedIf%2CNimNode%2CNimNode"><span class="Identifier">add</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">UnfinishedIf</span><span class="Other">;</span> <span class="Identifier">cond</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">;</span> <span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+<a id="add,ref.UnfinishedIf,NimNode,NimNode"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#add%2Cref.UnfinishedIf%2CNimNode%2CNimNode"><span class="Identifier">add</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Keyword">ref</span> <span class="Identifier">UnfinishedIf</span><span class="Other">;</span> <span class="Identifier">cond</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">;</span> <span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
-
+Add a branch to an if statement
 
 </dd>
-<a id="addElse,UnfinishedIf,NimNode"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#addElse%2CUnfinishedIf%2CNimNode"><span class="Identifier">addElse</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">UnfinishedIf</span><span class="Other">;</span> <span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="addElse,ref.UnfinishedIf,NimNode"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#addElse%2Cref.UnfinishedIf%2CNimNode"><span class="Identifier">addElse</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Keyword">ref</span> <span class="Identifier">UnfinishedIf</span><span class="Other">;</span> <span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 Add an else: to an UnfinishedIf
 
 </dd>
-<a id="isValid,UnfinishedIf"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#isValid%2CUnfinishedIf"><span class="Identifier">isValid</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Identifier">UnfinishedIf</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="isValid,ref.UnfinishedIf"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#isValid%2Cref.UnfinishedIf"><span class="Identifier">isValid</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Keyword">ref</span> <span class="Identifier">UnfinishedIf</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 
 
 </dd>
-<a id="finalize,UnfinishedIf"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#finalize%2CUnfinishedIf"><span class="Identifier">finalize</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Identifier">UnfinishedIf</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="finalize,ref.UnfinishedIf"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#finalize%2Cref.UnfinishedIf"><span class="Identifier">finalize</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Keyword">ref</span> <span class="Identifier">UnfinishedIf</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 Finish an If statement
@@ -412,7 +439,7 @@ Finish an If statement
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-11-23 15:06:48 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2020-11-24 21:20:36 UTC</small>
       </div>
     </div>
   </div>

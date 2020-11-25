@@ -1,12 +1,13 @@
 import macros
-import unittest
 import argparse
-import strutils
-import strformat
+# import macros
+import os
+# import parseopt
 import sequtils
-import parseopt
 import streams
-import algorithm
+# import strformat
+import strutils
+import unittest
 
 proc shlex(x:string):seq[string] =
   # XXX this is not accurate, but okay enough for testing
@@ -21,9 +22,9 @@ template withEnv(name:string, value:string, body:untyped):untyped =
   body
   putEnv(name, old_value)
 
-
 suite "flags":
   test "short flags":
+    # expandMacros:
     var p = newParser("some name"):
       flag("-a")
       flag("-b")
@@ -152,6 +153,12 @@ suite "options":
     check p.parse(shlex"-b first").b == @["first"]
     check p.parse(shlex"-b first -b second").b == @["first", "second"]
 
+  test "option with - value argument":
+    var p = newParser("something"):
+      option("-b")
+    check p.parse(shlex"-b -").b == "-"
+    check p.parse(shlex"-b -a").b == "-a"
+
 suite "args":
   test "single, required arg":
     var p = newParser("prog"):
@@ -248,6 +255,9 @@ suite "args":
     check p.parse(shlex"a b c d").first.len == 0
     check p.parse(shlex"a b c d").middle == @["a", "b"]
     check p.parse(shlex"a b c d").last == @["c", "d"]
+    check p.parse(shlex"a b c d e").first == @["a"]
+    check p.parse(shlex"a b c d e").middle == @["b", "c"]
+    check p.parse(shlex"a b c d e").last == @["d", "e"]
   
   test "nargs=-1 nargs=1 w/ default":
     var p = newParser("prog"):
@@ -256,6 +266,13 @@ suite "args":
     check p.parse(shlex"").last == "hey"
     check p.parse(shlex"hoo").last == "hoo"
     check p.parse(shlex"a b goo").last == "goo"
+  
+  test "-- args":
+    var p = newParser("prog"):
+      arg("first")
+      arg("second")
+    check p.parse(shlex"-- -a -b").first == "-a"
+    check p.parse(shlex"-- -a -b").second == "-b"
 
 suite "autohelp":
   test "helpbydefault":
@@ -272,14 +289,14 @@ suite "autohelp":
           res.add("sub ran")
     
     var op = newStringStream("")
-    p.run(shlex"-h", quitOnHelp = false, output = op)
+    p.run(shlex"-h", quitOnShortCircuit = false, output = op)
     op.setPosition(0)
     var output = op.readAll()
     check "--foo" in output
     check "Top level help" in output
 
     op = newStringStream("")
-    p.run(shlex"something --help", quitOnHelp = false, output = op)
+    p.run(shlex"something --help", quitOnShortCircuit = false, output = op)
     op.setPosition(0)
     output = op.readAll()
     check "--bar" in output
@@ -298,16 +315,17 @@ suite "autohelp":
           res.add("sub ran")
     
     expect UsageError:
-      p.run(shlex"-h", quitOnHelp = false)
+      p.run(shlex"-h", quitOnShortCircuit = false)
     
     expect UsageError:
-      p.run(shlex"something --help", quitOnHelp = false)
+      p.run(shlex"something --help", quitOnShortCircuit = false)
   
   test "parse help":
     let
       p = newParser("helptest"): discard
-      opts = p.parse(@["-h"])
+    let opts = p.parse(@["-h"])
     check opts.help == true
+
 
 suite "commands":
   test "run":

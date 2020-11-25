@@ -8,17 +8,18 @@ replace	argparse/macrohelp.html#replace,InsertionPoint,NimNode	macrohelp: replac
 newObjectTypeDef	argparse/macrohelp.html#newObjectTypeDef,string,bool	macrohelp: newObjectTypeDef(name: string; isref: bool = false): UnfinishedObjectTypeDef	
 addObjectField	argparse/macrohelp.html#addObjectField,UnfinishedObjectTypeDef,string,NimNode	macrohelp: addObjectField(objtypedef: UnfinishedObjectTypeDef; name: string; kind: NimNode)	
 addObjectField	argparse/macrohelp.html#addObjectField,UnfinishedObjectTypeDef,string,string,bool	macrohelp: addObjectField(objtypedef: UnfinishedObjectTypeDef; name: string; kind: string;\n               isref: bool = false)	
-newCaseStatement	argparse/macrohelp.html#newCaseStatement,NimNode	macrohelp: newCaseStatement(key: NimNode): UnfinishedCase	
-newCaseStatement	argparse/macrohelp.html#newCaseStatement,string	macrohelp: newCaseStatement(key: string): UnfinishedCase	
-add	argparse/macrohelp.html#add,UnfinishedCase,seq[NimNode],NimNode	macrohelp: add(n: var UnfinishedCase; opt: seq[NimNode]; body: NimNode)	
-add	argparse/macrohelp.html#add,UnfinishedCase,string,NimNode	macrohelp: add(n: var UnfinishedCase; opt: string; body: NimNode)	
-add	argparse/macrohelp.html#add,UnfinishedCase,int,NimNode	macrohelp: add(n: var UnfinishedCase; opt: int; body: NimNode)	
-addElse	argparse/macrohelp.html#addElse,UnfinishedCase,NimNode	macrohelp: addElse(n: var UnfinishedCase; body: NimNode)	
-isValid	argparse/macrohelp.html#isValid,UnfinishedCase	macrohelp: isValid(n: UnfinishedCase): bool	
-finalize	argparse/macrohelp.html#finalize,UnfinishedCase	macrohelp: finalize(n: UnfinishedCase): NimNode	
-newIfStatement	argparse/macrohelp.html#newIfStatement	macrohelp: newIfStatement(): UnfinishedIf	
-add	argparse/macrohelp.html#add,UnfinishedIf,NimNode,NimNode	macrohelp: add(n: var UnfinishedIf; cond: NimNode; body: NimNode)	
-addElse	argparse/macrohelp.html#addElse,UnfinishedIf,NimNode	macrohelp: addElse(n: var UnfinishedIf; body: NimNode)	
-isValid	argparse/macrohelp.html#isValid,UnfinishedIf	macrohelp: isValid(n: UnfinishedIf): bool	
-finalize	argparse/macrohelp.html#finalize,UnfinishedIf	macrohelp: finalize(n: UnfinishedIf): NimNode	
+newCaseStatement	argparse/macrohelp.html#newCaseStatement,NimNode	macrohelp: newCaseStatement(key: NimNode): ref UnfinishedCase	
+newCaseStatement	argparse/macrohelp.html#newCaseStatement,string	macrohelp: newCaseStatement(key: string): ref UnfinishedCase	
+add	argparse/macrohelp.html#add,ref.UnfinishedCase,seq[NimNode],NimNode	macrohelp: add(n: ref UnfinishedCase; opt: seq[NimNode]; body: NimNode)	
+add	argparse/macrohelp.html#add,ref.UnfinishedCase,string,NimNode	macrohelp: add(n: ref UnfinishedCase; opt: string; body: NimNode)	
+add	argparse/macrohelp.html#add,ref.UnfinishedCase,seq[string],NimNode	macrohelp: add(n: ref UnfinishedCase; opts: seq[string]; body: NimNode)	
+add	argparse/macrohelp.html#add,ref.UnfinishedCase,int,NimNode	macrohelp: add(n: ref UnfinishedCase; opt: int; body: NimNode)	
+addElse	argparse/macrohelp.html#addElse,ref.UnfinishedCase,NimNode	macrohelp: addElse(n: ref UnfinishedCase; body: NimNode)	
+isValid	argparse/macrohelp.html#isValid,ref.UnfinishedCase	macrohelp: isValid(n: ref UnfinishedCase): bool	
+finalize	argparse/macrohelp.html#finalize,ref.UnfinishedCase	macrohelp: finalize(n: ref UnfinishedCase): NimNode	
+newIfStatement	argparse/macrohelp.html#newIfStatement	macrohelp: newIfStatement(): ref UnfinishedIf	
+add	argparse/macrohelp.html#add,ref.UnfinishedIf,NimNode,NimNode	macrohelp: add(n: ref UnfinishedIf; cond: NimNode; body: NimNode)	
+addElse	argparse/macrohelp.html#addElse,ref.UnfinishedIf,NimNode	macrohelp: addElse(n: ref UnfinishedIf; body: NimNode)	
+isValid	argparse/macrohelp.html#isValid,ref.UnfinishedIf	macrohelp: isValid(n: ref UnfinishedIf): bool	
+finalize	argparse/macrohelp.html#finalize,ref.UnfinishedIf	macrohelp: finalize(n: ref UnfinishedIf): NimNode	
 nimRepr	argparse/macrohelp.html#nimRepr,NimNode	macrohelp: nimRepr(n: NimNode): string	

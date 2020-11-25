@@ -135,37 +135,61 @@ proc addObjectField*(objtypedef: UnfinishedObjectTypeDef, name: string, kind: st
   else:
     addObjectField(objtypedef, name, ident(kind))
 
-proc newCaseStatement*(key: NimNode):UnfinishedCase =
-  result = UnfinishedCase()
+#--------------------------------------------------------------
+# case statements
+#--------------------------------------------------------------
+proc newCaseStatement*(key: NimNode): ref UnfinishedCase =
+  ## Create a new, unfinished case statement.  Call `finalize` to finish it.
+  ## 
+  ## case(`key`)
+  new(result)
   result.root = nnkCaseStmt.newTree(key)
 
-proc newCaseStatement*(key: string):UnfinishedCase =
-  return newCaseStatement(ident(key))  
+proc newCaseStatement*(key: string): ref UnfinishedCase =
+  return newCaseStatement(ident(key))
 
-proc add*(n:var UnfinishedCase, opt: seq[NimNode], body: NimNode) =
+proc add*(n: ref UnfinishedCase, opt: seq[NimNode], body: NimNode) =
   ## Adds a branch to an UnfinishedCase
+  ## 
+  ## Usage:
+  ##    var c = newCaseStatement("foo")
+  ##    c.add(@[newLit("apple"), newLit("banana")], quote do:
+  ##      echo "apple or banana"
+  ##    )
   var branch = nnkOfBranch.newTree()
   for node in opt:
     branch.add(node)
   branch.add(body)
   n.cases.add(branch)
 
-proc add*(n:var UnfinishedCase, opt:string, body: NimNode) =
+proc add*(n: ref UnfinishedCase, opt:string, body: NimNode) =
   ## Adds a branch to an UnfinishedCase
-  add(n, @[newStrLitNode(opt)], body)
+  ## 
+  ## c.add("foo", quote do:
+  ##   echo "value was foo"
+  ## )
+  n.add(@[newStrLitNode(opt)], body)
 
-proc add*(n:var UnfinishedCase, opt:int, body: NimNode) =
+proc add*(n: ref UnfinishedCase, opts: seq[string], body: NimNode) =
+  ## Adds a branch to an UnfinishedCase
+  ## 
+  ## c.add(@["foo", "foo-also"], quote do:
+  ##   echo "value was foo"
+  ## )
+  n.add(opts.mapIt(newStrLitNode(it)), body)
+
+proc add*(n: ref UnfinishedCase, opt:int, body: NimNode) =
   ## Adds an integer branch to an UnfinishedCase
   add(n, @[newLit(opt)], body)
 
-proc addElse*(n: var UnfinishedCase, body: NimNode) =
+proc addElse*(n: ref UnfinishedCase, body: NimNode) =
   ## Add an else: to an UnfinishedCase
   n.elsebody = body
 
-proc isValid*(n:UnfinishedCase): bool =
+proc isValid*(n: ref UnfinishedCase): bool =
   return n.cases.len > 0 or n.elsebody != nil
 
-proc finalize*(n:UnfinishedCase): NimNode =
+proc finalize*(n: ref UnfinishedCase): NimNode =
   if n.cases.len > 0:
     for branch in n.cases:
       n.root.add(branch)
@@ -175,24 +199,33 @@ proc finalize*(n:UnfinishedCase): NimNode =
   else:
     result = n.elsebody
 
-proc newIfStatement*():UnfinishedIf =
-  result = UnfinishedIf()
+#--------------------------------------------------------------
+# if statements
+#--------------------------------------------------------------
+
+proc newIfStatement*(): ref UnfinishedIf =
+  ## Create an unfinished if statement. 
+  new(result)
   result.root = nnkIfStmt.newTree()
 
-proc add*(n: var UnfinishedIf, cond: NimNode, body: NimNode) =
+proc add*(n: ref UnfinishedIf, cond: NimNode, body: NimNode) =
+  ## Add a branch to an if statement
+  ## 
+  ## var f = newIfStatement()
+  ## f.add()
   add(n.root, nnkElifBranch.newTree(
     cond,
     body,
   ))
 
-proc addElse*(n: var UnfinishedIf, body: NimNode) =
+proc addElse*(n: ref UnfinishedIf, body: NimNode) =
   ## Add an else: to an UnfinishedIf
   n.elsebody = body
 
-proc isValid*(n:UnfinishedIf): bool =
+proc isValid*(n: ref UnfinishedIf): bool =
   return n.root.len > 0 or n.elsebody != nil
 
-proc finalize*(n:UnfinishedIf): NimNode =
+proc finalize*(n: ref UnfinishedIf): NimNode =
   ## Finish an If statement
   result = n.root
   if n.root.len == 0:

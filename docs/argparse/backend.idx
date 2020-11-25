@@ -1,0 +1,22 @@
+UsageError	argparse/backend.html#UsageError	backend: UsageError	
+ShortCircuit	argparse/backend.html#ShortCircuit	backend: ShortCircuit	
+ArgFlag	argparse/backend.html#ArgFlag	ComponentKind.ArgFlag	
+ArgOption	argparse/backend.html#ArgOption	ComponentKind.ArgOption	
+ArgArgument	argparse/backend.html#ArgArgument	ComponentKind.ArgArgument	
+ComponentKind	argparse/backend.html#ComponentKind	backend: ComponentKind	
+Component	argparse/backend.html#Component	backend: Component	
+Builder	argparse/backend.html#Builder	backend: Builder	
+ParseState	argparse/backend.html#ParseState	backend: ParseState	
+ARGPARSE_STDOUT	argparse/backend.html#ARGPARSE_STDOUT	backend: ARGPARSE_STDOUT	
+`$`	argparse/backend.html#$,ref.ParseState	backend: `$`(state: ref ParseState): string	
+newParseState	argparse/backend.html#newParseState,openArray[string]	backend: newParseState(args: openArray[string]): ref ParseState	
+consume	argparse/backend.html#consume,ref.ParseState,ComponentKind	backend: consume(state: ref ParseState; thing: ComponentKind)	
+skip	argparse/backend.html#skip,ref.ParseState	backend: skip(state: ref ParseState)	
+newBuilder	argparse/backend.html#newBuilder,string	backend: newBuilder(name = &quot;&quot;): ref Builder	
+`$`	argparse/backend.html#$,ref.Builder	backend: `$`(b: ref Builder): string	
+optsTypeDef	argparse/backend.html#optsTypeDef,ref.Builder	backend: optsTypeDef(b: ref Builder): NimNode	
+parserTypeDef	argparse/backend.html#parserTypeDef,ref.Builder	backend: parserTypeDef(b: ref Builder): NimNode	
+parseProcDef	argparse/backend.html#parseProcDef,ref.Builder	backend: parseProcDef(b: ref Builder): NimNode	
+getHelpText	argparse/backend.html#getHelpText,ref.Builder	backend: getHelpText(b: ref Builder): string	
+helpProcDef	argparse/backend.html#helpProcDef,ref.Builder	backend: helpProcDef(b: ref Builder): NimNode	
+generate	argparse/backend.html#generate,ref.Builder	backend: generate(b: ref Builder): NimNode	
