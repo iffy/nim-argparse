@@ -63,16 +63,18 @@ function main() {
 <div class="document" id="documentId">
   <div class="container">
     <h1 class="title">Index</h1>
-    Modules: <a href="argparse.html">argparse</a>, <a href="argparse/backend.html">argparse/backend</a>, <a href="argparse/macrohelp.html">argparse/macrohelp</a>.<br/><p /><h2>API symbols</h2>
+    Modules: <a href="argparse.html">argparse</a>, <a href="argparse/backend.html">argparse/backend</a>, <a href="argparse/filler.html">argparse/filler</a>, <a href="argparse/macrohelp.html">argparse/macrohelp</a>.<br/><p /><h2>API symbols</h2>
 <dl><dt><a name="%60%24%60" href="#%60%24%60"><span>`$`:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="backend: `$`(b: ref Builder): string" href="argparse/backend.html#%24%2Cref.Builder">backend: `$`(b: ref Builder): string</a></li>
+          data-doc-search-tag="backend: `$`(b: Builder): string" href="argparse/backend.html#%24%2CBuilder">backend: `$`(b: Builder): string</a></li>
           <li><a class="reference external"
           data-doc-search-tag="backend: `$`(state: ref ParseState): string" href="argparse/backend.html#%24%2Cref.ParseState">backend: `$`(state: ref ParseState): string</a></li>
           </ul></dd>
 <dt><a name="add" href="#add"><span>add:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="macrohelp: add(n: ref UnfinishedCase; opt: int; body: NimNode)" href="argparse/macrohelp.html#add%2Cref.UnfinishedCase%2Cint%2CNimNode">macrohelp: add(n: ref UnfinishedCase; opt: int; body: NimNode)</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="macrohelp: add(n: ref UnfinishedCase; opt: NimNode; body: NimNode)" href="argparse/macrohelp.html#add%2Cref.UnfinishedCase%2CNimNode%2CNimNode">macrohelp: add(n: ref UnfinishedCase; opt: NimNode; body: NimNode)</a></li>
           <li><a class="reference external"
           data-doc-search-tag="macrohelp: add(n: ref UnfinishedCase; opt: seq[NimNode]; body: NimNode)" href="argparse/macrohelp.html#add%2Cref.UnfinishedCase%2Cseq%5BNimNode%5D%2CNimNode">macrohelp: add(n: ref UnfinishedCase; opt: seq[NimNode]; body: NimNode)</a></li>
           <li><a class="reference external"
@@ -81,6 +83,10 @@ function main() {
           data-doc-search-tag="macrohelp: add(n: ref UnfinishedCase; opt: string; body: NimNode)" href="argparse/macrohelp.html#add%2Cref.UnfinishedCase%2Cstring%2CNimNode">macrohelp: add(n: ref UnfinishedCase; opt: string; body: NimNode)</a></li>
           <li><a class="reference external"
           data-doc-search-tag="macrohelp: add(n: ref UnfinishedIf; cond: NimNode; body: NimNode)" href="argparse/macrohelp.html#add%2Cref.UnfinishedIf%2CNimNode%2CNimNode">macrohelp: add(n: ref UnfinishedIf; cond: NimNode; body: NimNode)</a></li>
+          </ul></dd>
+<dt><a name="add_command" href="#add_command"><span>add_command:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="backend: add_command(name: string; group: string; content: proc ())" href="argparse/backend.html#add_command%2Cstring%2Cstring%2Cproc%29">backend: add_command(name: string; group: string; content: proc ())</a></li>
           </ul></dd>
 <dt><a name="addElse" href="#addElse"><span>addElse:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -96,6 +102,18 @@ function main() {
                isref: bool = false)" href="argparse/macrohelp.html#addObjectField%2CUnfinishedObjectTypeDef%2Cstring%2Cstring%2Cbool">macrohelp: addObjectField(objtypedef: UnfinishedObjectTypeDef; name: string; kind: string;
                isref: bool = false)</a></li>
           </ul></dd>
+<dt><a name="addParser" href="#addParser"><span>addParser:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="backend: addParser(name: string; group: string; content: proc ()): Builder" href="argparse/backend.html#addParser%2Cstring%2Cstring%2Cproc%29">backend: addParser(name: string; group: string; content: proc ()): Builder</a></li>
+          </ul></dd>
+<dt><a name="add_runProc" href="#add_runProc"><span>add_runProc:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="backend: add_runProc(body: NimNode)" href="argparse/backend.html#add_runProc%2CNimNode">backend: add_runProc(body: NimNode)</a></li>
+          </ul></dd>
+<dt><a name="allChildren" href="#allChildren"><span>allChildren:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="backend: allChildren(builder: Builder): seq[Builder]" href="argparse/backend.html#allChildren%2CBuilder">backend: allChildren(builder: Builder): seq[Builder]</a></li>
+          </ul></dd>
 <dt><a name="arg" href="#arg"><span>arg:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="argparse: arg(varname: string; default = &quot;&quot;; env = &quot;&quot;; help = &quot;&quot;; nargs = 1)" href="argparse.html#arg%2Cstring%2Cstring%2Cstring%2Cstring%2Cint">argparse: arg(varname: string; default = &quot;&quot;; env = &quot;&quot;; help = &quot;&quot;; nargs = 1)</a></li>
@@ -103,6 +121,10 @@ function main() {
 <dt><a name="ArgArgument" href="#ArgArgument"><span>ArgArgument:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="ComponentKind.ArgArgument" href="argparse/backend.html#ArgArgument">ComponentKind.ArgArgument</a></li>
+          </ul></dd>
+<dt><a name="ArgFiller" href="#ArgFiller"><span>ArgFiller:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="filler: ArgFiller" href="argparse/filler.html#ArgFiller">filler: ArgFiller</a></li>
           </ul></dd>
 <dt><a name="ArgFlag" href="#ArgFlag"><span>ArgFlag:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -119,6 +141,18 @@ function main() {
 <dt><a name="Builder" href="#Builder"><span>Builder:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="backend: Builder" href="argparse/backend.html#Builder">backend: Builder</a></li>
+          </ul></dd>
+<dt><a name="BuilderObj" href="#BuilderObj"><span>BuilderObj:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="backend: BuilderObj" href="argparse/backend.html#BuilderObj">backend: BuilderObj</a></li>
+          </ul></dd>
+<dt><a name="builderStack" href="#builderStack"><span>builderStack:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="backend: builderStack" href="argparse/backend.html#builderStack">backend: builderStack</a></li>
+          </ul></dd>
+<dt><a name="channels" href="#channels"><span>channels:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="filler: channels(filler; nargs: int): seq[FillChannel]" href="argparse/filler.html#channels%2C%2Cint">filler: channels(filler; nargs: int): seq[FillChannel]</a></li>
           </ul></dd>
 <dt><a name="clear" href="#clear"><span>clear:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -142,6 +176,10 @@ function main() {
 <li><a class="reference external"
           data-doc-search-tag="backend: consume(state: ref ParseState; thing: ComponentKind)" href="argparse/backend.html#consume%2Cref.ParseState%2CComponentKind">backend: consume(state: ref ParseState; thing: ComponentKind)</a></li>
           </ul></dd>
+<dt><a name="FillChannel" href="#FillChannel"><span>FillChannel:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="filler: FillChannel" href="argparse/filler.html#FillChannel">filler: FillChannel</a></li>
+          </ul></dd>
 <dt><a name="finalize" href="#finalize"><span>finalize:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="macrohelp: finalize(n: ref UnfinishedCase): NimNode" href="argparse/macrohelp.html#finalize%2Cref.UnfinishedCase">macrohelp: finalize(n: ref UnfinishedCase): NimNode</a></li>
@@ -154,15 +192,35 @@ function main() {
           </ul></dd>
 <dt><a name="generate" href="#generate"><span>generate:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="backend: generate(b: ref Builder): NimNode" href="argparse/backend.html#generate%2Cref.Builder">backend: generate(b: ref Builder): NimNode</a></li>
+          data-doc-search-tag="filler: generate(filler; containerName: string): NimNode" href="argparse/filler.html#generate%2C%2Cstring">filler: generate(filler; containerName: string): NimNode</a></li>
+          </ul></dd>
+<dt><a name="generateDefs" href="#generateDefs"><span>generateDefs:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="backend: generateDefs(builder: Builder): NimNode" href="argparse/backend.html#generateDefs%2CBuilder">backend: generateDefs(builder: Builder): NimNode</a></li>
+          </ul></dd>
+<dt><a name="GenResponse" href="#GenResponse"><span>GenResponse:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="backend: GenResponse" href="argparse/backend.html#GenResponse">backend: GenResponse</a></li>
           </ul></dd>
 <dt><a name="getHelpText" href="#getHelpText"><span>getHelpText:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="backend: getHelpText(b: ref Builder): string" href="argparse/backend.html#getHelpText%2Cref.Builder">backend: getHelpText(b: ref Builder): string</a></li>
+          data-doc-search-tag="backend: getHelpText(b: Builder): string" href="argparse/backend.html#getHelpText%2CBuilder">backend: getHelpText(b: Builder): string</a></li>
           </ul></dd>
 <dt><a name="getInsertionPoint" href="#getInsertionPoint"><span>getInsertionPoint:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="macrohelp: getInsertionPoint(node: var NimNode; name: string): InsertionPoint" href="argparse/macrohelp.html#getInsertionPoint%2CNimNode%2Cstring">macrohelp: getInsertionPoint(node: var NimNode; name: string): InsertionPoint</a></li>
+          </ul></dd>
+<dt><a name="hasElse" href="#hasElse"><span>hasElse:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="macrohelp: hasElse(n: ref UnfinishedCase): bool" href="argparse/macrohelp.html#hasElse%2Cref.UnfinishedCase">macrohelp: hasElse(n: ref UnfinishedCase): bool</a></li>
+          </ul></dd>
+<dt><a name="hasVariableArgs" href="#hasVariableArgs"><span>hasVariableArgs:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="filler: hasVariableArgs(filler): bool" href="argparse/filler.html#hasVariableArgs">filler: hasVariableArgs(filler): bool</a></li>
+          </ul></dd>
+<dt><a name="hasWildcard" href="#hasWildcard"><span>hasWildcard:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="filler: hasWildcard(filler): bool" href="argparse/filler.html#hasWildcard">filler: hasWildcard(filler): bool</a></li>
           </ul></dd>
 <dt><a name="help" href="#help"><span>help:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -170,7 +228,7 @@ function main() {
           </ul></dd>
 <dt><a name="helpProcDef" href="#helpProcDef"><span>helpProcDef:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="backend: helpProcDef(b: ref Builder): NimNode" href="argparse/backend.html#helpProcDef%2Cref.Builder">backend: helpProcDef(b: ref Builder): NimNode</a></li>
+          data-doc-search-tag="backend: helpProcDef(b: Builder): NimNode" href="argparse/backend.html#helpProcDef%2CBuilder">backend: helpProcDef(b: Builder): NimNode</a></li>
           </ul></dd>
 <dt><a name="isValid" href="#isValid"><span>isValid:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -178,9 +236,21 @@ function main() {
           <li><a class="reference external"
           data-doc-search-tag="macrohelp: isValid(n: ref UnfinishedIf): bool" href="argparse/macrohelp.html#isValid%2Cref.UnfinishedIf">macrohelp: isValid(n: ref UnfinishedIf): bool</a></li>
           </ul></dd>
+<dt><a name="minArgs" href="#minArgs"><span>minArgs:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="filler: minArgs(filler): int" href="argparse/filler.html#minArgs">filler: minArgs(filler): int</a></li>
+          </ul></dd>
+<dt><a name="missing" href="#missing"><span>missing:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="filler: missing(filler; nargs: int): seq[string]" href="argparse/filler.html#missing%2C%2Cint">filler: missing(filler; nargs: int): seq[string]</a></li>
+          </ul></dd>
+<dt><a name="newArgFiller" href="#newArgFiller"><span>newArgFiller:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="filler: newArgFiller(): ref ArgFiller" href="argparse/filler.html#newArgFiller">filler: newArgFiller(): ref ArgFiller</a></li>
+          </ul></dd>
 <dt><a name="newBuilder" href="#newBuilder"><span>newBuilder:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="backend: newBuilder(name = &quot;&quot;): ref Builder" href="argparse/backend.html#newBuilder%2Cstring">backend: newBuilder(name = &quot;&quot;): ref Builder</a></li>
+          data-doc-search-tag="backend: newBuilder(name = &quot;&quot;): Builder" href="argparse/backend.html#newBuilder%2Cstring">backend: newBuilder(name = &quot;&quot;): Builder</a></li>
           </ul></dd>
 <dt><a name="newCaseStatement" href="#newCaseStatement"><span>newCaseStatement:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -212,15 +282,27 @@ function main() {
 <li><a class="reference external"
           data-doc-search-tag="argparse: nohelpflag()" href="argparse.html#nohelpflag">argparse: nohelpflag()</a></li>
           </ul></dd>
+<dt><a name="numArgsAfterWildcard" href="#numArgsAfterWildcard"><span>numArgsAfterWildcard:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="filler: numArgsAfterWildcard(filler): int" href="argparse/filler.html#numArgsAfterWildcard">filler: numArgsAfterWildcard(filler): int</a></li>
+          </ul></dd>
 <dt><a name="option" href="#option"><span>option:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="argparse: option(name1: string; name2 = &quot;&quot;; help = &quot;&quot;; default = &quot;&quot;; env = &quot;&quot;;
        multiple = false; choices: seq[string] = @[])" href="argparse.html#option%2Cstring%2Cstring%2Cstring%2Cstring%2Cstring%2Cseq%5Bstring%5D">argparse: option(name1: string; name2 = &quot;&quot;; help = &quot;&quot;; default = &quot;&quot;; env = &quot;&quot;;
        multiple = false; choices: seq[string] = @[])</a></li>
           </ul></dd>
+<dt><a name="Optional" href="#Optional"><span>Optional:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="SlotKind.Optional" href="argparse/filler.html#Optional">SlotKind.Optional</a></li>
+          </ul></dd>
+<dt><a name="optional" href="#optional"><span>optional:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="filler: optional(filler; argname: string)" href="argparse/filler.html#optional%2C%2Cstring">filler: optional(filler; argname: string)</a></li>
+          </ul></dd>
 <dt><a name="optsTypeDef" href="#optsTypeDef"><span>optsTypeDef:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="backend: optsTypeDef(b: ref Builder): NimNode" href="argparse/backend.html#optsTypeDef%2Cref.Builder">backend: optsTypeDef(b: ref Builder): NimNode</a></li>
+          data-doc-search-tag="backend: optsTypeDef(b: Builder): NimNode" href="argparse/backend.html#optsTypeDef%2CBuilder">backend: optsTypeDef(b: Builder): NimNode</a></li>
           </ul></dd>
 <dt><a name="parentOf" href="#parentOf"><span>parentOf:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -230,15 +312,23 @@ function main() {
           </ul></dd>
 <dt><a name="parseProcDef" href="#parseProcDef"><span>parseProcDef:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="backend: parseProcDef(b: ref Builder): NimNode" href="argparse/backend.html#parseProcDef%2Cref.Builder">backend: parseProcDef(b: ref Builder): NimNode</a></li>
+          data-doc-search-tag="backend: parseProcDef(b: Builder): NimNode" href="argparse/backend.html#parseProcDef%2CBuilder">backend: parseProcDef(b: Builder): NimNode</a></li>
           </ul></dd>
 <dt><a name="parserTypeDef" href="#parserTypeDef"><span>parserTypeDef:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="backend: parserTypeDef(b: ref Builder): NimNode" href="argparse/backend.html#parserTypeDef%2Cref.Builder">backend: parserTypeDef(b: ref Builder): NimNode</a></li>
+          data-doc-search-tag="backend: parserTypeDef(b: Builder): NimNode" href="argparse/backend.html#parserTypeDef%2CBuilder">backend: parserTypeDef(b: Builder): NimNode</a></li>
           </ul></dd>
 <dt><a name="ParseState" href="#ParseState"><span>ParseState:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="backend: ParseState" href="argparse/backend.html#ParseState">backend: ParseState</a></li>
+          </ul></dd>
+<dt><a name="popleft" href="#popleft"><span>popleft:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="backend: popleft[T](s: var seq[T]): T" href="argparse/backend.html#popleft%2Cseq%5BT%5D">backend: popleft[T](s: var seq[T]): T</a></li>
+          </ul></dd>
+<dt><a name="popright" href="#popright"><span>popright:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="backend: popright[T](s: var seq[T]; n = 0): T" href="argparse/backend.html#popright%2Cseq%5BT%5D%2Cint">backend: popright[T](s: var seq[T]; n = 0): T</a></li>
           </ul></dd>
 <dt><a name="replace" href="#replace"><span>replace:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -248,9 +338,23 @@ function main() {
 <li><a class="reference external"
           data-doc-search-tag="macrohelp: replaceNodes(ast: NimNode): NimNode" href="argparse/macrohelp.html#replaceNodes%2CNimNode">macrohelp: replaceNodes(ast: NimNode): NimNode</a></li>
           </ul></dd>
+<dt><a name="Required" href="#Required"><span>Required:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="SlotKind.Required" href="argparse/filler.html#Required">SlotKind.Required</a></li>
+          </ul></dd>
+<dt><a name="required" href="#required"><span>required:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="filler: required(filler; argname: string; nargs = 1)" href="argparse/filler.html#required%2C%2Cstring%2Cint">filler: required(filler; argname: string; nargs = 1)</a></li>
+          </ul></dd>
 <dt><a name="run" href="#run"><span>run:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="argparse: run(body: untyped): untyped" href="argparse.html#run.t%2Cuntyped">argparse: run(body: untyped): untyped</a></li>
+          </ul></dd>
+<dt><a name="setOrAdd" href="#setOrAdd"><span>setOrAdd:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="backend: setOrAdd(x: var seq[string]; val: string)" href="argparse/backend.html#setOrAdd%2Cseq%5Bstring%5D%2Cstring">backend: setOrAdd(x: var seq[string]; val: string)</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="backend: setOrAdd(x: var string; val: string)" href="argparse/backend.html#setOrAdd%2Cstring%2Cstring">backend: setOrAdd(x: var string; val: string)</a></li>
           </ul></dd>
 <dt><a name="ShortCircuit" href="#ShortCircuit"><span>ShortCircuit:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -260,20 +364,40 @@ function main() {
 <li><a class="reference external"
           data-doc-search-tag="backend: skip(state: ref ParseState)" href="argparse/backend.html#skip%2Cref.ParseState">backend: skip(state: ref ParseState)</a></li>
           </ul></dd>
+<dt><a name="SlotKind" href="#SlotKind"><span>SlotKind:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="filler: SlotKind" href="argparse/filler.html#SlotKind">filler: SlotKind</a></li>
+          </ul></dd>
+<dt><a name="UnfinishedCase" href="#UnfinishedCase"><span>UnfinishedCase:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="macrohelp: UnfinishedCase" href="argparse/macrohelp.html#UnfinishedCase">macrohelp: UnfinishedCase</a></li>
+          </ul></dd>
 <dt><a name="UnfinishedObjectTypeDef" href="#UnfinishedObjectTypeDef"><span>UnfinishedObjectTypeDef:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="macrohelp: UnfinishedObjectTypeDef" href="argparse/macrohelp.html#UnfinishedObjectTypeDef">macrohelp: UnfinishedObjectTypeDef</a></li>
           </ul></dd>
+<dt><a name="upperBreakpoint" href="#upperBreakpoint"><span>upperBreakpoint:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="filler: upperBreakpoint(filler): int" href="argparse/filler.html#upperBreakpoint">filler: upperBreakpoint(filler): int</a></li>
+          </ul></dd>
 <dt><a name="UsageError" href="#UsageError"><span>UsageError:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="backend: UsageError" href="argparse/backend.html#UsageError">backend: UsageError</a></li>
+          </ul></dd>
+<dt><a name="Wildcard" href="#Wildcard"><span>Wildcard:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="SlotKind.Wildcard" href="argparse/filler.html#Wildcard">SlotKind.Wildcard</a></li>
+          </ul></dd>
+<dt><a name="wildcard" href="#wildcard"><span>wildcard:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="filler: wildcard(filler; argname: string)" href="argparse/filler.html#wildcard%2C%2Cstring">filler: wildcard(filler; argname: string)</a></li>
           </ul></dd>
 </dl>
     <div class="row">
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-11-24 21:20:36 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2020-11-25 21:37:59 UTC</small>
       </div>
     </div>
   </div>

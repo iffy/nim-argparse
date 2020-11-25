@@ -124,17 +124,24 @@ function main() {
       optShort*: string
       optLong*: string
       optMultiple*: bool
-      optDefault*: string
+      optDefault*: Option[string]
       optChoices*: seq[string]
 
   of ArgArgument:
       nargs*: int
-      argDefault*: string"><wbr />Component<span class="attachedType"></span></a></li>
+      argDefault*: Option[string]"><wbr />Component<span class="attachedType"></span></a></li>
   <li><a class="reference" href="#Builder"
-    title="Builder = object
+    title="Builder = ref BuilderObj"><wbr />Builder<span class="attachedType"></span></a></li>
+  <li><a class="reference" href="#BuilderObj"
+    title="BuilderObj {.acyclic.} = object
   name*: string ## Command name for subcommand parsers, or program name for
                 ## the parent parser.
-  components*: seq[Component]"><wbr />Builder<span class="attachedType"></span></a></li>
+  components*: seq[Component]
+  help*: string
+  groupName*: string
+  children*: seq[Builder]
+  parent*: Option[Builder]
+  runProcBodies*: seq[NimNode]"><wbr />Builder<wbr />Obj<span class="attachedType"></span></a></li>
   <li><a class="reference" href="#ParseState"
     title="ParseState = object
   tokens*: seq[string]
@@ -143,7 +150,10 @@ function main() {
   done*: bool
   token*: Option[string]     ## The current unprocessed token
   key*: Option[string]       ## The current key (possibly the head of a &apos;key=value&apos; token)
-  value*: Option[string]     ## The current value (possibly the tail of a &apos;key=value&apos; token)"><wbr />Parse<wbr />State<span class="attachedType"></span></a></li>
+  value*: Option[string]     ## The current value (possibly the tail of a &apos;key=value&apos; token)
+  runProcs*: seq[proc ()]    ## Procs to be run at the end of parsing"><wbr />Parse<wbr />State<span class="attachedType"></span></a></li>
+  <li><a class="reference" href="#GenResponse"
+    title="GenResponse = tuple[types: NimNode, procs: NimNode, instance: NimNode]"><wbr />Gen<wbr />Response<span class="attachedType"></span></a></li>
 
   </ul>
 </li>
@@ -152,6 +162,8 @@ function main() {
   <ul class="simple simple-toc-section">
       <li><a class="reference" href="#ARGPARSE_STDOUT"
     title="ARGPARSE_STDOUT = newFileStream(stdout)"><wbr />ARGPARSE_<wbr />STDOUT<span class="attachedType"></span></a></li>
+  <li><a class="reference" href="#builderStack"
+    title="builderStack = newSeq(0)"><wbr />builder<wbr />Stack<span class="attachedType"></span></a></li>
 
   </ul>
 </li>
@@ -166,18 +178,23 @@ function main() {
   <ul class="simple nested-toc-section">$
       <li><a class="reference" href="#%24%2Cref.ParseState"
     title="`$`(state: ref ParseState): string">$,ref.ParseState<span class="attachedType">ParseState</span></a></li>
-  <li><a class="reference" href="#%24%2Cref.Builder"
-    title="`$`(b: ref Builder): string">$,ref.Builder<span class="attachedType">Builder</span></a></li>
-
-  </ul>
-  <ul class="simple nested-toc-section">generate
-      <li><a class="reference" href="#generate%2Cref.Builder"
-    title="generate(b: ref Builder): NimNode">generate,ref.Builder<span class="attachedType">Builder</span></a></li>
+  <li><a class="reference" href="#%24%2CBuilder"
+    title="`$`(b: Builder): string">$,Builder<span class="attachedType">Builder</span></a></li>
 
   </ul>
   <ul class="simple nested-toc-section">skip
       <li><a class="reference" href="#skip%2Cref.ParseState"
     title="skip(state: ref ParseState)">skip,ref.ParseState<span class="attachedType">ParseState</span></a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">allChildren
+      <li><a class="reference" href="#allChildren%2CBuilder"
+    title="allChildren(builder: Builder): seq[Builder]">allChildren,Builder<span class="attachedType">Builder</span></a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">add_runProc
+      <li><a class="reference" href="#add_runProc%2CNimNode"
+    title="add_runProc(body: NimNode)">add_runProc,NimNode<span class="attachedType"></span></a></li>
 
   </ul>
   <ul class="simple nested-toc-section">consume
@@ -187,32 +204,64 @@ function main() {
   </ul>
   <ul class="simple nested-toc-section">newBuilder
       <li><a class="reference" href="#newBuilder%2Cstring"
-    title="newBuilder(name = &quot;&quot;): ref Builder">newBuilder,string<span class="attachedType">Builder</span></a></li>
+    title="newBuilder(name = &quot;&quot;): Builder">newBuilder,string<span class="attachedType">Builder</span></a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">generateDefs
+      <li><a class="reference" href="#generateDefs%2CBuilder"
+    title="generateDefs(builder: Builder): NimNode">generateDefs,Builder<span class="attachedType">Builder</span></a></li>
 
   </ul>
   <ul class="simple nested-toc-section">parseProcDef
-      <li><a class="reference" href="#parseProcDef%2Cref.Builder"
-    title="parseProcDef(b: ref Builder): NimNode">parseProcDef,ref.Builder<span class="attachedType">Builder</span></a></li>
+      <li><a class="reference" href="#parseProcDef%2CBuilder"
+    title="parseProcDef(b: Builder): NimNode">parseProcDef,Builder<span class="attachedType">Builder</span></a></li>
 
   </ul>
   <ul class="simple nested-toc-section">helpProcDef
-      <li><a class="reference" href="#helpProcDef%2Cref.Builder"
-    title="helpProcDef(b: ref Builder): NimNode">helpProcDef,ref.Builder<span class="attachedType">Builder</span></a></li>
+      <li><a class="reference" href="#helpProcDef%2CBuilder"
+    title="helpProcDef(b: Builder): NimNode">helpProcDef,Builder<span class="attachedType">Builder</span></a></li>
 
   </ul>
   <ul class="simple nested-toc-section">optsTypeDef
-      <li><a class="reference" href="#optsTypeDef%2Cref.Builder"
-    title="optsTypeDef(b: ref Builder): NimNode">optsTypeDef,ref.Builder<span class="attachedType">Builder</span></a></li>
+      <li><a class="reference" href="#optsTypeDef%2CBuilder"
+    title="optsTypeDef(b: Builder): NimNode">optsTypeDef,Builder<span class="attachedType">Builder</span></a></li>
 
   </ul>
   <ul class="simple nested-toc-section">getHelpText
-      <li><a class="reference" href="#getHelpText%2Cref.Builder"
-    title="getHelpText(b: ref Builder): string">getHelpText,ref.Builder<span class="attachedType">Builder</span></a></li>
+      <li><a class="reference" href="#getHelpText%2CBuilder"
+    title="getHelpText(b: Builder): string">getHelpText,Builder<span class="attachedType">Builder</span></a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">popleft
+      <li><a class="reference" href="#popleft%2Cseq%5BT%5D"
+    title="popleft[T](s: var seq[T]): T">popleft,seq[T]<span class="attachedType"></span></a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">addParser
+      <li><a class="reference" href="#addParser%2Cstring%2Cstring%2Cproc%29"
+    title="addParser(name: string; group: string; content: proc ()): Builder">addParser,string,string,proc)<span class="attachedType">Builder</span></a></li>
 
   </ul>
   <ul class="simple nested-toc-section">parserTypeDef
-      <li><a class="reference" href="#parserTypeDef%2Cref.Builder"
-    title="parserTypeDef(b: ref Builder): NimNode">parserTypeDef,ref.Builder<span class="attachedType">Builder</span></a></li>
+      <li><a class="reference" href="#parserTypeDef%2CBuilder"
+    title="parserTypeDef(b: Builder): NimNode">parserTypeDef,Builder<span class="attachedType">Builder</span></a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">add_command
+      <li><a class="reference" href="#add_command%2Cstring%2Cstring%2Cproc%29"
+    title="add_command(name: string; group: string; content: proc ())">add_command,string,string,proc)<span class="attachedType"></span></a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">popright
+      <li><a class="reference" href="#popright%2Cseq%5BT%5D%2Cint"
+    title="popright[T](s: var seq[T]; n = 0): T">popright,seq[T],int<span class="attachedType"></span></a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">setOrAdd
+      <li><a class="reference" href="#setOrAdd%2Cstring%2Cstring"
+    title="setOrAdd(x: var string; val: string)">setOrAdd,string,string<span class="attachedType"></span></a></li>
+  <li><a class="reference" href="#setOrAdd%2Cseq%5Bstring%5D%2Cstring"
+    title="setOrAdd(x: var seq[string]; val: string)">setOrAdd,seq[string],string<span class="attachedType"></span></a></li>
 
   </ul>
 
@@ -229,7 +278,7 @@ function main() {
   <div class="section" id="6">
 <h1><a class="toc-backref" href="#6">Imports</a></h1>
 <dl class="item">
-<a class="reference external" href="macrohelp.html">macrohelp</a>
+<a class="reference external" href="macrohelp.html">macrohelp</a>, <a class="reference external" href="filler.html">filler</a>
 </dl></div>
 <div class="section" id="7">
 <h1><a class="toc-backref" href="#7">Types</a></h1>
@@ -273,12 +322,12 @@ function main() {
       <span class="Identifier">optShort</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
       <span class="Identifier">optLong</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
       <span class="Identifier">optMultiple</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span>
-      <span class="Identifier">optDefault</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
+      <span class="Identifier">optDefault</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">Option</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span>
       <span class="Identifier">optChoices</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span>
 
   <span class="Keyword">of</span> <span class="Identifier">ArgArgument</span><span class="Other">:</span>
       <span class="Identifier">nargs</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>
-      <span class="Identifier">argDefault</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
+      <span class="Identifier">argDefault</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">Option</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span>
 
   </pre></dt>
 <dd>
@@ -287,10 +336,22 @@ function main() {
 
 </dd>
 <a id="Builder"></a>
-<dt><pre><a href="backend.html#Builder"><span class="Identifier">Builder</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
+<dt><pre><a href="backend.html#Builder"><span class="Identifier">Builder</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <a href="backend.html#BuilderObj"><span class="Identifier">BuilderObj</span></a></pre></dt>
+<dd>
+
+
+
+</dd>
+<a id="BuilderObj"></a>
+<dt><pre><a href="backend.html#BuilderObj"><span class="Identifier">BuilderObj</span></a> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">acyclic</span></span><span class="Other">.}</span></span> <span class="Other">=</span> <span class="Keyword">object</span>
   <span class="Identifier">name</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Comment">## Command name for subcommand parsers, or program name for</span>
                 <span class="Comment">## the parent parser.</span>
   <span class="Identifier">components</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="backend.html#Component"><span class="Identifier">Component</span></a><span class="Other">]</span>
+  <span class="Identifier">help</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
+  <span class="Identifier">groupName</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
+  <span class="Identifier">children</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">]</span>
+  <span class="Identifier">parent</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">Option</span><span class="Other">[</span><a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">]</span>
+  <span class="Identifier">runProcBodies</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">NimNode</span><span class="Other">]</span>
 </pre></dt>
 <dd>
 
@@ -306,7 +367,15 @@ A compile-time object used to accumulate parser options before building the pars
   <span class="Identifier">token</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">Option</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span>     <span class="Comment">## The current unprocessed token</span>
   <span class="Identifier">key</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">Option</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span>       <span class="Comment">## The current key (possibly the head of a 'key=value' token)</span>
   <span class="Identifier">value</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">Option</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span>     <span class="Comment">## The current value (possibly the tail of a 'key=value' token)</span>
+  <span class="Identifier">runProcs</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Keyword">proc</span> <span class="Other">(</span><span class="Other">)</span><span class="Other">]</span>    <span class="Comment">## Procs to be run at the end of parsing</span>
   </pre></dt>
+<dd>
+
+
+
+</dd>
+<a id="GenResponse"></a>
+<dt><pre><a href="backend.html#GenResponse"><span class="Identifier">GenResponse</span></a> <span class="Other">=</span> <span class="Keyword">tuple</span><span class="Other">[</span><span class="Identifier">types</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">,</span> <span class="Identifier">procs</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">,</span> <span class="Identifier">instance</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">]</span></pre></dt>
 <dd>
 
 
@@ -319,6 +388,13 @@ A compile-time object used to accumulate parser options before building the pars
 <dl class="item">
 <a id="ARGPARSE_STDOUT"></a>
 <dt><pre><a href="backend.html#ARGPARSE_STDOUT"><span class="Identifier">ARGPARSE_STDOUT</span></a> <span class="Other">=</span> <span class="Identifier">newFileStream</span><span class="Other">(</span><span class="Identifier">stdout</span><span class="Other">)</span></pre></dt>
+<dd>
+
+
+
+</dd>
+<a id="builderStack"></a>
+<dt><pre><a href="backend.html#builderStack"><span class="Identifier">builderStack</span></a> <span class="Other">=</span> <span class="Identifier">newSeq</span><span class="Other">(</span><span class="DecNumber">0</span><span class="Other">)</span></pre></dt>
 <dd>
 
 
@@ -358,22 +434,36 @@ Advance the parser, marking some tokens as consumed.
 
 
 </dd>
+<a id="popleft,seq[T]"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#popleft%2Cseq%5BT%5D"><span class="Identifier">popleft</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">T</span></pre></dt>
+<dd>
+
+Pop from the front of a seq
+
+</dd>
+<a id="popright,seq[T],int"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#popright%2Cseq%5BT%5D%2Cint"><span class="Identifier">popright</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">n</span> <span class="Other">=</span> <span class="DecNumber">0</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">T</span></pre></dt>
+<dd>
+
+Pop the nth item from the end of a seq
+
+</dd>
 <a id="newBuilder,string"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#newBuilder%2Cstring"><span class="Identifier">newBuilder</span></a><span class="Other">(</span><span class="Identifier">name</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">)</span><span class="Other">:</span> <span class="Keyword">ref</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#newBuilder%2Cstring"><span class="Identifier">newBuilder</span></a><span class="Other">(</span><span class="Identifier">name</span> <span class="Other">=</span> <span class="StringLit">&quot;&quot;</span><span class="Other">)</span><span class="Other">:</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 
 
 </dd>
-<a id="$,ref.Builder"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#%24%2Cref.Builder"><span class="Identifier">`$`</span></a><span class="Other">(</span><span class="Identifier">b</span><span class="Other">:</span> <span class="Keyword">ref</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="$,Builder"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#%24%2CBuilder"><span class="Identifier">`$`</span></a><span class="Other">(</span><span class="Identifier">b</span><span class="Other">:</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 
 
 </dd>
-<a id="optsTypeDef,ref.Builder"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#optsTypeDef%2Cref.Builder"><span class="Identifier">optsTypeDef</span></a><span class="Other">(</span><span class="Identifier">b</span><span class="Other">:</span> <span class="Keyword">ref</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="optsTypeDef,Builder"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#optsTypeDef%2CBuilder"><span class="Identifier">optsTypeDef</span></a><span class="Other">(</span><span class="Identifier">b</span><span class="Other">:</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 Generate the type definition for the return value of parsing:<dl class="docutils"><dt>type</dt>
@@ -385,8 +475,8 @@ Generate the type definition for the return value of parsing:<dl class="docutils
 
 
 </dd>
-<a id="parserTypeDef,ref.Builder"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#parserTypeDef%2Cref.Builder"><span class="Identifier">parserTypeDef</span></a><span class="Other">(</span><span class="Identifier">b</span><span class="Other">:</span> <span class="Keyword">ref</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="parserTypeDef,Builder"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#parserTypeDef%2CBuilder"><span class="Identifier">parserTypeDef</span></a><span class="Other">(</span><span class="Identifier">b</span><span class="Other">:</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 Generate the type definition for the Parser object:<dl class="docutils"><dt>type</dt>
@@ -395,9 +485,8 @@ Generate the type definition for the Parser object:<dl class="docutils"><dt>type
 
 
 </dd>
-<a id="parseProcDef,ref.Builder"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#parseProcDef%2Cref.Builder"><span class="Identifier">parseProcDef</span></a><span class="Other">(</span><span class="Identifier">b</span><span class="Other">:</span> <span class="Keyword">ref</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
-    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="parseProcDef,Builder"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#parseProcDef%2CBuilder"><span class="Identifier">parseProcDef</span></a><span class="Other">(</span><span class="Identifier">b</span><span class="Other">:</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 <p>Generate the parse proc for this Builder</p>
@@ -405,26 +494,70 @@ Generate the type definition for the Parser object:<dl class="docutils"><dt>type
 
 
 </dd>
-<a id="getHelpText,ref.Builder"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#getHelpText%2Cref.Builder"><span class="Identifier">getHelpText</span></a><span class="Other">(</span><span class="Identifier">b</span><span class="Other">:</span> <span class="Keyword">ref</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="setOrAdd,string,string"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#setOrAdd%2Cstring%2Cstring"><span class="Identifier">setOrAdd</span></a><span class="Other">(</span><span class="Identifier">x</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">val</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+
+
+
+</dd>
+<a id="setOrAdd,seq[string],string"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#setOrAdd%2Cseq%5Bstring%5D%2Cstring"><span class="Identifier">setOrAdd</span></a><span class="Other">(</span><span class="Identifier">x</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">val</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+
+
+
+</dd>
+<a id="getHelpText,Builder"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#getHelpText%2CBuilder"><span class="Identifier">getHelpText</span></a><span class="Other">(</span><span class="Identifier">b</span><span class="Other">:</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">KeyError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 Generate the static help text string
 
 </dd>
-<a id="helpProcDef,ref.Builder"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#helpProcDef%2Cref.Builder"><span class="Identifier">helpProcDef</span></a><span class="Other">(</span><span class="Identifier">b</span><span class="Other">:</span> <span class="Keyword">ref</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="helpProcDef,Builder"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#helpProcDef%2CBuilder"><span class="Identifier">helpProcDef</span></a><span class="Other">(</span><span class="Identifier">b</span><span class="Other">:</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">KeyError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 Generate the help proc for the parser
 
 </dd>
-<a id="generate,ref.Builder"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#generate%2Cref.Builder"><span class="Identifier">generate</span></a><span class="Other">(</span><span class="Identifier">b</span><span class="Other">:</span> <span class="Keyword">ref</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
-    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="addParser,string,string,proc)"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#addParser%2Cstring%2Cstring%2Cproc%29"><span class="Identifier">addParser</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">group</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">content</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Other">)</span><span class="Other">)</span><span class="Other">:</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma">
+    <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
-Generate the types and procs for this parser builder and all child parsers.
+Add a parser (whether main parser or subcommand) and return the Builder Call <tt class="docutils literal"><span class="pre">generateDefs</span></tt> to get the type and proc definitions.
+
+</dd>
+<a id="add_runProc,NimNode"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#add_runProc%2CNimNode"><span class="Identifier">add_runProc</span></a><span class="Other">(</span><span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">compileTime</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+
+Add a run block proc to the current parser
+
+</dd>
+<a id="add_command,string,string,proc)"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#add_command%2Cstring%2Cstring%2Cproc%29"><span class="Identifier">add_command</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">group</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">content</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Other">)</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">compileTime</span><span class="Other">,</span>
+    <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+
+Add a subcommand to a parser
+
+</dd>
+<a id="allChildren,Builder"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#allChildren%2CBuilder"><span class="Identifier">allChildren</span></a><span class="Other">(</span><span class="Identifier">builder</span><span class="Other">:</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">]</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+
+Return all the descendents of this builder
+
+</dd>
+<a id="generateDefs,Builder"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#generateDefs%2CBuilder"><span class="Identifier">generateDefs</span></a><span class="Other">(</span><span class="Identifier">builder</span><span class="Other">:</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">KeyError</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+
+Generate the AST definitions for the current builder
 
 </dd>
 
@@ -437,7 +570,7 @@ Generate the types and procs for this parser builder and all child parsers.
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-11-24 21:20:36 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2020-11-25 21:37:59 UTC</small>
       </div>
     </div>
   </div>

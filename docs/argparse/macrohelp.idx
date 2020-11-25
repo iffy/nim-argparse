@@ -1,4 +1,5 @@
 UnfinishedObjectTypeDef	argparse/macrohelp.html#UnfinishedObjectTypeDef	macrohelp: UnfinishedObjectTypeDef	
+UnfinishedCase	argparse/macrohelp.html#UnfinishedCase	macrohelp: UnfinishedCase	
 replaceNodes	argparse/macrohelp.html#replaceNodes,NimNode	macrohelp: replaceNodes(ast: NimNode): NimNode	
 parentOf	argparse/macrohelp.html#parentOf,NimNode,string	macrohelp: parentOf(node: NimNode; name: string): InsertionPoint	
 parentOf	argparse/macrohelp.html#parentOf,NimNode,NimNode	macrohelp: parentOf(node: NimNode; child: NimNode): InsertionPoint	
@@ -11,9 +12,11 @@ addObjectField	argparse/macrohelp.html#addObjectField,UnfinishedObjectTypeDef,st
 newCaseStatement	argparse/macrohelp.html#newCaseStatement,NimNode	macrohelp: newCaseStatement(key: NimNode): ref UnfinishedCase	
 newCaseStatement	argparse/macrohelp.html#newCaseStatement,string	macrohelp: newCaseStatement(key: string): ref UnfinishedCase	
 add	argparse/macrohelp.html#add,ref.UnfinishedCase,seq[NimNode],NimNode	macrohelp: add(n: ref UnfinishedCase; opt: seq[NimNode]; body: NimNode)	
+add	argparse/macrohelp.html#add,ref.UnfinishedCase,NimNode,NimNode	macrohelp: add(n: ref UnfinishedCase; opt: NimNode; body: NimNode)	
 add	argparse/macrohelp.html#add,ref.UnfinishedCase,string,NimNode	macrohelp: add(n: ref UnfinishedCase; opt: string; body: NimNode)	
 add	argparse/macrohelp.html#add,ref.UnfinishedCase,seq[string],NimNode	macrohelp: add(n: ref UnfinishedCase; opts: seq[string]; body: NimNode)	
 add	argparse/macrohelp.html#add,ref.UnfinishedCase,int,NimNode	macrohelp: add(n: ref UnfinishedCase; opt: int; body: NimNode)	
+hasElse	argparse/macrohelp.html#hasElse,ref.UnfinishedCase	macrohelp: hasElse(n: ref UnfinishedCase): bool	
 addElse	argparse/macrohelp.html#addElse,ref.UnfinishedCase,NimNode	macrohelp: addElse(n: ref UnfinishedCase; body: NimNode)	
 isValid	argparse/macrohelp.html#isValid,ref.UnfinishedCase	macrohelp: isValid(n: ref UnfinishedCase): bool	
 finalize	argparse/macrohelp.html#finalize,ref.UnfinishedCase	macrohelp: finalize(n: ref UnfinishedCase): NimNode	

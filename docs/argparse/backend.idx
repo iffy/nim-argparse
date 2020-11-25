@@ -6,17 +6,28 @@ ArgArgument	argparse/backend.html#ArgArgument	ComponentKind.ArgArgument
 ComponentKind	argparse/backend.html#ComponentKind	backend: ComponentKind	
 Component	argparse/backend.html#Component	backend: Component	
 Builder	argparse/backend.html#Builder	backend: Builder	
+BuilderObj	argparse/backend.html#BuilderObj	backend: BuilderObj	
 ParseState	argparse/backend.html#ParseState	backend: ParseState	
 ARGPARSE_STDOUT	argparse/backend.html#ARGPARSE_STDOUT	backend: ARGPARSE_STDOUT	
+builderStack	argparse/backend.html#builderStack	backend: builderStack	
 `$`	argparse/backend.html#$,ref.ParseState	backend: `$`(state: ref ParseState): string	
 newParseState	argparse/backend.html#newParseState,openArray[string]	backend: newParseState(args: openArray[string]): ref ParseState	
 consume	argparse/backend.html#consume,ref.ParseState,ComponentKind	backend: consume(state: ref ParseState; thing: ComponentKind)	
 skip	argparse/backend.html#skip,ref.ParseState	backend: skip(state: ref ParseState)	
-newBuilder	argparse/backend.html#newBuilder,string	backend: newBuilder(name = &quot;&quot;): ref Builder	
-`$`	argparse/backend.html#$,ref.Builder	backend: `$`(b: ref Builder): string	
-optsTypeDef	argparse/backend.html#optsTypeDef,ref.Builder	backend: optsTypeDef(b: ref Builder): NimNode	
-parserTypeDef	argparse/backend.html#parserTypeDef,ref.Builder	backend: parserTypeDef(b: ref Builder): NimNode	
-parseProcDef	argparse/backend.html#parseProcDef,ref.Builder	backend: parseProcDef(b: ref Builder): NimNode	
-getHelpText	argparse/backend.html#getHelpText,ref.Builder	backend: getHelpText(b: ref Builder): string	
-helpProcDef	argparse/backend.html#helpProcDef,ref.Builder	backend: helpProcDef(b: ref Builder): NimNode	
-generate	argparse/backend.html#generate,ref.Builder	backend: generate(b: ref Builder): NimNode	
+popleft	argparse/backend.html#popleft,seq[T]	backend: popleft[T](s: var seq[T]): T	
+popright	argparse/backend.html#popright,seq[T],int	backend: popright[T](s: var seq[T]; n = 0): T	
+newBuilder	argparse/backend.html#newBuilder,string	backend: newBuilder(name = &quot;&quot;): Builder	
+`$`	argparse/backend.html#$,Builder	backend: `$`(b: Builder): string	
+optsTypeDef	argparse/backend.html#optsTypeDef,Builder	backend: optsTypeDef(b: Builder): NimNode	
+parserTypeDef	argparse/backend.html#parserTypeDef,Builder	backend: parserTypeDef(b: Builder): NimNode	
+parseProcDef	argparse/backend.html#parseProcDef,Builder	backend: parseProcDef(b: Builder): NimNode	
+setOrAdd	argparse/backend.html#setOrAdd,string,string	backend: setOrAdd(x: var string; val: string)	
+setOrAdd	argparse/backend.html#setOrAdd,seq[string],string	backend: setOrAdd(x: var seq[string]; val: string)	
+getHelpText	argparse/backend.html#getHelpText,Builder	backend: getHelpText(b: Builder): string	
+helpProcDef	argparse/backend.html#helpProcDef,Builder	backend: helpProcDef(b: Builder): NimNode	
+GenResponse	argparse/backend.html#GenResponse	backend: GenResponse	
+addParser	argparse/backend.html#addParser,string,string,proc)	backend: addParser(name: string; group: string; content: proc ()): Builder	
+add_runProc	argparse/backend.html#add_runProc,NimNode	backend: add_runProc(body: NimNode)	
+add_command	argparse/backend.html#add_command,string,string,proc)	backend: add_command(name: string; group: string; content: proc ())	
+allChildren	argparse/backend.html#allChildren,Builder	backend: allChildren(builder: Builder): seq[Builder]	
+generateDefs	argparse/backend.html#generateDefs,Builder	backend: generateDefs(builder: Builder): NimNode	
