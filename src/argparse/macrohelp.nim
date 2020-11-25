@@ -8,7 +8,7 @@ type
     root*: NimNode
     insertion*: NimNode
   
-  UnfinishedCase = object
+  UnfinishedCase* = object
     root*: NimNode
     cases*: seq[NimNode]
     elsebody*: NimNode
@@ -162,6 +162,10 @@ proc add*(n: ref UnfinishedCase, opt: seq[NimNode], body: NimNode) =
   branch.add(body)
   n.cases.add(branch)
 
+proc add*(n: ref UnfinishedCase, opt: NimNode, body: NimNode) =
+  ## Adds a branch to an UnfinishedCase
+  n.add(@[opt], body)
+
 proc add*(n: ref UnfinishedCase, opt:string, body: NimNode) =
   ## Adds a branch to an UnfinishedCase
   ## 
@@ -181,6 +185,9 @@ proc add*(n: ref UnfinishedCase, opts: seq[string], body: NimNode) =
 proc add*(n: ref UnfinishedCase, opt:int, body: NimNode) =
   ## Adds an integer branch to an UnfinishedCase
   add(n, @[newLit(opt)], body)
+
+proc hasElse*(n: ref UnfinishedCase): bool =
+  not n.elsebody.isNil
 
 proc addElse*(n: ref UnfinishedCase, body: NimNode) =
   ## Add an else: to an UnfinishedCase
@@ -233,7 +240,6 @@ proc finalize*(n: ref UnfinishedIf): NimNode =
     result = n.elsebody
   elif n.elsebody != nil:
       result.add(nnkElse.newTree(n.elsebody))
-
 
 proc nimRepr*(n:NimNode): string =
   case n.kind

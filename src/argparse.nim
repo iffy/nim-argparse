@@ -1,5 +1,7 @@
+import macros; export macros
 import strutils
 import argparse/backend; export backend
+import argparse/macrohelp; export macrohelp
 
 proc toVarname(x: string): string =
   ## Convert x to something suitable as a Nim identifier
@@ -72,6 +74,7 @@ proc nohelpflag*() {.compileTime.} =
 
 template run*(body: untyped): untyped =
   ## Add a run block to this command
+  add_runproc(replaceNodes(quote(body)))
 
 template command*(name: string, group: string, content: untyped): untyped =
   ## Add a subcommand to this parser
@@ -84,10 +87,6 @@ template command*(name: string, content: untyped): untyped =
 
 template newParser*(name: string, body: untyped): untyped =
   macro domkParser(): untyped =
-    let res = mkParser(name, "", proc() = body, instantiate = true)
-    newStmtList(
-      res.types,
-      res.procs,
-      res.instance,
-    )
+    let builder = addParser(name, "", proc() = body)
+    builder.generateDefs()
   domkParser()

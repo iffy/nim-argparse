@@ -5,7 +5,7 @@ import os
 # import parseopt
 import sequtils
 import streams
-# import strformat
+import strformat
 import strutils
 import unittest
 
@@ -24,7 +24,6 @@ template withEnv(name:string, value:string, body:untyped):untyped =
 
 suite "flags":
   test "short flags":
-    # expandMacros:
     var p = newParser("some name"):
       flag("-a")
       flag("-b")
@@ -208,6 +207,95 @@ suite "args":
       arg("name", help="Something")
     check "Something" in p.help
   
+  test "optional required optional required optional wildcard":
+    var p = newParser("ororo"):
+      arg("a", default="bob")
+      arg("b")
+      arg("c", default="sam")
+      arg("d", nargs = 2)
+      arg("e", default="al")
+      arg("w", nargs = -1)
+    var r = p.parse(shlex"1 2 3")
+    check r.a == "bob"
+    check r.b == "1"
+    check r.c == "sam"
+    check r.d == @["2", "3"]
+    check r.e == "al"
+    check r.w.len == 0
+    r = p.parse(shlex"1 2 3 4")
+    check r.a == "1"
+    check r.b == "2"
+    check r.c == "sam"
+    check r.d == @["3", "4"]
+    check r.e == "al"
+    check r.w.len == 0
+    r = p.parse(shlex"1 2 3 4 5")
+    check r.a == "1"
+    check r.b == "2"
+    check r.c == "3"
+    check r.d == @["4", "5"]
+    check r.e == "al"
+    check r.w.len == 0
+    r = p.parse(shlex"1 2 3 4 5 6")
+    check r.a == "1"
+    check r.b == "2"
+    check r.c == "3"
+    check r.d == @["4", "5"]
+    check r.e == "6"
+    check r.w.len == 0
+    r = p.parse(shlex"1 2 3 4 5 6 7")
+    check r.a == "1"
+    check r.b == "2"
+    check r.c == "3"
+    check r.d == @["4", "5"]
+    check r.e == "6"
+    check r.w == @["7"]
+    r = p.parse(shlex"1 2 3 4 5 6 7 8")
+    check r.a == "1"
+    check r.b == "2"
+    check r.c == "3"
+    check r.d == @["4", "5"]
+    check r.e == "6"
+    check r.w == @["7", "8"]
+
+  test "r o w o r":
+    var p = newParser("ororo"):
+      arg("a")
+      arg("b", default = "hey")
+      arg("c", nargs = -1)
+      arg("d", default = "sam")
+      arg("e", nargs = 2)
+    var r = p.parse(shlex"1 2 3")
+    check r.a == "1"
+    check r.b == "hey"
+    check r.c.len == 0
+    check r.d == "sam"
+    check r.e == @["2", "3"]
+    r = p.parse(shlex"1 2 3 4")
+    check r.a == "1"
+    check r.b == "2"
+    check r.c.len == 0
+    check r.d == "sam"
+    check r.e == @["3", "4"]
+    r = p.parse(shlex"1 2 3 4 5")
+    check r.a == "1"
+    check r.b == "2"
+    check r.c.len == 0
+    check r.d == "3"
+    check r.e == @["4", "5"]
+    r = p.parse(shlex"1 2 3 4 5 6")
+    check r.a == "1"
+    check r.b == "2"
+    check r.c == @["3"]
+    check r.d == "4"
+    check r.e == @["5", "6"]
+    r = p.parse(shlex"1 2 3 4 5 6 7")
+    check r.a == "1"
+    check r.b == "2"
+    check r.c == @["3", "4"]
+    check r.d == "5"
+    check r.e == @["6", "7"]
+
   test "nargs=2":
     var p = newParser("prog"):
       arg("name", nargs=2)
@@ -267,13 +355,6 @@ suite "args":
     check p.parse(shlex"hoo").last == "hoo"
     check p.parse(shlex"a b goo").last == "goo"
   
-  test "-- args":
-    var p = newParser("prog"):
-      arg("first")
-      arg("second")
-    check p.parse(shlex"-- -a -b").first == "-a"
-    check p.parse(shlex"-- -a -b").second == "-b"
-
 suite "autohelp":
   test "helpbydefault":
     var res:string
@@ -326,7 +407,6 @@ suite "autohelp":
     let opts = p.parse(@["-h"])
     check opts.help == true
 
-
 suite "commands":
   test "run":
     var res:string = "hello"
@@ -336,7 +416,6 @@ suite "commands":
         help("Some help text")
         flag("-a")
         run:
-          echo "executing command1"
           res = $opts.a
 
     p.run(shlex"command1 -a")
@@ -358,9 +437,20 @@ suite "commands":
     check res == "command1"
     res.setLen(0)
 
-    p.run()
+    p.run(@[])
     check res == "root run"
   
+  test "run order":
+    var res:string
+    var p = newParser("prog"):
+      run: res.add("a")
+      command "sub":
+        run: res.add("b")
+        command "sub2":
+          run: res.add("c")
+    p.run(shlex"sub sub2")
+    check res == "abc"
+
   test "two commands":
     var res:string = ""
 
@@ -381,14 +471,12 @@ suite "commands":
 
   test "access parent":
     var res:string = ""
-
     var p = newParser("Nested"):
       option("-a")
       command "sub":
         option("-a")
         run:
           res = &"{opts.parentOpts.a},{opts.a}" 
-    
     p.run(shlex"-a parent sub -a child")
     check res == "parent,child"
   
@@ -432,4 +520,31 @@ suite "commands":
     let indexes = @["AA","BB","CC","DD","EE","FF"].mapIt(p.help.find(it))
     check indexes == indexes.sorted()
 
+  test "sub sub sub":
+    var res:string = ""
+    var p = newParser("parent"):
+      command("a"):
+        command("b"):
+          command("c"):
+            run: res.add "hi from c"
+    p.run(shlex"a b c")
+    check res == "hi from c"
+
+    res.setLen(0)
+    p.run(shlex"a b")
+    check res == ""
+  
+  test "arg and command":
+    var res:string = ""
+    var p = newParser("prog"):
+      arg("something")
+      command("a"):
+        run:
+          res.add opts.parentOpts.something
+    p.run(shlex"hello a")
+    check res == "hello"
+    res.setLen(0)
+
+    p.run(shlex"a a")
+    check res == "a"
 

@@ -2,12 +2,13 @@ import algorithm; export algorithm
 import macros
 import options; export options
 import sequtils
-import streams
+import streams; export streams
 import strformat
-import strutils
+import strutils; export strutils
 import tables
 
 import ./macrohelp
+import ./filler
 
 type
   UsageError* = object of ValueError
@@ -51,6 +52,7 @@ type
     groupName*: string
     children*: seq[Builder]
     parent*: Option[Builder]
+    runProcBodies*: seq[NimNode]
   
   ParseState* = object
     tokens*: seq[string]
@@ -64,6 +66,8 @@ type
       ## The current key (possibly the head of a 'key=value' token)
     value*: Option[string]
       ## The current value (possibly the tail of a 'key=value' token)
+    runProcs*: seq[proc()]
+      ## Procs to be run at the end of parsing
 
 var ARGPARSE_STDOUT* = newFileStream(stdout)
 var builderStack* {.compileTime.} = newSeq[Builder]()
@@ -200,6 +204,7 @@ proc newBuilder*(name = ""): Builder =
   new(result)
   result.name = name
   result.children = newSeq[Builder]()
+  result.runProcBodies = newSeq[NimNode]()
   result.components.add Component(
     kind: ArgFlag,
     varname: "help",
@@ -213,12 +218,12 @@ proc `$`*(b: Builder): string = $(b[])
 proc optsIdent(b: Builder): NimNode =
   ## Name of the option type for this Builder
   let name = if b.name == "": "Argparse" else: b.name
-  ident(name.safeIdentStr & "Opts")
+  ident("Opts" & name.safeIdentStr)
 
 proc parserIdent(b: Builder): NimNode =
   ## Name of the parser type for this Builder
   let name = if b.name == "": "Argparse" else: b.name
-  ident(name.safeIdentStr & "Parser")
+  ident("Parser" & name.safeIdentStr)
 
 proc optsTypeDef*(b: Builder): NimNode =
   ## Generate the type definition for the return value of parsing:
@@ -230,6 +235,25 @@ proc optsTypeDef*(b: Builder): NimNode =
   var properties = nnkRecList.newTree()
   for component in b.components:
     properties.add(component.propDefinition())
+  if b.parent.isSome:
+    properties.add nnkIdentDefs.newTree(
+      nnkPostfix.newTree(
+        ident("*"),
+        ident("parentOpts")
+      ),
+      nnkRefTy.newTree(
+        b.parent.get().optsIdent,
+      ),
+      newEmptyNode()
+    )
+  properties.add nnkIdentDefs.newTree(
+    nnkPostfix.newTree(
+      ident("*"),
+      ident("argparse_command"),
+    ),
+    ident("string"),
+    newEmptyNode(),
+  )
   # type MyOpts = object
   result = nnkTypeDef.newTree(
     b.optsIdent(),
@@ -269,10 +293,7 @@ proc parseProcDef*(b: Builder): NimNode =
   var flagCase = newCaseStatement(parseExpr("token"))
   var optCase = newCaseStatement(parseExpr("key"))
   var setDefaults = newStmtList()
-  var argsFromBeginning = true
-  var argStatements = newStmtList()
-  var revArgStatements: seq[NimNode] # statements that will be run backward
-  var greedyArgStatement = newStmtList() # final arg statement that will eat the rest of the args
+  var filler = newArgFiller()
   for component in b.components:
     case component.kind
     of ArgFlag:
@@ -290,13 +311,13 @@ proc parseProcDef*(b: Builder): NimNode =
       if component.flagMultiple:
         let varname = ident(component.varname)
         body.add quote do:
-          result.`varname`.inc()
+          opts.`varname`.inc()
           state.consume(ArgFlag)
           continue
       else:
         let varname = ident(component.varname)
         body.add quote do:
-          result.`varname` = true
+          opts.`varname` = true
           state.consume(ArgFlag)
           continue
       if not body.isNil:
@@ -308,12 +329,12 @@ proc parseProcDef*(b: Builder): NimNode =
         let dft = newStrLitNode(component.optDefault.get(""))
         let env = newStrLitNode(component.env)
         setDefaults.add quote do:
-          result.`varname` = getEnv(`env`, `dft`)
+          opts.`varname` = getEnv(`env`, `dft`)
       elif component.optDefault.isSome:
         # Set default
         let dft = component.optDefault.get()
         setDefaults.add quote do:
-          result.`varname` = `dft`
+          opts.`varname` = `dft`
       var matches: seq[string]
       var optCombo: string
       if component.optShort != "":
@@ -332,7 +353,7 @@ proc parseProcDef*(b: Builder): NimNode =
           raise UsageError.newException("Missing value for " & `optComboNode`)
 
       # Make sure it in the set of expected choices
-      var choiceGuard = parseExpr("discard")
+      var choiceGuard = parseExpr("discard \"no choice guard\"")
       if component.optChoices.len > 0:
         let choices = component.optChoices
         choiceGuard = quote do:
@@ -344,9 +365,9 @@ proc parseProcDef*(b: Builder): NimNode =
       var body: NimNode
       if component.optMultiple:
         # -o apple -o banana
-        duplicateGuard = parseExpr("discard")
+        duplicateGuard = parseExpr("discard \"no duplicate guard\"")
         body = quote do:
-          result.`varname`.add(state.value.get())
+          opts.`varname`.add(state.value.get())
           state.consume(ArgOption)
           continue
       else:
@@ -356,7 +377,7 @@ proc parseProcDef*(b: Builder): NimNode =
             raise UsageError.newException("Option " & `optComboNode` & " supplied multiple times")
           switches_seen.add(`optComboNode`)
         body = quote do:
-          result.`varname` = state.value.get()
+          opts.`varname` = state.value.get()
           state.consume(ArgOption)
           continue
       if not body.isNil:
@@ -367,126 +388,175 @@ proc parseProcDef*(b: Builder): NimNode =
           body,
         ))
     of ArgArgument:
-      # Process arguments
-      let varname = ident(component.varname)
-      var varnameStr = newStrLitNode(component.varname)
-      var defaultOrFail = parseExpr("discard")
-      if component.env != "":
-        let dft = newStrLitNode(component.argDefault.get(""))
-        let envvar = newStrLitNode(component.env)
-        defaultOrFail = quote do:
-          result.`varname` = getEnv(`envvar`, `dft`)
-      elif component.argDefault.isSome:
-        let dft = newStrLitNode(component.argDefault.get())
-        defaultOrFail = quote do:
-          result.`varname` = `dft`
+      # Process positional arguments
+      if component.nargs == -1:
+        filler.wildcard(component.varname)
+      elif component.nargs == 1:
+        let varname = ident(component.varname)
+        if component.env != "":
+          filler.optional(component.varname)
+          let envStr = newStrLitNode(component.env)
+          let dftStr = newStrLitNode(component.argDefault.get(""))
+          setDefaults.add replaceNodes(quote do:
+            opts.`varname` = getEnv(`envStr`, `dftStr`)
+          )
+        elif component.argDefault.isSome:
+          filler.optional(component.varname)
+          let dftStr = newStrLitNode(component.argDefault.get())
+          setDefaults.add replaceNodes(quote do:
+            opts.`varname` = `dftStr`
+          )
+        else:
+          filler.required(component.varname, 1)
+      elif component.nargs > 1:
+        filler.required(component.varname, component.nargs)
+  
+  # args proc
+  let minArgs = newIntLitNode(filler.minArgs)
+  var argcase = newCaseStatement(parseExpr("state.extra.len"))
+  for nargs in 0..<filler.minArgs:
+    let missing = newStrLitNode(filler.missing(nargs).join(", "))
+    argcase.add(nargs, replaceNodes(quote do:
+      raise UsageError.newException("Missing argument(s): " & `missing`)
+    ))
+  let upperBreakpoint = filler.upperBreakpoint
+  for nargs in filler.minArgs..upperBreakpoint:
+    let channels = filler.channels(nargs)
+    var s = newStmtList()
+    for ch in filler.channels(nargs):
+      let varname = ident(ch.dest)
+      case ch.kind
+      of Wildcard:
+        let argsAfterWildcard = newIntLitNode(filler.numArgsAfterWildcard)
+        s.add replaceNodes(quote do:
+          for i in 0..<(state.extra.len - `argsAfterWildcard`):
+            opts.`varname`.add state.extra.popleft()
+        )
       else:
-        defaultOrFail = quote do:
-          raise UsageError.newException("Missing value for arg: " & `varnameStr`)
-      if component.nargs == 1:
-        if argsFromBeginning:
-          argStatements.add quote do:
-            try:
-              result.`varname` = extra.popleft()
-            except:
-              `defaultOrFail`
-        else:
-          revArgStatements.add quote do:
-            try:
-              result.`varname` = extra.pop()
-            except:
-              `defaultOrFail`
-      elif component.nargs >= 1:
-        if argsFromBeginning:
-          for i in 0..<component.nargs:
-            argStatements.add quote do:
-              try:
-                result.`varname`.add extra.popleft()
-              except:
-                `defaultOrFail`
-        else:
-          var stmts = newStmtList()
-          for i in 0..<component.nargs:
-            stmts.add quote do:
-              try:
-                result.`varname`.add extra.pop()
-              except:
-                `defaultOrFail`
-          stmts.add quote do:
-            result.`varname`.reverse()
-          revArgStatements.add stmts
-      elif component.nargs == -1:
-        if argsFromBeginning:
-          argsFromBeginning = false # start to take args from the end
-          greedyArgStatement = quote do:
-            while extra.len > 0:
-              result.`varname`.add extra.popleft()
-        else:
-          raise ValueError.newException("Only one nargs=-1 arg is allowed. Second one is: " & component.varname)
+        for i in 0..<ch.idx.len:
+          s.add replaceNodes(quote do:
+            opts.`varname`.setOrAdd state.extra.popleft()
+          )
+    if nargs == upperBreakpoint:
+      argcase.addElse(s)
     else:
-      discard
-  
-  revArgStatements.reverse()
-  var revArgStatementsNode = newStmtList(revArgStatements)
+      argcase.add(nargs, s)
 
-  if flagCase.isValid:
-    flagCase.addElse(parseExpr("discard"))
-  var flagCase_node = replaceNodes(flagCase.finalize())
-  if flagCase_node.isNil:
-    flagCase_node = parseExpr("discard")
+  # commands
+  var commandCase = newCaseStatement(parseExpr("token"))
+  for child in b.children:
+    if filler.hasVariableArgs:
+      raise ValueError.newException("Mixing optional args with commands is not supported")
+    let childParserIdent = child.parserIdent()
+    let childOptsIdent = child.optsIdent()
+    let childNameStr = child.name.newStrLitNode()
+    commandCase.add(child.name, replaceNodes(quote do:
+      ## Call the subcommand's parser
+      takeArgsFromExtra(opts, state)
+      argsTaken = true
+      opts.argparse_command = `childNameStr`
+      state.consume(ArgArgument)
+      var subparser = `childParserIdent`()
+      var subOpts: ref `childOptsIdent`
+      new(subOpts)
+      subOpts.parentOpts = opts
+      subparser.parse(subOpts, state, runblocks = runblocks, quitOnShortCircuit = quitOnShortCircuit, output = output)
+      continue
+    ))
   
-  if optCase.isValid:
-    optCase.addElse(parseExpr("discard"))
-  var optCase_node = replaceNodes(optCase.finalize())
-  if optCase_node.isNil:
-    optCase_node = parseExpr("discard")
+  var addRunProcs = newStmtList()
+  var runProcs = newStmtList()
+  for p in b.runProcBodies:
+    addRunProcs.add(quote do:
+      state.runProcs.add(proc() =
+        `p`
+      ))
+  if b.parent.isNone:
+    runProcs.add(quote do:
+      if runblocks:
+        for p in state.runProcs:
+          p()
+    )
+
+  proc mkCase(c: ref UnfinishedCase): NimNode =
+    if c.isValid and not c.hasElse:
+      c.addElse(parseExpr("discard"))
+    result = replaceNodes(c.finalize())
+    if result.isNil:
+      result = parseExpr("discard")
+
+  var flagCase_node = mkCase(flagCase)
+  var optCase_node = mkCase(optCase)
+  var argCase_node = mkCase(argCase)
+  var commandCase_node = mkCase(commandCase)
 
   var parseProc = quote do:
-    proc parse(parser: `parserIdent`, state: ref ParseState, runblocks = false, quitOnShortCircuit = true, output:Stream = ARGPARSE_STDOUT): `optsIdent` {.used.} =
+    proc parse(parser: `parserIdent`, opts: ref `optsIdent`, state: ref ParseState, runblocks = false, quitOnShortCircuit = true, output:Stream = ARGPARSE_STDOUT) {.used.} =
+      var shortcircuited = false
       try:
-        result = `optsIdent`()
+        proc takeArgsFromExtra(opts: ref `optsIdent`, state: ref ParseState) =
+          `argCase_node`
         # Set defaults
         `setDefaults`
+        `addRunProcs`
         var switches_seen {.used.} : seq[string]
+        var argCount {.used.} = 0
+        var argsTaken = false
         while not state.done:
-          # handle no-argument flags
+          # handle no-argument flags and commands
           let token {.used.} = state.token.get()
           `flagCase_node`
           # handle argument-taking flags
           let key {.used.} = state.key.get()
           `optCase_node`
-          # TODO: handle args
+          if state.extra.len >= `minArgs`:
+            `commandCase_node`
           state.skip()
-        var extra = state.extra
-        # Take from the front of the args
-        `argStatements`
-        # Take from the back of the args
-        `revArgStatementsNode`
-        # Take the rest
-        `greedyArgStatement`
-        if extra.len > 0:
+        if not argsTaken:
+          takeArgsFromExtra(opts, state)
+        if state.extra.len > 0:
           # There are extra args.
-          raise UsageError.newException("Unknown argument(s): " & $state.extra)
+          raise UsageError.newException("Unknown argument(s): " & state.extra.join(", "))
       except ShortCircuit:
+        shortcircuited = true
         if getCurrentExceptionMsg() == "help":
           output.write(parser.help())
         if quitOnShortCircuit:
           quit(1)
+      if not shortcircuited:
+        `runProcs`
 
   result.add(replaceNodes(parseProc))
 
   # Convenience procs
-  result.add quote do:
-    proc parse(parser: `parserIdent`, args: seq[string]): `optsIdent` {.used.} =
+  result.add replaceNodes(quote do:
+    proc parse(parser: `parserIdent`, args: seq[string]): ref `optsIdent` {.used.} =
       ## Parse arguments using the `parserIdent` parser
       var state = newParseState(args)
-      parser.parse(state)
-  
-  result.add quote do:
+      var opts: ref `optsIdent`
+      new(opts)
+      parser.parse(opts, state)
+      result = opts
+  )
+  result.add replaceNodes(quote do:
     proc run(parser: `parserIdent`, args: seq[string], quitOnShortCircuit = true, output:Stream = ARGPARSE_STDOUT) {.used.} =
       ## Run the matching run-blocks of the parser
       var state = newParseState(args)
-      discard parser.parse(state, runblocks = true, quitOnShortCircuit = quitOnShortCircuit, output = output)
+      var opts: ref `optsIdent`
+      new(opts)
+      parser.parse(opts, state, runblocks = true, quitOnShortCircuit = quitOnShortCircuit, output = output)
+  )
+  result.add replaceNodes(quote do:
+    proc run(parser: `parserIdent`) {.used.} =
+      ## Run the matching run-blocks of the parser
+      parser.run(toSeq(commandLineParams()))
+  )
+
+proc setOrAdd*(x: var string, val: string) =
+  x = val
+
+proc setOrAdd*(x: var seq[string], val: string) =
+  x.add(val)
 
 proc getHelpText*(b: Builder): string =
   ## Generate the static help text string
@@ -612,13 +682,13 @@ proc getHelpText*(b: Builder): string =
 proc helpProcDef*(b: Builder): NimNode =
   ## Generate the help proc for the parser
   let helptext = b.getHelpText()
-
   let parserIdent = b.parserIdent()
   result = newStmtList()
-  result.add quote do:
+  result.add replaceNodes(quote do:
     proc help(parser: `parserIdent`): string {.used.} =
       ## Get the help string for this parser
       `helptext`
+  )
 
 type
   GenResponse* = tuple
@@ -626,45 +696,66 @@ type
     procs: NimNode
     instance: NimNode
 
-proc mkParser*(name: string, group: string, content: proc(), instantiate = false): GenResponse =
-  ## Generate the types and procs for this parser builder
-  ## and all child parsers.
-  
+proc addParser*(name: string, group: string, content: proc()): Builder =
+  ## Add a parser (whether main parser or subcommand) and return the Builder
+  ## Call ``generateDefs`` to get the type and proc definitions.
   builderStack.add newBuilder(name)
   content()
   var builder = builderStack.pop()
   builder.groupName = group
-  
-  # type
-  var typeSection = nnkTypeSection.newTree()
-  #   MyOpts = object
-  #     ...
-  typeSection.add builder.optsTypeDef()
-  #   MyParser = object
-  #     ...
-  typeSection.add builder.parserTypeDef()
-  
-  # proc parse(p: MyParser, ...)
-  # proc run(p: MyParser, ...)
-  var procsSection = newStmtList()
-  
-  procsSection.add builder.helpProcDef()
-  procsSection.add builder.parseProcDef()
-
-  # let parser = MyParser()
-  var instantiationSection = parseExpr("discard")
-  if instantiate:
-    let parserIdent = builder.parserIdent()
-    instantiationSection = quote do:
-      var parser = `parserIdent`()
-      parser
-
-  result = (typeSection, procsSection, instantiationSection)
 
   if builderStack.len > 0:
     # subcommand
     builderStack[^1].children.add(builder)
     builder.parent = some(builderStack[^1])
+  
+  return builder
+
+proc add_runProc*(body: NimNode) {.compileTime.} =
+  ## Add a run block proc to the current parser
+  builderStack[^1].runProcBodies.add(replaceNodes(body))
 
 proc add_command*(name: string, group: string, content: proc()) {.compileTime.} =
-  discard mkParser(name, group, content)
+  ## Add a subcommand to a parser
+  discard addParser(name, group, content)
+
+proc allChildren*(builder: Builder): seq[Builder] =
+  ## Return all the descendents of this builder
+  for child in builder.children:
+    result.add child
+    result.add child.allChildren()
+
+proc generateDefs*(builder: Builder): NimNode =
+  ## Generate the AST definitions for the current builder
+  result = newStmtList()
+  var typeSection = nnkTypeSection.newTree()
+  var procsSection = newStmtList()
+  
+  # children first to avoid forward declarations
+  for child in builder.allChildren().reversed:
+    typeSection.add child.optsTypeDef()
+    typeSection.add child.parserTypeDef()
+    procsSection.add child.helpProcDef()
+    procsSection.add child.parseProcDef()
+
+  #   MyOpts = object
+  typeSection.add builder.optsTypeDef()
+  #   MyParser = object
+  typeSection.add builder.parserTypeDef()
+
+  # proc help(p: MyParser, ...)
+  # proc parse(p: MyParser, ...)
+  # proc run(p: MyParser, ...)
+  procsSection.add builder.helpProcDef()
+  procsSection.add builder.parseProcDef()
+
+  # let parser = MyParser()
+  # parser
+  let parserIdent = builder.parserIdent()
+  let instantiationSection = quote do:
+    var parser = `parserIdent`()
+    parser
+  
+  result.add(typeSection)
+  result.add(procsSection)
+  result.add(instantiationSection)
