@@ -101,13 +101,13 @@ suite "options":
   
   test "option default":
     var p = newParser("options"):
-      option("--category", default="pinball")
+      option("--category", default=some("pinball"))
     check p.parse(shlex"").category == "pinball"
     check p.parse(shlex"--category foo").category == "foo"
   
   test "option default from env var":
     var p = newParser("options env"):
-      option("--category", env="HELLO", default="who")
+      option("--category", env="HELLO", default=some("who"))
     check "HELLO" in p.help
     check p.parse(shlex"").category == "who"
     withEnv("HELLO", "Adele"):
@@ -123,7 +123,7 @@ suite "options":
   test "multiple options on non-multi option":
     var p = newParser("prog"):
       option("-a")
-      option("-b", default = "something")
+      option("-b", default = some("something"))
     expect UsageError:
       discard p.parse(shlex"-a 10 -a 20")
     expect UsageError:
@@ -179,13 +179,13 @@ suite "args":
   
   test "single arg with default":
     var p = newParser("prog"):
-      arg("name", default="foo")
+      arg("name", default=some("foo"))
     check p.parse(shlex"").name == "foo"
     check p.parse(shlex"something").name == "something"
   
   test "single arg with env default":
     var p = newParser("prog"):
-      arg("name", env="SOMETHING", default="foo")
+      arg("name", env="SOMETHING", default=some("foo"))
     check "SOMETHING" in p.help
     check p.parse(shlex"").name == "foo"
     check p.parse(shlex"something").name == "something"
@@ -209,11 +209,11 @@ suite "args":
   
   test "optional required optional required optional wildcard":
     var p = newParser("ororo"):
-      arg("a", default="bob")
+      arg("a", default=some("bob"))
       arg("b")
-      arg("c", default="sam")
+      arg("c", default=some("sam"))
       arg("d", nargs = 2)
-      arg("e", default="al")
+      arg("e", default=some("al"))
       arg("w", nargs = -1)
     var r = p.parse(shlex"1 2 3")
     check r.a == "bob"
@@ -261,9 +261,9 @@ suite "args":
   test "r o w o r":
     var p = newParser("ororo"):
       arg("a")
-      arg("b", default = "hey")
+      arg("b", default = some("hey"))
       arg("c", nargs = -1)
-      arg("d", default = "sam")
+      arg("d", default = some("sam"))
       arg("e", nargs = 2)
     var r = p.parse(shlex"1 2 3")
     check r.a == "1"
@@ -350,7 +350,7 @@ suite "args":
   test "nargs=-1 nargs=1 w/ default":
     var p = newParser("prog"):
       arg("first", nargs = -1)
-      arg("last", default="hey")
+      arg("last", default=some("hey"))
     check p.parse(shlex"").last == "hey"
     check p.parse(shlex"hoo").last == "hoo"
     check p.parse(shlex"a b goo").last == "goo"
@@ -547,4 +547,16 @@ suite "commands":
 
     p.run(shlex"a a")
     check res == "a"
+  
+  test "blank default":
+    var res: string
+    var p = newParser("changer"):
+      command "cat":
+        arg("version", default = some(""))
+        run:
+          res.add(opts.version)
+    p.run(shlex"cat")
+    check res == ""
+    p.run(shlex"cat foo")
+    check res == "foo"
 

@@ -36,7 +36,7 @@ proc flag*(name1: string, name2 = "", multiple = false, help = "") {.compileTime
     flagMultiple: multiple,
   )
 
-proc option*(name1: string, name2 = "", help = "", default = "", env = "", multiple = false, choices: seq[string] = @[]) {.compileTime.} =
+proc option*(name1: string, name2 = "", help = "", default = none[string](), env = "", multiple = false, choices: seq[string] = @[]) {.compileTime.} =
   ## Add an option to this parser
   let names = longAndShort(name1, name2)
   let varname = names.long.toVarname()
@@ -48,11 +48,11 @@ proc option*(name1: string, name2 = "", help = "", default = "", env = "", multi
     optShort: names.short,
     optLong: names.long,
     optMultiple: multiple,
-    optDefault: if default == "": none[string]() else: some(default),
+    optDefault: default,
     optChoices: choices,
   )
 
-proc arg*(varname: string, default = "", env = "", help = "", nargs = 1) {.compileTime.} =
+proc arg*(varname: string, default = none[string](), env = "", help = "", nargs = 1) {.compileTime.} =
   ## Add place-value argument to this parser
   ## 
   builderStack[^1].components.add Component(
@@ -61,7 +61,7 @@ proc arg*(varname: string, default = "", env = "", help = "", nargs = 1) {.compi
     varname: varname,
     nargs: nargs,
     env: env,
-    argDefault: if default == "": none[string]() else: some(default),
+    argDefault: default,
   )
 
 proc help*(helptext: string) {.compileTime.} =

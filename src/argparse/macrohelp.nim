@@ -1,7 +1,7 @@
 import macros
 import strformat
 import strutils
-import sequtils
+import sequtils; export sequtils
 
 type
   UnfinishedObjectTypeDef* = object

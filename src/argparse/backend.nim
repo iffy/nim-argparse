@@ -6,6 +6,7 @@ import streams; export streams
 import strformat
 import strutils; export strutils
 import tables
+import os; export os
 
 import ./macrohelp
 import ./filler
@@ -414,11 +415,12 @@ proc parseProcDef*(b: Builder): NimNode =
   # args proc
   let minArgs = newIntLitNode(filler.minArgs)
   var argcase = newCaseStatement(parseExpr("state.extra.len"))
-  for nargs in 0..<filler.minArgs:
-    let missing = newStrLitNode(filler.missing(nargs).join(", "))
-    argcase.add(nargs, replaceNodes(quote do:
-      raise UsageError.newException("Missing argument(s): " & `missing`)
-    ))
+  if filler.minArgs > 0:
+    for nargs in 0..<filler.minArgs:
+      let missing = newStrLitNode(filler.missing(nargs).join(", "))
+      argcase.add(nargs, replaceNodes(quote do:
+        raise UsageError.newException("Missing argument(s): " & `missing`)
+      ))
   let upperBreakpoint = filler.upperBreakpoint
   for nargs in filler.minArgs..upperBreakpoint:
     let channels = filler.channels(nargs)
@@ -549,7 +551,13 @@ proc parseProcDef*(b: Builder): NimNode =
   result.add replaceNodes(quote do:
     proc run(parser: `parserIdent`) {.used.} =
       ## Run the matching run-blocks of the parser
-      parser.run(toSeq(commandLineParams()))
+      when declared(commandLineParams):
+        parser.run(toSeq(commandLineParams()))
+      else:
+        var params: seq[string]
+        for i in 0..paramCount():
+          params.add(paramStr(i))
+        parser.run(params)
   )
 
 proc setOrAdd*(x: var string, val: string) =
