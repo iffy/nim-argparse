@@ -1,12 +1,13 @@
 import macros
-import unittest
 import argparse
-import strutils
-import strformat
+# import macros
+import os
+# import parseopt
 import sequtils
-import parseopt
 import streams
-import algorithm
+import strformat
+import strutils
+import unittest
 
 proc shlex(x:string):seq[string] =
   # XXX this is not accurate, but okay enough for testing
@@ -20,7 +21,6 @@ template withEnv(name:string, value:string, body:untyped):untyped =
   putEnv(name, value)
   body
   putEnv(name, old_value)
-
 
 suite "flags":
   test "short flags":
@@ -101,13 +101,13 @@ suite "options":
   
   test "option default":
     var p = newParser("options"):
-      option("--category", default="pinball")
+      option("--category", default=some("pinball"))
     check p.parse(shlex"").category == "pinball"
     check p.parse(shlex"--category foo").category == "foo"
   
   test "option default from env var":
     var p = newParser("options env"):
-      option("--category", env="HELLO", default="who")
+      option("--category", env="HELLO", default=some("who"))
     check "HELLO" in p.help
     check p.parse(shlex"").category == "who"
     withEnv("HELLO", "Adele"):
@@ -123,7 +123,7 @@ suite "options":
   test "multiple options on non-multi option":
     var p = newParser("prog"):
       option("-a")
-      option("-b", default = "something")
+      option("-b", default = some("something"))
     expect UsageError:
       discard p.parse(shlex"-a 10 -a 20")
     expect UsageError:
@@ -152,6 +152,12 @@ suite "options":
     check p.parse(shlex"-b first").b == @["first"]
     check p.parse(shlex"-b first -b second").b == @["first", "second"]
 
+  test "option with - value argument":
+    var p = newParser("something"):
+      option("-b")
+    check p.parse(shlex"-b -").b == "-"
+    check p.parse(shlex"-b -a").b == "-a"
+
 suite "args":
   test "single, required arg":
     var p = newParser("prog"):
@@ -173,13 +179,13 @@ suite "args":
   
   test "single arg with default":
     var p = newParser("prog"):
-      arg("name", default="foo")
+      arg("name", default=some("foo"))
     check p.parse(shlex"").name == "foo"
     check p.parse(shlex"something").name == "something"
   
   test "single arg with env default":
     var p = newParser("prog"):
-      arg("name", env="SOMETHING", default="foo")
+      arg("name", env="SOMETHING", default=some("foo"))
     check "SOMETHING" in p.help
     check p.parse(shlex"").name == "foo"
     check p.parse(shlex"something").name == "something"
@@ -201,6 +207,95 @@ suite "args":
       arg("name", help="Something")
     check "Something" in p.help
   
+  test "optional required optional required optional wildcard":
+    var p = newParser("ororo"):
+      arg("a", default=some("bob"))
+      arg("b")
+      arg("c", default=some("sam"))
+      arg("d", nargs = 2)
+      arg("e", default=some("al"))
+      arg("w", nargs = -1)
+    var r = p.parse(shlex"1 2 3")
+    check r.a == "bob"
+    check r.b == "1"
+    check r.c == "sam"
+    check r.d == @["2", "3"]
+    check r.e == "al"
+    check r.w.len == 0
+    r = p.parse(shlex"1 2 3 4")
+    check r.a == "1"
+    check r.b == "2"
+    check r.c == "sam"
+    check r.d == @["3", "4"]
+    check r.e == "al"
+    check r.w.len == 0
+    r = p.parse(shlex"1 2 3 4 5")
+    check r.a == "1"
+    check r.b == "2"
+    check r.c == "3"
+    check r.d == @["4", "5"]
+    check r.e == "al"
+    check r.w.len == 0
+    r = p.parse(shlex"1 2 3 4 5 6")
+    check r.a == "1"
+    check r.b == "2"
+    check r.c == "3"
+    check r.d == @["4", "5"]
+    check r.e == "6"
+    check r.w.len == 0
+    r = p.parse(shlex"1 2 3 4 5 6 7")
+    check r.a == "1"
+    check r.b == "2"
+    check r.c == "3"
+    check r.d == @["4", "5"]
+    check r.e == "6"
+    check r.w == @["7"]
+    r = p.parse(shlex"1 2 3 4 5 6 7 8")
+    check r.a == "1"
+    check r.b == "2"
+    check r.c == "3"
+    check r.d == @["4", "5"]
+    check r.e == "6"
+    check r.w == @["7", "8"]
+
+  test "r o w o r":
+    var p = newParser("ororo"):
+      arg("a")
+      arg("b", default = some("hey"))
+      arg("c", nargs = -1)
+      arg("d", default = some("sam"))
+      arg("e", nargs = 2)
+    var r = p.parse(shlex"1 2 3")
+    check r.a == "1"
+    check r.b == "hey"
+    check r.c.len == 0
+    check r.d == "sam"
+    check r.e == @["2", "3"]
+    r = p.parse(shlex"1 2 3 4")
+    check r.a == "1"
+    check r.b == "2"
+    check r.c.len == 0
+    check r.d == "sam"
+    check r.e == @["3", "4"]
+    r = p.parse(shlex"1 2 3 4 5")
+    check r.a == "1"
+    check r.b == "2"
+    check r.c.len == 0
+    check r.d == "3"
+    check r.e == @["4", "5"]
+    r = p.parse(shlex"1 2 3 4 5 6")
+    check r.a == "1"
+    check r.b == "2"
+    check r.c == @["3"]
+    check r.d == "4"
+    check r.e == @["5", "6"]
+    r = p.parse(shlex"1 2 3 4 5 6 7")
+    check r.a == "1"
+    check r.b == "2"
+    check r.c == @["3", "4"]
+    check r.d == "5"
+    check r.e == @["6", "7"]
+
   test "nargs=2":
     var p = newParser("prog"):
       arg("name", nargs=2)
@@ -248,15 +343,18 @@ suite "args":
     check p.parse(shlex"a b c d").first.len == 0
     check p.parse(shlex"a b c d").middle == @["a", "b"]
     check p.parse(shlex"a b c d").last == @["c", "d"]
+    check p.parse(shlex"a b c d e").first == @["a"]
+    check p.parse(shlex"a b c d e").middle == @["b", "c"]
+    check p.parse(shlex"a b c d e").last == @["d", "e"]
   
   test "nargs=-1 nargs=1 w/ default":
     var p = newParser("prog"):
       arg("first", nargs = -1)
-      arg("last", default="hey")
+      arg("last", default=some("hey"))
     check p.parse(shlex"").last == "hey"
     check p.parse(shlex"hoo").last == "hoo"
     check p.parse(shlex"a b goo").last == "goo"
-
+  
 suite "autohelp":
   test "helpbydefault":
     var res:string
@@ -272,14 +370,14 @@ suite "autohelp":
           res.add("sub ran")
     
     var op = newStringStream("")
-    p.run(shlex"-h", quitOnHelp = false, output = op)
+    p.run(shlex"-h", quitOnShortCircuit = false, output = op)
     op.setPosition(0)
     var output = op.readAll()
     check "--foo" in output
     check "Top level help" in output
 
     op = newStringStream("")
-    p.run(shlex"something --help", quitOnHelp = false, output = op)
+    p.run(shlex"something --help", quitOnShortCircuit = false, output = op)
     op.setPosition(0)
     output = op.readAll()
     check "--bar" in output
@@ -298,15 +396,15 @@ suite "autohelp":
           res.add("sub ran")
     
     expect UsageError:
-      p.run(shlex"-h", quitOnHelp = false)
+      p.run(shlex"-h", quitOnShortCircuit = false)
     
     expect UsageError:
-      p.run(shlex"something --help", quitOnHelp = false)
+      p.run(shlex"something --help", quitOnShortCircuit = false)
   
   test "parse help":
     let
       p = newParser("helptest"): discard
-      opts = p.parse(@["-h"])
+    let opts = p.parse(@["-h"])
     check opts.help == true
 
 suite "commands":
@@ -318,7 +416,6 @@ suite "commands":
         help("Some help text")
         flag("-a")
         run:
-          echo "executing command1"
           res = $opts.a
 
     p.run(shlex"command1 -a")
@@ -340,9 +437,20 @@ suite "commands":
     check res == "command1"
     res.setLen(0)
 
-    p.run()
+    p.run(@[])
     check res == "root run"
   
+  test "run order":
+    var res:string
+    var p = newParser("prog"):
+      run: res.add("a")
+      command "sub":
+        run: res.add("b")
+        command "sub2":
+          run: res.add("c")
+    p.run(shlex"sub sub2")
+    check res == "abc"
+
   test "two commands":
     var res:string = ""
 
@@ -363,14 +471,12 @@ suite "commands":
 
   test "access parent":
     var res:string = ""
-
     var p = newParser("Nested"):
       option("-a")
       command "sub":
         option("-a")
         run:
           res = &"{opts.parentOpts.a},{opts.a}" 
-    
     p.run(shlex"-a parent sub -a child")
     check res == "parent,child"
   
@@ -414,4 +520,43 @@ suite "commands":
     let indexes = @["AA","BB","CC","DD","EE","FF"].mapIt(p.help.find(it))
     check indexes == indexes.sorted()
 
+  test "sub sub sub":
+    var res:string = ""
+    var p = newParser("parent"):
+      command("a"):
+        command("b"):
+          command("c"):
+            run: res.add "hi from c"
+    p.run(shlex"a b c")
+    check res == "hi from c"
+
+    res.setLen(0)
+    p.run(shlex"a b")
+    check res == ""
+  
+  test "arg and command":
+    var res:string = ""
+    var p = newParser("prog"):
+      arg("something")
+      command("a"):
+        run:
+          res.add opts.parentOpts.something
+    p.run(shlex"hello a")
+    check res == "hello"
+    res.setLen(0)
+
+    p.run(shlex"a a")
+    check res == "a"
+  
+  test "blank default":
+    var res: string
+    var p = newParser("changer"):
+      command "cat":
+        arg("version", default = some(""))
+        run:
+          res.add(opts.version)
+    p.run(shlex"cat")
+    check res == ""
+    p.run(shlex"cat foo")
+    check res == "foo"
 

@@ -1,0 +1,18 @@
+Required	argparse/filler.html#Required	SlotKind.Required	
+Optional	argparse/filler.html#Optional	SlotKind.Optional	
+Wildcard	argparse/filler.html#Wildcard	SlotKind.Wildcard	
+SlotKind	argparse/filler.html#SlotKind	filler: SlotKind	
+ArgFiller	argparse/filler.html#ArgFiller	filler: ArgFiller	
+FillChannel	argparse/filler.html#FillChannel	filler: FillChannel	
+newArgFiller	argparse/filler.html#newArgFiller	filler: newArgFiller(): ref ArgFiller	
+required	argparse/filler.html#required,,string,int	filler: required(filler; argname: string; nargs = 1)	
+optional	argparse/filler.html#optional,,string	filler: optional(filler; argname: string)	
+wildcard	argparse/filler.html#wildcard,,string	filler: wildcard(filler; argname: string)	
+minArgs	argparse/filler.html#minArgs	filler: minArgs(filler): int	
+numArgsAfterWildcard	argparse/filler.html#numArgsAfterWildcard	filler: numArgsAfterWildcard(filler): int	
+hasVariableArgs	argparse/filler.html#hasVariableArgs	filler: hasVariableArgs(filler): bool	
+hasWildcard	argparse/filler.html#hasWildcard	filler: hasWildcard(filler): bool	
+upperBreakpoint	argparse/filler.html#upperBreakpoint	filler: upperBreakpoint(filler): int	
+channels	argparse/filler.html#channels,,int	filler: channels(filler; nargs: int): seq[FillChannel]	
+missing	argparse/filler.html#missing,,int	filler: missing(filler; nargs: int): seq[string]	
+generate	argparse/filler.html#generate,,string	filler: generate(filler; containerName: string): NimNode	

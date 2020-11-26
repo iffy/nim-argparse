@@ -15,7 +15,6 @@ jobs:
           - stable
           - devel
           - 1.2.8
-          - 1.0.10
         os:
         - ubuntu-latest
         - macOS-latest
@@ -24,7 +23,7 @@ jobs:
     - uses: actions/checkout@v1
     - uses: iffy/install-nim@v3
       with:
-        nimversion: ${{ matrix.nimversion }}
+        version: ${{ matrix.nimversion }}
     - name: Test
       run: |
         nimble test
