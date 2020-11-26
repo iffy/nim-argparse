@@ -15,7 +15,6 @@ jobs:
           - stable
           - devel
           - 1.2.8
-          - 1.0.10
         os:
         - ubuntu-latest
         - macOS-latest

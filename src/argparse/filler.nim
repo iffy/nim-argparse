@@ -93,7 +93,9 @@ proc channels*(filler; nargs: int): seq[FillChannel] =
         result.add (idx..idx, slot.name, slot.kind)
       of Wildcard:
         result.add (idx..(idx + left), slot.name, slot.kind)
-      toget.inc(slot.kind, -result[^1][0].len)
+      {.push assertions: off.}
+      toget[slot.kind] = max(toget[slot.kind] - result[^1][0].len, 0)
+      {.pop.}
       idx.inc(result[^1][0].len)
 
 proc missing*(filler; nargs: int): seq[string] =
