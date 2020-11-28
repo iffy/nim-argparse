@@ -568,9 +568,6 @@ proc setOrAdd*(x: var seq[string], val: string) =
 
 proc getHelpText*(b: Builder): string =
   ## Generate the static help text string
-  result.add b.name # TODO: make this dynamically be $0 if desired
-  result.add "\L\L"
-
   if b.help != "":
     result.add(b.help)
     result.add("\L\L")
@@ -685,17 +682,21 @@ proc getHelpText*(b: Builder): string =
     result.add(opts)
     result.add("\L")
 
-  result.setLen(result.high) # equivalent to new Nim .stripLineEnd
+  result.stripLineEnd()
 
 proc helpProcDef*(b: Builder): NimNode =
   ## Generate the help proc for the parser
   let helptext = b.getHelpText()
+  let prog = newStrLitNode(b.name)
   let parserIdent = b.parserIdent()
   result = newStmtList()
   result.add replaceNodes(quote do:
     proc help(parser: `parserIdent`): string {.used.} =
       ## Get the help string for this parser
-      `helptext`
+      var prog = `prog`
+      if prog == "":
+        prog = getAppFilename().extractFilename()
+      result.add `helptext`.replace("{prog}", prog)
   )
 
 type
@@ -711,6 +712,8 @@ proc addParser*(name: string, group: string, content: proc()): Builder =
   content()
   var builder = builderStack.pop()
   builder.groupName = group
+  if builder.help == "":
+    builder.help = "{prog}"
 
   if builderStack.len > 0:
     # subcommand

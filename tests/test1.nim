@@ -24,7 +24,7 @@ template withEnv(name:string, value:string, body:untyped):untyped =
 
 suite "flags":
   test "short flags":
-    var p = newParser("some name"):
+    var p = newParser "some name":
       flag("-a")
       flag("-b")
     
@@ -35,7 +35,7 @@ suite "flags":
     check "-b" in p.help
   
   test "long flags":
-    var p = newParser("some name"):
+    var p = newParser "some name":
       flag("--apple")
       flag("--banana")
     
@@ -47,7 +47,7 @@ suite "flags":
     check "--banana" in p.help
   
   test "short and long flags":
-    var p = newParser("some name"):
+    var p = newParser "some name":
       flag("-a", "--apple")
       flag("--banana", "-b")
     
@@ -61,7 +61,7 @@ suite "flags":
     check "-b" in p.help
   
   test "multiple flags":
-    var p = newParser("hi"):
+    var p = newParser:
       flag("-b", multiple=true)
     
     check p.parse(shlex("-b")).b == 1
@@ -69,7 +69,7 @@ suite "flags":
     check p.parse(shlex("")).b == 0
   
   test "help text":
-    var p = newParser("some name"):
+    var p = newParser:
       flag("-a", "--apple", help="Some apples")
       flag("--banana-split-and-ice-cream", help="More help")
       flag("-c", multiple=true)
@@ -78,7 +78,7 @@ suite "flags":
     check "More help" in p.help
   
   test "unknown flag":
-    var p = newParser("prog"):
+    var p = newParser:
       flag("-a")
     expect UsageError:
       discard p.parse(shlex"-b")
@@ -86,7 +86,7 @@ suite "flags":
 
 suite "options":
   test "short options":
-    var p = newParser("some name"):
+    var p = newParser:
       option("-a", help="Stuff")
     check p.parse(shlex"-a=5").a == "5"
     check p.parse(shlex"-a 5").a == "5"
@@ -94,19 +94,19 @@ suite "options":
     check "Stuff" in p.help
   
   test "long options":
-    var p = newParser("some name"):
+    var p = newParser:
       option("--apple")
     check p.parse(shlex"--apple=10").apple == "10"
     check p.parse(shlex"--apple 10").apple == "10"
   
   test "option default":
-    var p = newParser("options"):
+    var p = newParser:
       option("--category", default=some("pinball"))
     check p.parse(shlex"").category == "pinball"
     check p.parse(shlex"--category foo").category == "foo"
   
   test "option default from env var":
-    var p = newParser("options env"):
+    var p = newParser:
       option("--category", env="HELLO", default=some("who"))
     check "HELLO" in p.help
     check p.parse(shlex"").category == "who"
@@ -115,13 +115,13 @@ suite "options":
     check p.parse(shlex"--category hey").category == "hey"
   
   test "unknown option":
-    var p = newParser("prog"):
+    var p = newParser:
       option("-a")
     expect UsageError:
       discard p.parse(shlex"-b")
   
   test "multiple options on non-multi option":
-    var p = newParser("prog"):
+    var p = newParser:
       option("-a")
       option("-b", default = some("something"))
     expect UsageError:
@@ -131,14 +131,14 @@ suite "options":
     check p.parse(shlex"-b foo").b == "foo"
   
   test "multiple options":
-    var p = newParser("hey"):
+    var p = newParser:
       option("-a", multiple=true)
     check p.parse(shlex"-a 10 -a 20").a == @["10", "20"]
     check p.parse(shlex"").a == []
     check p.parse(shlex"-a 20").a == @["20"]
   
   test "choices":
-    var p = newParser("choiceprog"):
+    var p = newParser:
       option("-b", choices = @["first", "second", "third"])
 
     check p.parse(shlex"-b first").b == "first"
@@ -146,45 +146,45 @@ suite "options":
       discard p.parse(shlex"-b unknown")
   
   test "choices multiple":
-    var p = newParser("choiceprog"):
+    var p = newParser:
       option("-b", multiple=true, choices = @["first", "second", "third"])
 
     check p.parse(shlex"-b first").b == @["first"]
     check p.parse(shlex"-b first -b second").b == @["first", "second"]
 
   test "option with - value argument":
-    var p = newParser("something"):
+    var p = newParser:
       option("-b")
     check p.parse(shlex"-b -").b == "-"
     check p.parse(shlex"-b -a").b == "-a"
 
 suite "args":
   test "single, required arg":
-    var p = newParser("prog"):
+    var p = newParser:
       arg("name")
     check p.parse(shlex"foo").name == "foo"
     check "name" in p.help
   
   test "args are required":
-    var p = newParser("someprog"):
+    var p = newParser:
       arg("name")
     expect UsageError:
       discard p.parse(shlex"")
   
   test "extra args is an error":
-    var p = newParser("something"):
+    var p = newParser:
       arg("only")
     expect UsageError:
       discard p.parse(shlex"one two")
   
   test "single arg with default":
-    var p = newParser("prog"):
+    var p = newParser:
       arg("name", default=some("foo"))
     check p.parse(shlex"").name == "foo"
     check p.parse(shlex"something").name == "something"
   
   test "single arg with env default":
-    var p = newParser("prog"):
+    var p = newParser:
       arg("name", env="SOMETHING", default=some("foo"))
     check "SOMETHING" in p.help
     check p.parse(shlex"").name == "foo"
@@ -194,7 +194,7 @@ suite "args":
       check p.parse(shlex"something").name == "something"
   
   test "2 args":
-    var p = newParser("prog"):
+    var p = newParser:
       arg("name")
       arg("age")
     check p.parse(shlex"foo bar").name == "foo"
@@ -203,12 +203,12 @@ suite "args":
     check "age" in p.help
   
   test "arg help":
-    var p = newParser("prog"):
+    var p = newParser:
       arg("name", help="Something")
     check "Something" in p.help
   
   test "optional required optional required optional wildcard":
-    var p = newParser("ororo"):
+    var p = newParser:
       arg("a", default=some("bob"))
       arg("b")
       arg("c", default=some("sam"))
@@ -259,7 +259,7 @@ suite "args":
     check r.w == @["7", "8"]
 
   test "r o w o r":
-    var p = newParser("ororo"):
+    var p = newParser:
       arg("a")
       arg("b", default = some("hey"))
       arg("c", nargs = -1)
@@ -297,19 +297,19 @@ suite "args":
     check r.e == @["6", "7"]
 
   test "nargs=2":
-    var p = newParser("prog"):
+    var p = newParser:
       arg("name", nargs=2)
     check p.parse(shlex"a b").name == @["a", "b"]
   
   test "nargs=-1":
-    var p = newParser("prog"):
+    var p = newParser:
       arg("thing", nargs = -1)
     check p.parse(shlex"").thing.len == 0
     check p.parse(shlex"a").thing == @["a"]
     check p.parse(shlex"a b c").thing == @["a", "b", "c"]
 
   test "nargs=-1 at the end":
-    var p = newParser("prog"):
+    var p = newParser:
       arg("first")
       arg("thing", nargs = -1)
     check p.parse(shlex"first").thing.len == 0
@@ -317,7 +317,7 @@ suite "args":
     check p.parse(shlex"first a b c").thing == @["a", "b", "c"]
   
   test "nargs=-1 in the middle":
-    var p = newParser("prog"):
+    var p = newParser:
       arg("first")
       arg("thing", nargs = -1)
       arg("last")
@@ -326,7 +326,7 @@ suite "args":
     check p.parse(shlex"first a b c last").thing == @["a", "b", "c"]
   
   test "nargs=-1 at the beginning":
-    var p = newParser("prog"):
+    var p = newParser:
       flag("-a")
       arg("thing", nargs = -1)
       arg("last", nargs = 2)
@@ -336,7 +336,7 @@ suite "args":
     check p.parse(shlex"last 2").last == @["last", "2"]
 
   test "nargs=-1 nargs=2 nargs=2":
-    var p = newParser("prog"):
+    var p = newParser:
       arg("first", nargs = -1)
       arg("middle", nargs = 2)
       arg("last", nargs = 2)
@@ -348,7 +348,7 @@ suite "args":
     check p.parse(shlex"a b c d e").last == @["d", "e"]
   
   test "nargs=-1 nargs=1 w/ default":
-    var p = newParser("prog"):
+    var p = newParser:
       arg("first", nargs = -1)
       arg("last", default=some("hey"))
     check p.parse(shlex"").last == "hey"
@@ -356,7 +356,7 @@ suite "args":
     check p.parse(shlex"a b goo").last == "goo"
   
   test "extra args":
-    var p = newParser("prog"):
+    var p = newParser:
       arg("first")
       arg("extra", nargs = -1)
     let res = p.parse(shlex"a -b c -foo -d -e=goo app app")
@@ -364,9 +364,19 @@ suite "args":
     check res.extra == @["-b", "c", "-foo", "-d", "-e=goo", "app", "app"]
   
 suite "autohelp":
+  test "static prog name":
+    var p = newParser("staticname"):
+      help("{prog}")
+    check "staticname" in p.help
+  
+  test "dynamic prog name":
+    var p = newParser:
+      help("{prog}")
+    check getAppFilename().extractFilename() in p.help
+
   test "helpbydefault":
     var res:string
-    var p = newParser("helptest"):
+    var p = newParser:
       help("Top level help")
       flag("--foo")
       run:
@@ -394,7 +404,7 @@ suite "autohelp":
   
   test "nohelpflag":
     var res:string
-    var p = newParser("helptest"):
+    var p = newParser:
       nohelpflag()
       run:
         res.add("main ran")
@@ -411,7 +421,7 @@ suite "autohelp":
   
   test "parse help":
     let
-      p = newParser("helptest"): discard
+      p = newParser: discard
     let opts = p.parse(@["-h"])
     check opts.help == true
 
@@ -419,7 +429,7 @@ suite "commands":
   test "run":
     var res:string = "hello"
 
-    var p = newParser("prog"):
+    var p = newParser:
       command "command1":
         help("Some help text")
         flag("-a")
@@ -434,7 +444,7 @@ suite "commands":
   test "run only one":
     var res:string
 
-    var p = newParser("prog"):
+    var p = newParser:
       command "command1":
         run:
           res.add("command1")
@@ -450,7 +460,7 @@ suite "commands":
   
   test "run order":
     var res:string
-    var p = newParser("prog"):
+    var p = newParser:
       run: res.add("a")
       command "sub":
         run: res.add("b")
@@ -462,7 +472,7 @@ suite "commands":
   test "two commands":
     var res:string = ""
 
-    var p = newParser("My Program"):
+    var p = newParser:
       command "move":
         arg("howmuch")
         run:
@@ -479,7 +489,7 @@ suite "commands":
 
   test "access parent":
     var res:string = ""
-    var p = newParser("Nested"):
+    var p = newParser:
       option("-a")
       command "sub":
         option("-a")
@@ -491,7 +501,7 @@ suite "commands":
   test "unknown command":
     var res:string = ""
 
-    var p = newParser("prog"):
+    var p = newParser:
       command "sub":
         option("-a")
         run:
@@ -502,7 +512,7 @@ suite "commands":
     check res == ""
   
   test "command groups":
-    var p = newParser("prog"):
+    var p = newParser:
       command("first", group = "groupA"):
         help "A first command"
         run: discard
@@ -518,7 +528,7 @@ suite "commands":
     echo p.help
 
   test "command group ordering":
-    var p = newParser("prog"):
+    var p = newParser:
       command("a", group = "AA"): discard
       command("b", group = "BB"): discard
       command("c", group = "CC"): discard
@@ -530,7 +540,7 @@ suite "commands":
 
   test "sub sub sub":
     var res:string = ""
-    var p = newParser("parent"):
+    var p = newParser:
       command("a"):
         command("b"):
           command("c"):
@@ -544,7 +554,7 @@ suite "commands":
   
   test "arg and command":
     var res:string = ""
-    var p = newParser("prog"):
+    var p = newParser:
       arg("something")
       command("a"):
         run:
@@ -558,7 +568,7 @@ suite "commands":
   
   test "blank default":
     var res: string
-    var p = newParser("changer"):
+    var p = newParser:
       command "cat":
         arg("version", default = some(""))
         run:

@@ -1,4 +1,5 @@
 newParser	argparse.html#newParser.t,string,untyped	argparse: newParser(name: string; body: untyped): untyped	
+newParser	argparse.html#newParser.t,untyped	argparse: newParser(body: untyped): untyped	
 flag	argparse.html#flag,string,string,string	argparse: flag(name1: string; name2 = &quot;&quot;; multiple = false; help = &quot;&quot;; hidden = false)	
 option	argparse.html#option,string,string,string,string,seq[string]	argparse: option(name1: string; name2 = &quot;&quot;; help = &quot;&quot;; default = none(); env = &quot;&quot;;\n       multiple = false; choices: seq[string] = @[]; hidden = false)	
 arg	argparse.html#arg,string,string,string,int	argparse: arg(varname: string; default = none(); env = &quot;&quot;; help = &quot;&quot;; nargs = 1)	
