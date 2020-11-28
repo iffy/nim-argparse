@@ -1,0 +1,1 @@
+Support hidden args again.
