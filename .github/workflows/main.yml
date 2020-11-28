@@ -13,7 +13,8 @@ jobs:
       matrix:
         nimversion: 
           - stable
-          - devel
+          # - devel
+          # no devel for now because GitHub Actions won't let me not fail for them
           - 1.2.8
         os:
         - ubuntu-latest

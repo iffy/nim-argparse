@@ -24,7 +24,7 @@ template withEnv(name:string, value:string, body:untyped):untyped =
 
 suite "flags":
   test "short flags":
-    var p = newParser "some name":
+    var p = newParser("some name"):
       flag("-a")
       flag("-b")
     

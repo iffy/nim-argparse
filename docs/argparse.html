@@ -249,7 +249,7 @@ function main() {
 <p><tt class="docutils literal"><span class="pre">help</span></tt> is additional help text for this option.</p>
 
 <p><strong class="examples_text">Example:</strong></p>
-<pre class="listing"><span class="Keyword">var</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newParser</span><span class="Punctuation">(</span><span class="StringLit">&quot;Command&quot;</span><span class="Punctuation">)</span><span class="Punctuation">:</span><span class="Whitespace">
+<pre class="listing"><span class="Keyword">var</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newParser</span><span class="Punctuation">:</span><span class="Whitespace">
   </span><span class="Identifier">option</span><span class="Punctuation">(</span><span class="StringLit">&quot;-a&quot;</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="StringLit">&quot;--apple&quot;</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="Identifier">help</span><span class="Operator">=</span><span class="StringLit">&quot;Name of apple&quot;</span><span class="Punctuation">)</span><span class="Whitespace">
 </span><span class="Identifier">assert</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Operator">.</span><span class="Identifier">parse</span><span class="Punctuation">(</span><span class="Operator">@</span><span class="Punctuation">[</span><span class="StringLit">&quot;-a&quot;</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="StringLit">&quot;5&quot;</span><span class="Punctuation">]</span><span class="Punctuation">)</span><span class="Operator">.</span><span class="Identifier">apple</span><span class="Whitespace"> </span><span class="Operator">==</span><span class="Whitespace"> </span><span class="StringLit">&quot;5&quot;</span></pre>
 
@@ -270,7 +270,7 @@ function main() {
 <p><tt class="docutils literal"><span class="pre">help</span></tt> is additional help text for this argument.</p>
 
 <p><strong class="examples_text">Example:</strong></p>
-<pre class="listing"><span class="Keyword">var</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newParser</span><span class="Punctuation">(</span><span class="StringLit">&quot;Command&quot;</span><span class="Punctuation">)</span><span class="Punctuation">:</span><span class="Whitespace">
+<pre class="listing"><span class="Keyword">var</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newParser</span><span class="Punctuation">:</span><span class="Whitespace">
   </span><span class="Identifier">arg</span><span class="Punctuation">(</span><span class="StringLit">&quot;name&quot;</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="Identifier">help</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="StringLit">&quot;Name of apple&quot;</span><span class="Punctuation">)</span><span class="Whitespace">
   </span><span class="Identifier">arg</span><span class="Punctuation">(</span><span class="StringLit">&quot;twowords&quot;</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="Identifier">nargs</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="DecNumber">2</span><span class="Punctuation">)</span><span class="Whitespace">
   </span><span class="Identifier">arg</span><span class="Punctuation">(</span><span class="StringLit">&quot;more&quot;</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="Identifier">nargs</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Operator">-</span><span class="DecNumber">1</span><span class="Punctuation">)</span><span class="Whitespace">
@@ -284,9 +284,11 @@ function main() {
 <dt><pre><span class="Keyword">proc</span> <a href="#help%2Cstring"><span class="Identifier">help</span></a><span class="Other">(</span><span class="Identifier">helptext</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">compileTime</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
-Add help to a parser or subcommand. 
+<p>Add help to a parser or subcommand.</p>
+<p>You may use the special string <tt class="docutils literal"><span class="pre">{prog}</span></tt> within any help text, and it will be replaced by the program name. </p>
+
 <p><strong class="examples_text">Example:</strong></p>
-<pre class="listing"><span class="Keyword">var</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newParser</span><span class="Punctuation">(</span><span class="StringLit">&quot;Some Program&quot;</span><span class="Punctuation">)</span><span class="Punctuation">:</span><span class="Whitespace">
+<pre class="listing"><span class="Keyword">var</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newParser</span><span class="Punctuation">:</span><span class="Whitespace">
   </span><span class="Identifier">help</span><span class="Punctuation">(</span><span class="StringLit">&quot;Some helpful description&quot;</span><span class="Punctuation">)</span><span class="Whitespace">
   </span><span class="Identifier">command</span><span class="Punctuation">(</span><span class="StringLit">&quot;dostuff&quot;</span><span class="Punctuation">)</span><span class="Punctuation">:</span><span class="Whitespace">
     </span><span class="Identifier">help</span><span class="Punctuation">(</span><span class="StringLit">&quot;More helpful information&quot;</span><span class="Punctuation">)</span><span class="Whitespace">
@@ -299,7 +301,7 @@ Add help to a parser or subcommand.
 
 Disable the automatic -h/--help flag
 <p><strong class="examples_text">Example:</strong></p>
-<pre class="listing"><span class="Keyword">var</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newParser</span><span class="Punctuation">(</span><span class="StringLit">&quot;Some Thing&quot;</span><span class="Punctuation">)</span><span class="Punctuation">:</span><span class="Whitespace">
+<pre class="listing"><span class="Keyword">var</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newParser</span><span class="Punctuation">:</span><span class="Whitespace">
   </span><span class="Identifier">nohelpflag</span><span class="Punctuation">(</span><span class="Punctuation">)</span></pre>
 
 </dd>
@@ -312,9 +314,10 @@ Disable the automatic -h/--help flag
 <dt><pre><span class="Keyword">template</span> <a href="#newParser.t%2Cstring%2Cuntyped"><span class="Identifier">newParser</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">untyped</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">untyped</span></pre></dt>
 <dd>
 
-Entry point for making command-line parsers. 
+Create a new parser with a static program name. 
 <p><strong class="examples_text">Example:</strong></p>
 <pre class="listing"><span class="Keyword">var</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newParser</span><span class="Punctuation">(</span><span class="StringLit">&quot;my parser&quot;</span><span class="Punctuation">)</span><span class="Punctuation">:</span><span class="Whitespace">
+  </span><span class="Identifier">help</span><span class="Punctuation">(</span><span class="StringLit">&quot;&apos;{prog}&apos; == &apos;my parser&apos;&quot;</span><span class="Punctuation">)</span><span class="Whitespace">
   </span><span class="Identifier">flag</span><span class="Punctuation">(</span><span class="StringLit">&quot;-a&quot;</span><span class="Punctuation">)</span><span class="Whitespace">
 </span><span class="Identifier">assert</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Operator">.</span><span class="Identifier">parse</span><span class="Punctuation">(</span><span class="Operator">@</span><span class="Punctuation">[</span><span class="StringLit">&quot;-a&quot;</span><span class="Punctuation">]</span><span class="Punctuation">)</span><span class="Operator">.</span><span class="Identifier">a</span><span class="Whitespace"> </span><span class="Operator">==</span><span class="Whitespace"> </span><span class="Identifier">true</span></pre>
 
@@ -336,7 +339,7 @@ Entry point for making command-line parsers without a name.
 
 Add a run block to this command
 <p><strong class="examples_text">Example:</strong></p>
-<pre class="listing"><span class="Keyword">var</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newParser</span><span class="Punctuation">(</span><span class="StringLit">&quot;Some Program&quot;</span><span class="Punctuation">)</span><span class="Punctuation">:</span><span class="Whitespace">
+<pre class="listing"><span class="Keyword">var</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newParser</span><span class="Punctuation">:</span><span class="Whitespace">
   </span><span class="Identifier">command</span><span class="Punctuation">(</span><span class="StringLit">&quot;dostuff&quot;</span><span class="Punctuation">)</span><span class="Punctuation">:</span><span class="Whitespace">
     </span><span class="Identifier">run</span><span class="Punctuation">:</span><span class="Whitespace">
       </span><span class="Identifier">echo</span><span class="Whitespace"> </span><span class="StringLit">&quot;Actually do stuff&quot;</span></pre>
@@ -357,7 +360,7 @@ Add a subcommand to this parser
 <p>group is a string used to group commands in help output</p>
 
 <p><strong class="examples_text">Example:</strong></p>
-<pre class="listing"><span class="Keyword">var</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newParser</span><span class="Punctuation">(</span><span class="StringLit">&quot;Some Program&quot;</span><span class="Punctuation">)</span><span class="Punctuation">:</span><span class="Whitespace">
+<pre class="listing"><span class="Keyword">var</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newParser</span><span class="Punctuation">:</span><span class="Whitespace">
   </span><span class="Identifier">command</span><span class="Punctuation">(</span><span class="StringLit">&quot;dostuff&quot;</span><span class="Punctuation">)</span><span class="Punctuation">:</span><span class="Whitespace">
     </span><span class="Identifier">run</span><span class="Punctuation">:</span><span class="Whitespace">
       </span><span class="Identifier">echo</span><span class="Whitespace"> </span><span class="StringLit">&quot;Actually do stuff&quot;</span><span class="Whitespace">
@@ -379,7 +382,7 @@ Add a subcommand to this parser
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-11-28 03:45:42 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2020-11-28 04:18:19 UTC</small>
       </div>
     </div>
   </div>
