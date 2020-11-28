@@ -21,8 +21,8 @@
 ## If ``Parser.parse()`` and ``Parser.run()`` are called without arguments, they use the arguments from the command line.
 ## 
 runnableExamples:
-  var p = newParser("My Program"):
-    help("A description of this program")
+  var p = newParser:
+    help("A description of this program, named {prog}")
     flag("-n", "--dryrun")
     option("-o", "--output", help="Write output to this file", default=some("somewhere.txt"))
     option("-k", "--kind", choices = @["fruit", "vegetable"])
@@ -35,7 +35,7 @@ runnableExamples:
 
 runnableExamples:
   var res:string
-  var p = newParser("Something"):
+  var p = newParser:
     flag("-n", "--dryrun")
     command("ls"):
       run:
@@ -80,15 +80,29 @@ proc longAndShort(name1: string, name2: string): tuple[long: string, short: stri
   return (longname, shortname)
 
 template newParser*(name: string, body: untyped): untyped =
-  ## Entry point for making command-line parsers.
+  ## Create a new parser with a static program name.
   ##
   runnableExamples:
-    var p = newParser("My program"):
+    var p = newParser("my parser"):
+      help("'{prog}' == 'my parser'")
       flag("-a")
     assert p.parse(@["-a"]).a == true
 
   macro domkParser(): untyped =
     let builder = addParser(name, "", proc() = body)
+    builder.generateDefs()
+  domkParser()
+
+template newParser*(body: untyped): untyped =
+  ## Entry point for making command-line parsers without a name.
+  ##
+  runnableExamples:
+    var p = newParser:
+      flag("-a")
+    assert p.parse(@["-a"]).a == true
+
+  macro domkParser(): untyped =
+    let builder = addParser("", "", proc() = body)
     builder.generateDefs()
   domkParser()
 
@@ -143,7 +157,7 @@ proc option*(name1: string, name2 = "", help = "", default = none[string](), env
   ##
   ## ``help`` is additional help text for this option.
   runnableExamples:
-    var p = newParser("Command"):
+    var p = newParser:
       option("-a", "--apple", help="Name of apple")
     assert p.parse(@["-a", "5"]).apple == "5"
 
@@ -178,7 +192,7 @@ proc arg*(varname: string, default = none[string](), env = "", help = "", nargs 
   ##
   ## ``help`` is additional help text for this argument.
   runnableExamples:
-    var p = newParser("Command"):
+    var p = newParser:
       arg("name", help = "Name of apple")
       arg("twowords", nargs = 2)
       arg("more", nargs = -1)
@@ -198,9 +212,12 @@ proc arg*(varname: string, default = none[string](), env = "", help = "", nargs 
 
 proc help*(helptext: string) {.compileTime.} =
   ## Add help to a parser or subcommand.
+  ## 
+  ## You may use the special string ``{prog}`` within any help text, and it
+  ## will be replaced by the program name.
   ##
   runnableExamples:
-    var p = newParser("Some Program"):
+    var p = newParser:
       help("Some helpful description")
       command("dostuff"):
         help("More helpful information")
@@ -211,7 +228,7 @@ proc help*(helptext: string) {.compileTime.} =
 proc nohelpflag*() {.compileTime.} =
   ## Disable the automatic -h/--help flag
   runnableExamples:
-    var p = newParser("Some Thing"):
+    var p = newParser:
       nohelpflag()
 
   builderStack[^1].components.del(0)
@@ -219,7 +236,7 @@ proc nohelpflag*() {.compileTime.} =
 template run*(body: untyped): untyped =
   ## Add a run block to this command
   runnableExamples:
-    var p = newParser("Some Program"):
+    var p = newParser:
       command("dostuff"):
         run:
           echo "Actually do stuff"
@@ -236,7 +253,7 @@ template command*(name: string, content: untyped): untyped =
   ##
   ## group is a string used to group commands in help output
   runnableExamples:
-    var p = newParser("Some Program"):
+    var p = newParser:
       command("dostuff"):
         run:
           echo "Actually do stuff"
