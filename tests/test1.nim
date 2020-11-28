@@ -363,6 +363,18 @@ suite "args":
     check res.first == "a"
     check res.extra == @["-b", "c", "-foo", "-d", "-e=goo", "app", "app"]
   
+  test "-- extra args":
+    var p = newParser:
+      flag("-a", "--apple")
+      option("-b", "--banana")
+      arg("hi")
+      arg("extra", nargs = -1)
+    let res = p.parse(shlex("-a -b foo hi -- -a --apple -b --banana goofy glop"))
+    check res.apple == true
+    check res.banana == "foo"
+    check res.hi == "hi"
+    check res.extra == @["-a", "--apple", "-b", "--banana", "goofy", "glop"]
+
 suite "autohelp":
   test "static prog name":
     var p = newParser("staticname"):
