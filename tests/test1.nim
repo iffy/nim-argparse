@@ -355,6 +355,14 @@ suite "args":
     check p.parse(shlex"hoo").last == "hoo"
     check p.parse(shlex"a b goo").last == "goo"
   
+  test "extra args":
+    var p = newParser("prog"):
+      arg("first")
+      arg("extra", nargs = -1)
+    let res = p.parse(shlex"a -b c -foo -d -e=goo app app")
+    check res.first == "a"
+    check res.extra == @["-b", "c", "-foo", "-d", "-e=goo", "app", "app"]
+  
 suite "autohelp":
   test "helpbydefault":
     var res:string
