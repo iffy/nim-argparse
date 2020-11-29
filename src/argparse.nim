@@ -88,7 +88,7 @@ template newParser*(name: string, body: untyped): untyped =
       flag("-a")
     assert p.parse(@["-a"]).a == true
 
-  macro domkParser(): untyped =
+  macro domkParser() : untyped {.gensym.} =
     let builder = addParser(name, "", proc() = body)
     builder.generateDefs()
   domkParser()
