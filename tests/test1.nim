@@ -157,6 +157,14 @@ suite "options":
       option("-b")
     check p.parse(shlex"-b -").b == "-"
     check p.parse(shlex"-b -a").b == "-a"
+  
+  test "required options":
+    var p = newParser:
+      option("-b", "--bob", required = true)
+    expect UsageError:
+      discard p.parse(@[])
+    check p.parse(shlex"-b foo").bob == "foo"
+    check p.parse(@["-b", ""]).bob == ""
 
 suite "args":
   test "single, required arg":
