@@ -504,15 +504,21 @@ proc parseProcDef*(b: Builder): NimNode =
         var switches_seen {.used.} : seq[string]
         var argCount {.used.} = 0
         var argsTaken = false
+        var doneProcessingFlags = false
         while not state.done:
           # handle no-argument flags and commands
           let token {.used.} = state.token.get()
-          `flagCase_node`
-          # handle argument-taking flags
-          let key {.used.} = state.key.get()
-          `optCase_node`
+          if not doneProcessingFlags:
+            `flagCase_node`
+            # handle argument-taking flags
+            let key {.used.} = state.key.get()
+            `optCase_node`
           if state.extra.len >= `minArgs`:
             `commandCase_node`
+          if token == "--":
+            doneProcessingFlags = true
+            state.consume(ArgArgument)
+            continue
           state.skip()
         if not argsTaken:
           takeArgsFromExtra(opts, state)
