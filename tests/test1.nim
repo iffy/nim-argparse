@@ -590,3 +590,14 @@ suite "commands":
     p.run(shlex"cat foo")
     check res == "foo"
 
+  test "same parser name":
+    ## Parsers with the same name are allowed (and made unique)
+    var p1 = newParser("jim"):
+      flag("-a")
+    var p2 = newParser("jim"):
+      flag("-b")
+    
+    let r1 = p1.parse(shlex"-a")
+    check r1.a == true
+    let r2 = p2.parse(shlex"-b")
+    check r2.b == true

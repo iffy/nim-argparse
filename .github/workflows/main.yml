@@ -16,6 +16,7 @@ jobs:
           # - devel
           # no devel for now because GitHub Actions won't let me not fail for them
           - 1.2.8
+          - 1.0.10
         os:
         - ubuntu-latest
         - macOS-latest

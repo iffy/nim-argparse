@@ -48,6 +48,10 @@ type
     name*: string
       ## Command name for subcommand parsers, or program name for
       ## the parent parser.
+    symbol*: string
+      ## Unique tag to apply to Parser and Option types to avoid
+      ## conflicts.  By default, this is generated with Nim's
+      ## gensym algorithm.
     components*: seq[Component]
     help*: string
     groupName*: string
@@ -204,6 +208,7 @@ proc propDefinition(c: Component): NimNode =
 proc newBuilder*(name = ""): Builder =
   new(result)
   result.name = name
+  result.symbol = genSym(nskLet, if name == "": "Argparse" else: name.safeIdentStr).toStrLit.strVal
   result.children = newSeq[Builder]()
   result.runProcBodies = newSeq[NimNode]()
   result.components.add Component(
@@ -218,13 +223,13 @@ proc `$`*(b: Builder): string = $(b[])
 
 proc optsIdent(b: Builder): NimNode =
   ## Name of the option type for this Builder
-  let name = if b.name == "": "Argparse" else: b.name
-  ident("Opts" & name.safeIdentStr)
+  # let name = if b.name == "": "Argparse" else: b.name
+  ident("Opts" & b.symbol)
 
 proc parserIdent(b: Builder): NimNode =
   ## Name of the parser type for this Builder
-  let name = if b.name == "": "Argparse" else: b.name
-  ident("Parser" & name.safeIdentStr)
+  # let name = if b.name == "": "Argparse" else: b.name
+  ident("Parser" & b.symbol)
 
 proc optsTypeDef*(b: Builder): NimNode =
   ## Generate the type definition for the return value of parsing:
