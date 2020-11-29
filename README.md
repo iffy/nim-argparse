@@ -57,28 +57,6 @@ assert opts.name == "hi"
 assert opts.others == @[]
 ```
 
-# TODO
-
-- [X] --long-flags
-- [X] --arguments=withvalues
-- [X] help argument
-- [X] arguments
-- [X] variable args
-- [X] sub commands (git-style)
-- [X] sub commands access parent opts
-- [X] render docs
-- [X] --help special case
-- [ ] --version
-- [X] default values
-- [X] raise exception on invalid args
-- [X] Handle `--arg val --nother-arg val2` (spaces instead of `=` or `:` between key and value)
-- [ ] Access to object type names (so you can do `handleOpts(opts: TheGeneratedType) = ...`)
-- [X] Make it so you don't have to use a wrapping macro
-- [ ] parse strings into sequences (shlex-like)
-- [X] fail on unknown arguments
-- [X] let options have a list of acceptable values (choices)
-
-
 # Development
 
 ## Running tests
