@@ -37,6 +37,7 @@ type
       optMultiple*: bool
       optDefault*: Option[string]
       optChoices*: seq[string]
+      optRequired*: bool
     of ArgArgument:
       nargs*: int
       argDefault*: Option[string]
@@ -298,6 +299,7 @@ proc parseProcDef*(b: Builder): NimNode =
   # flag/opt/arg handlers
   var flagCase = newCaseStatement(parseExpr("token"))
   var optCase = newCaseStatement(parseExpr("key"))
+  var requiredOptionGuard = newStmtList()
   var setDefaults = newStmtList()
   var filler = newArgFiller()
   for component in b.components:
@@ -365,6 +367,12 @@ proc parseProcDef*(b: Builder): NimNode =
         choiceGuard = quote do:
           if state.value.get() notin `choices`:
             raise UsageError.newException("Invalid value for " & `optComboNode` & ": " & state.value.get() & " (valid choices: " & $`choices` & ")")
+      
+      # Make sure required options have been provided
+      if component.optRequired:
+        requiredOptionGuard.add quote do:
+          if `optComboNode` notin switches_seen:
+            raise UsageError.newException("Option " & `optComboNode` & " is required and was not provided")
 
       # Make sure it hasn't been provided twice
       var duplicateGuard: NimNode
@@ -501,12 +509,13 @@ proc parseProcDef*(b: Builder): NimNode =
     proc parse(parser: `parserIdent`, opts: ref `optsIdent`, state: ref ParseState, runblocks = false, quitOnShortCircuit = true, output:Stream = ARGPARSE_STDOUT) {.used.} =
       var shortcircuited = false
       try:
+        var switches_seen {.used.} : seq[string]
         proc takeArgsFromExtra(opts: ref `optsIdent`, state: ref ParseState) =
+          `requiredOptionGuard`
           `argCase_node`
         # Set defaults
         `setDefaults`
         `addRunProcs`
-        var switches_seen {.used.} : seq[string]
         var argCount {.used.} = 0
         var argsTaken = false
         var doneProcessingFlags = false

@@ -140,7 +140,7 @@ proc flag*(name1: string, name2 = "", multiple = false, help = "", hidden = fals
     hidden: hidden,
   )
 
-proc option*(name1: string, name2 = "", help = "", default = none[string](), env = "", multiple = false, choices: seq[string] = @[], hidden = false) {.compileTime.} =
+proc option*(name1: string, name2 = "", help = "", default = none[string](), env = "", multiple = false, choices: seq[string] = @[], required = false, hidden = false) {.compileTime.} =
   ## Add an option to the argument parser.  The longest
   ## named flag will be used as the name on the parsed
   ## result.
@@ -152,6 +152,9 @@ proc option*(name1: string, name2 = "", help = "", default = none[string](), env
   ## Set ``env`` to an environment variable name to use as the default value
   ## 
   ## Set ``choices`` to restrict the possible choices.
+  ## 
+  ## Set ``required = true`` if this is a required option. Yes, calling
+  ## it a "required option" is a paradox :)
   ##
   ## Set ``hidden`` to prevent the option usage listing in the help text.
   ##
@@ -174,6 +177,7 @@ proc option*(name1: string, name2 = "", help = "", default = none[string](), env
     optMultiple: multiple,
     optDefault: default,
     optChoices: choices,
+    optRequired: required,
   )
 
 proc arg*(varname: string, default = none[string](), env = "", help = "", nargs = 1) {.compileTime.} =
