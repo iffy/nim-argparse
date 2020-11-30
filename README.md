@@ -49,12 +49,16 @@ var p = newParser("My Program"):
   arg("name")
   arg("others", nargs = -1)
 
-var opts = p.parse(@["--apple", "-o=foo", "hi"])
-assert opts.apple == true
-assert opts.b == false
-assert opts.output == "foo"
-assert opts.name == "hi"
-assert opts.others == @[]
+try:
+  var opts = p.parse(@["--apple", "-o=foo", "hi"])
+  assert opts.apple == true
+  assert opts.b == false
+  assert opts.output == "foo"
+  assert opts.name == "hi"
+  assert opts.others == @[]
+except ShortCircuit as e:
+  if e.flag == "help":
+    echo p.help
 ```
 
 # Development

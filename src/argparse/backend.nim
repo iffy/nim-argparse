@@ -14,6 +14,7 @@ import ./filler
 type
   UsageError* = object of ValueError
   ShortCircuit* = object of CatchableError
+    flag*: string
 
   ComponentKind* = enum
     ArgFlag
@@ -287,6 +288,13 @@ proc parserTypeDef*(b: Builder): NimNode =
     )
   )
 
+proc raiseShortCircuit*(flagname: string) =
+  var e: ref ShortCircuit
+  new(e)
+  e.flag = flagname
+  e.msg = "ShortCircuit on " & flagname
+  raise e
+
 proc parseProcDef*(b: Builder): NimNode =
   ## Generate the parse proc for this Builder
   ## 
@@ -314,8 +322,7 @@ proc parseProcDef*(b: Builder): NimNode =
       if component.shortCircuit:
         let varname = newStrLitNode(component.varname)
         body.add quote do:
-          if runblocks:
-            raise ShortCircuit.newException(`varname`)
+          raiseShortCircuit(`varname`)
       if component.flagMultiple:
         let varname = ident(component.varname)
         body.add quote do:
@@ -507,7 +514,6 @@ proc parseProcDef*(b: Builder): NimNode =
 
   var parseProc = quote do:
     proc parse(parser: `parserIdent`, opts: ref `optsIdent`, state: ref ParseState, runblocks = false, quitOnShortCircuit = true, output:Stream = ARGPARSE_STDOUT) {.used.} =
-      var shortcircuited = false
       try:
         var switches_seen {.used.} : seq[string]
         proc takeArgsFromExtra(opts: ref `optsIdent`, state: ref ParseState) =
@@ -539,14 +545,14 @@ proc parseProcDef*(b: Builder): NimNode =
         if state.extra.len > 0:
           # There are extra args.
           raise UsageError.newException("Unknown argument(s): " & state.extra.join(", "))
-      except ShortCircuit:
-        shortcircuited = true
-        if getCurrentExceptionMsg() == "help":
+        `runProcs`
+      except ShortCircuit as e:
+        if not runblocks:
+          raise e
+        if e.flag == "help":
           output.write(parser.help())
         if quitOnShortCircuit:
           quit(1)
-      if not shortcircuited:
-        `runProcs`
 
   result.add(replaceNodes(parseProc))
 

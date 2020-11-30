@@ -20,6 +20,10 @@
 ##
 ## If ``Parser.parse()`` and ``Parser.run()`` are called without arguments, they use the arguments from the command line.
 ## 
+## By default (unless ``nohelpflag`` is present) calling ``parse()`` with a help
+## flag (``-h`` / ``--help``) will raise a ``ShortCircuit`` error.  The error's ``flag``
+## field will contain the name of the flag that triggered the short circuit.
+## 
 runnableExamples:
   var p = newParser:
     help("A description of this program, named {prog}")
@@ -106,7 +110,7 @@ template newParser*(body: untyped): untyped =
     builder.generateDefs()
   domkParser()
 
-proc flag*(name1: string, name2 = "", multiple = false, help = "", hidden = false) {.compileTime.} =
+proc flag*(name1: string, name2 = "", multiple = false, help = "", hidden = false, shortcircuit = false) {.compileTime.} =
   ## Add a boolean flag to the argument parser.  The boolean
   ## will be available on the parsed options object as the
   ## longest named flag.
@@ -115,6 +119,11 @@ proc flag*(name1: string, name2 = "", multiple = false, help = "", hidden = fals
   ## times and the datatype will be an int.
   ##
   ## If ``hidden`` is true then the flag usage is not shown in the help.
+  ## 
+  ## If ``shortcircuit`` is true, then when the flag is encountered during
+  ## processing, the parser will immediately raise a ``ShortCircuit`` error
+  ## with the ``flag`` attribute set to this flag's name.  This is how the
+  ## default help flag is implemented.
   ##
   ## ``help`` is additional help text for this flag.
   runnableExamples:
