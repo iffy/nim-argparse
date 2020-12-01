@@ -31,6 +31,6 @@ jobs:
         nimble test
         nimble refresh
     - name: Docs
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' && matrix.nimversion == 'stable'
       run: |
         ./builddocs.sh

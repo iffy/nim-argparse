@@ -82,6 +82,22 @@ suite "flags":
       flag("-a")
     expect UsageError:
       discard p.parse(shlex"-b")
+  
+  test "shortcircuit":
+    var p = newParser:
+      flag("-V", "--version", shortcircuit=true)
+    
+    try:
+      p.run(shlex"--version")
+      assert false, "Should not get here"
+    except ShortCircuit as e:
+      check e.flag == "version"
+
+    try:
+      discard p.parse(shlex"-V")
+      assert false, "Should not get here"
+    except ShortCircuit as e:
+      check e.flag == "version"
 
 
 suite "options":
@@ -171,7 +187,7 @@ suite "options":
       help("Top level help")
       option("-b", required=true)
     expect ShortCircuit:
-      discard p.parse(shlex"--help")
+      discard p.parse(shlex"--help", quitOnHelp=false)
 
 suite "args":
   test "single, required arg":
@@ -415,7 +431,8 @@ suite "autohelp":
           res.add("sub ran")
     
     var op = newStringStream("")
-    p.run(shlex"-h", quitOnShortCircuit = false, output = op)
+    echo "about to run p.run"
+    p.run(shlex"-h", quitOnHelp = false, output = op)
     op.setPosition(0)
     var output = op.readAll()
     check "--foo" in output
@@ -423,7 +440,7 @@ suite "autohelp":
     check res == ""
 
     op = newStringStream("")
-    p.run(shlex"something --help", quitOnShortCircuit = false, output = op)
+    p.run(shlex"something --help", quitOnHelp = false, output = op)
     op.setPosition(0)
     output = op.readAll()
     check "--bar" in output
@@ -442,10 +459,10 @@ suite "autohelp":
           res.add("sub ran")
     
     expect UsageError:
-      p.run(shlex"-h", quitOnShortCircuit = false)
+      p.run(shlex"-h", quitOnHelp = false)
     
     expect UsageError:
-      p.run(shlex"something --help", quitOnShortCircuit = false)
+      p.run(shlex"something --help", quitOnHelp = false)
   
   test "parse help":
     let
@@ -454,7 +471,7 @@ suite "autohelp":
       try:
         discard p.parse(@["-h"])
       except ShortCircuit as e:
-        check e.flag == "help"
+        check e.flag == "argparse_help"
         raise e
 
 suite "commands":
@@ -621,3 +638,45 @@ suite "commands":
     check r1.a == true
     let r2 = p2.parse(shlex"-b")
     check r2.b == true
+  
+  test "README run":
+    var res:seq[string]
+    var p = newParser:
+      flag("-a", "--apple")
+      flag("-b", help="Show a banana")
+      option("-o", "--output", help="Output to this file")
+      command("somecommand"):
+        arg("name")
+        arg("others", nargs = -1)
+        run:
+          res.add opts.name
+          res.add opts.others
+          res.add $opts.parentOpts.apple
+          res.add $opts.parentOpts.b
+          res.add opts.parentOpts.output
+
+    p.run(@["--apple", "-o=foo", "somecommand", "myname", "thing1", "thing2"])
+    check res == @[
+      "myname",
+      "thing1",
+      "thing2",
+      "true",
+      "false",
+      "foo",
+    ]
+  
+  test "README parse":
+    # expandMAcros:
+    var p = newParser:
+      flag("-a", "--apple")
+      flag("-b", help="Show a banana")
+      option("-o", "--output", help="Output to this file")
+      arg("name")
+      arg("others", nargs = -1)
+
+    var opts = p.parse(@["--apple", "-o=foo", "hi"])
+    assert opts.apple == true
+    assert opts.b == false
+    assert opts.output == "foo"
+    assert opts.name == "hi"
+    assert opts.others == @[]
