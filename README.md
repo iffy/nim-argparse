@@ -9,7 +9,7 @@ Command line argument parsing library.  It generates the parser at compile time 
 After defining your expected arguments with `newParser(...)`, use:
 
 1. `run(...)` to parse and execute any `run:` blocks you've defined.  This will automatically display help text when `-h`/`--help` is used.
-2. `parse(...)` to parse without executing.
+2. `parse(...)` to parse without executing, giving you more control over what happens.
 
 Both procs will parse the process' command line if no arguments are given.
 
@@ -20,7 +20,7 @@ Both procs will parse the process' command line if no arguments are given.
 ```nim
 import argparse
 
-var p = newParser("My Program"):
+var p = newParser:
   flag("-a", "--apple")
   flag("-b", help="Show a banana")
   option("-o", "--output", help="Output to this file")
@@ -34,7 +34,11 @@ var p = newParser("My Program"):
       echo opts.parentOpts.b
       echo opts.parentOpts.output
 
-p.run(@["--apple", "-o=foo", "somecommand", "myname", "thing1", "thing2"])
+try:
+  p.run(@["--apple", "-o=foo", "somecommand", "myname", "thing1", "thing2"])
+except UsageError as e:
+  stderr.writeLine getCurrentExceptionMsg()
+  quit(1)
 ```
 
 ## parse()
@@ -42,7 +46,7 @@ p.run(@["--apple", "-o=foo", "somecommand", "myname", "thing1", "thing2"])
 ```nim
 import argparse
 
-var p = newParser("My Program"):
+var p = newParser:
   flag("-a", "--apple")
   flag("-b", help="Show a banana")
   option("-o", "--output", help="Output to this file")
@@ -57,8 +61,12 @@ try:
   assert opts.name == "hi"
   assert opts.others == @[]
 except ShortCircuit as e:
-  if e.flag == "help":
+  if e.flag == "argparse_help":
     echo p.help
+    quit(1)
+except UsageError:
+  stderr.writeLine getCurrentExceptionMsg()
+  quit(1)
 ```
 
 # Development

@@ -156,6 +156,7 @@ function main() {
   token*: Option[string]     ## The current unprocessed token
   key*: Option[string]       ## The current key (possibly the head of a &apos;key=value&apos; token)
   value*: Option[string]     ## The current value (possibly the tail of a &apos;key=value&apos; token)
+  valuePartOfToken*: bool    ## true if the value is part of the current token (e.g. &apos;key=value&apos;)
   runProcs*: seq[proc ()]    ## Procs to be run at the end of parsing"><wbr />Parse<wbr />State<span class="attachedType"></span></a></li>
   <li><a class="reference" href="#GenResponse"
     title="GenResponse = tuple[types: NimNode, procs: NimNode, instance: NimNode]"><wbr />Gen<wbr />Response<span class="attachedType"></span></a></li>
@@ -383,6 +384,7 @@ A compile-time object used to accumulate parser options before building the pars
   <span class="Identifier">token</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">Option</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span>     <span class="Comment">## The current unprocessed token</span>
   <span class="Identifier">key</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">Option</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span>       <span class="Comment">## The current key (possibly the head of a 'key=value' token)</span>
   <span class="Identifier">value</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">Option</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span>     <span class="Comment">## The current value (possibly the tail of a 'key=value' token)</span>
+  <span class="Identifier">valuePartOfToken</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span>    <span class="Comment">## true if the value is part of the current token (e.g. 'key=value')</span>
   <span class="Identifier">runProcs</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Keyword">proc</span> <span class="Other">(</span><span class="Other">)</span><span class="Other">]</span>    <span class="Comment">## Procs to be run at the end of parsing</span>
   </pre></dt>
 <dd>
@@ -502,7 +504,8 @@ Generate the type definition for the Parser object:<dl class="docutils"><dt>type
 
 </dd>
 <a id="raiseShortCircuit,string"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#raiseShortCircuit%2Cstring"><span class="Identifier">raiseShortCircuit</span></a><span class="Other">(</span><span class="Identifier">flagname</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ShortCircuit</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#raiseShortCircuit%2Cstring"><span class="Identifier">raiseShortCircuit</span></a><span class="Other">(</span><span class="Identifier">flagname</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">inline</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ShortCircuit</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 
@@ -593,7 +596,7 @@ Generate the AST definitions for the current builder
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-12-01 02:13:34 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2020-12-01 03:06:56 UTC</small>
       </div>
     </div>
   </div>

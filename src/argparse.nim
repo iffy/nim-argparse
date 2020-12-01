@@ -25,6 +25,30 @@
 ## field will contain the name of the flag that triggered the short circuit.
 ## 
 runnableExamples:
+  var res:string
+  var p = newParser:
+    help("A demonstration of this library in a program named {prog}")
+    flag("-n", "--dryrun")
+    option("--name", default=some("bob"), help = "Name to use")
+    command("ls"):
+      run:
+        res = "did ls " & opts.parentOpts.name
+    command("run"):
+      option("-c", "--command")
+      run:
+        let name = opts.parentOpts.name
+        if opts.parentOpts.dryrun:
+          res = "would have run: " & opts.command & " " & name
+        else:
+          res = "ran " & opts.command & " " & name
+  try:
+    p.run(@["-n", "run", "--command", "something"])
+  except UsageError:
+    stderr.writeLine getCurrentExceptionMsg()
+    quit(1)
+  assert res == "would have run: something bob"
+
+runnableExamples:
   var p = newParser:
     help("A description of this program, named {prog}")
     flag("-n", "--dryrun")
@@ -32,28 +56,18 @@ runnableExamples:
     option("-k", "--kind", choices = @["fruit", "vegetable"])
     arg("input")
   
-  let opts = p.parse(@["-n", "--output", "another.txt", "cranberry"])
-  assert opts.dryrun == true
-  assert opts.output == "another.txt"
-  assert opts.input == "cranberry"
-
-runnableExamples:
-  var res:string
-  var p = newParser:
-    flag("-n", "--dryrun")
-    command("ls"):
-      run:
-        res = "did ls"
-    command("run"):
-      option("-c", "--command")
-      run:
-        if opts.parentOpts.dryrun:
-          res = "would have run: " & opts.command
-        else:
-          res = "ran " & opts.command
-  
-  p.run(@["-n", "run", "--command", "something"])
-  assert res == "would have run: something"
+  try:
+    let opts = p.parse(@["-n", "--output", "another.txt", "cranberry"])
+    assert opts.dryrun == true
+    assert opts.output == "another.txt"
+    assert opts.input == "cranberry"
+  except ShortCircuit as e:
+    if e.flag == "argparse_help":
+      echo p.help
+      quit(1)
+  except UsageError:
+    stderr.writeLine getCurrentExceptionMsg()
+    quit(1)
 
 
 import macros; export macros
@@ -146,6 +160,7 @@ proc flag*(name1: string, name2 = "", multiple = false, help = "", hidden = fals
     flagShort: names.short,
     flagLong: names.long,
     flagMultiple: multiple,
+    shortCircuit: shortcircuit,
     hidden: hidden,
   )
 

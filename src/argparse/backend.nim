@@ -73,6 +73,8 @@ type
       ## The current key (possibly the head of a 'key=value' token)
     value*: Option[string]
       ## The current value (possibly the tail of a 'key=value' token)
+    valuePartOfToken*: bool
+      ## true if the value is part of the current token (e.g. 'key=value')
     runProcs*: seq[proc()]
       ## Procs to be run at the end of parsing
 
@@ -100,6 +102,7 @@ proc advance(state: ref ParseState, amount: int, skip = false) =
     state.token = none[string]()
     state.key = none[string]()
     state.value = none[string]()
+    state.valuePartOfToken = false
   else:
     let token = state.tokens[state.cursor]
     state.token = some(token)
@@ -107,8 +110,10 @@ proc advance(state: ref ParseState, amount: int, skip = false) =
       let parts = token.split("=", 1)
       state.key = some(parts[0])
       state.value = some(parts[1])
+      state.valuePartOfToken = true
     else:
       state.key = some(token)
+      state.valuePartOfToken = false
       if (state.cursor + 1) < state.tokens.len:
         state.value = some(state.tokens[state.cursor + 1])
       else:
@@ -127,7 +132,7 @@ proc consume*(state: ref ParseState, thing: ComponentKind) =
   of ArgFlag:
     state.advance(1)
   of ArgOption:
-    state.advance(2)
+    state.advance(if state.valuePartOfToken: 1 else: 2)
   of ArgArgument:
     state.advance(1)
 
@@ -215,7 +220,7 @@ proc newBuilder*(name = ""): Builder =
   result.runProcBodies = newSeq[NimNode]()
   result.components.add Component(
     kind: ArgFlag,
-    varname: "help",
+    varname: "argparse_help",
     shortCircuit: true,
     flagShort: "-h",
     flagLong: "--help",
@@ -288,7 +293,7 @@ proc parserTypeDef*(b: Builder): NimNode =
     )
   )
 
-proc raiseShortCircuit*(flagname: string) =
+proc raiseShortCircuit*(flagname: string) {.inline.} =
   var e: ref ShortCircuit
   new(e)
   e.flag = flagname
@@ -323,18 +328,19 @@ proc parseProcDef*(b: Builder): NimNode =
         let varname = newStrLitNode(component.varname)
         body.add quote do:
           raiseShortCircuit(`varname`)
-      if component.flagMultiple:
-        let varname = ident(component.varname)
-        body.add quote do:
-          opts.`varname`.inc()
-          state.consume(ArgFlag)
-          continue
       else:
-        let varname = ident(component.varname)
-        body.add quote do:
-          opts.`varname` = true
-          state.consume(ArgFlag)
-          continue
+        if component.flagMultiple:
+          let varname = ident(component.varname)
+          body.add quote do:
+            opts.`varname`.inc()
+            state.consume(ArgFlag)
+            continue
+        else:
+          let varname = ident(component.varname)
+          body.add quote do:
+            opts.`varname` = true
+            state.consume(ArgFlag)
+            continue
       if not body.isNil:
         flagCase.add(matches, body)
     of ArgOption:
@@ -482,7 +488,7 @@ proc parseProcDef*(b: Builder): NimNode =
       var subOpts: ref `childOptsIdent`
       new(subOpts)
       subOpts.parentOpts = opts
-      subparser.parse(subOpts, state, runblocks = runblocks, quitOnShortCircuit = quitOnShortCircuit, output = output)
+      subparser.parse(subOpts, state, runblocks = runblocks, quitOnHelp = quitOnHelp, output = output)
       continue
     ))
   
@@ -513,7 +519,7 @@ proc parseProcDef*(b: Builder): NimNode =
   var commandCase_node = mkCase(commandCase)
 
   var parseProc = quote do:
-    proc parse(parser: `parserIdent`, opts: ref `optsIdent`, state: ref ParseState, runblocks = false, quitOnShortCircuit = true, output:Stream = ARGPARSE_STDOUT) {.used.} =
+    proc parse(parser: `parserIdent`, opts: ref `optsIdent`, state: ref ParseState, runblocks = false, quitOnHelp = true, output:Stream = ARGPARSE_STDOUT) {.used.} =
       try:
         var switches_seen {.used.} : seq[string]
         proc takeArgsFromExtra(opts: ref `optsIdent`, state: ref ParseState) =
@@ -547,32 +553,32 @@ proc parseProcDef*(b: Builder): NimNode =
           raise UsageError.newException("Unknown argument(s): " & state.extra.join(", "))
         `runProcs`
       except ShortCircuit as e:
-        if not runblocks:
-          raise e
-        if e.flag == "help":
+        if e.flag == "argparse_help" and runblocks:
           output.write(parser.help())
-        if quitOnShortCircuit:
-          quit(1)
+          if quitOnHelp:
+            quit(1)
+        else:
+          raise e
 
   result.add(replaceNodes(parseProc))
 
   # Convenience procs
   result.add replaceNodes(quote do:
-    proc parse(parser: `parserIdent`, args: seq[string]): ref `optsIdent` {.used.} =
+    proc parse(parser: `parserIdent`, args: seq[string], quitOnHelp = true): ref `optsIdent` {.used.} =
       ## Parse arguments using the `parserIdent` parser
       var state = newParseState(args)
       var opts: ref `optsIdent`
       new(opts)
-      parser.parse(opts, state)
+      parser.parse(opts, state, quitOnHelp = quitOnHelp)
       result = opts
   )
   result.add replaceNodes(quote do:
-    proc run(parser: `parserIdent`, args: seq[string], quitOnShortCircuit = true, output:Stream = ARGPARSE_STDOUT) {.used.} =
+    proc run(parser: `parserIdent`, args: seq[string], quitOnHelp = true, output:Stream = ARGPARSE_STDOUT) {.used.} =
       ## Run the matching run-blocks of the parser
       var state = newParseState(args)
       var opts: ref `optsIdent`
       new(opts)
-      parser.parse(opts, state, runblocks = true, quitOnShortCircuit = quitOnShortCircuit, output = output)
+      parser.parse(opts, state, runblocks = true, quitOnHelp = quitOnHelp, output = output)
   )
   result.add replaceNodes(quote do:
     proc run(parser: `parserIdent`) {.used.} =
