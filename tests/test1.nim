@@ -165,6 +165,13 @@ suite "options":
       discard p.parse(@[])
     check p.parse(shlex"-b foo").bob == "foo"
     check p.parse(@["-b", ""]).bob == ""
+  
+  test "required options still allow for --help":
+    var p = newParser:
+      help("Top level help")
+      option("-b", required=true)
+    expect ShortCircuit:
+      discard p.parse(shlex"--help")
 
 suite "args":
   test "single, required arg":
@@ -413,6 +420,7 @@ suite "autohelp":
     var output = op.readAll()
     check "--foo" in output
     check "Top level help" in output
+    check res == ""
 
     op = newStringStream("")
     p.run(shlex"something --help", quitOnShortCircuit = false, output = op)
@@ -442,8 +450,12 @@ suite "autohelp":
   test "parse help":
     let
       p = newParser: discard
-    let opts = p.parse(@["-h"])
-    check opts.help == true
+    expect ShortCircuit:
+      try:
+        discard p.parse(@["-h"])
+      except ShortCircuit as e:
+        check e.flag == "help"
+        raise e
 
 suite "commands":
   test "run":
