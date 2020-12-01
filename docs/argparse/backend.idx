@@ -20,6 +20,7 @@ newBuilder	argparse/backend.html#newBuilder,string	backend: newBuilder(name = &q
 `$`	argparse/backend.html#$,Builder	backend: `$`(b: Builder): string	
 optsTypeDef	argparse/backend.html#optsTypeDef,Builder	backend: optsTypeDef(b: Builder): NimNode	
 parserTypeDef	argparse/backend.html#parserTypeDef,Builder	backend: parserTypeDef(b: Builder): NimNode	
+raiseShortCircuit	argparse/backend.html#raiseShortCircuit,string	backend: raiseShortCircuit(flagname: string)	
 parseProcDef	argparse/backend.html#parseProcDef,Builder	backend: parseProcDef(b: Builder): NimNode	
 setOrAdd	argparse/backend.html#setOrAdd,string,string	backend: setOrAdd(x: var string; val: string)	
 setOrAdd	argparse/backend.html#setOrAdd,seq[string],string	backend: setOrAdd(x: var seq[string]; val: string)	

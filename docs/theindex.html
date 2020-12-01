@@ -188,7 +188,9 @@ function main() {
           </ul></dd>
 <dt><a name="flag" href="#flag"><span>flag:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="argparse: flag(name1: string; name2 = &quot;&quot;; multiple = false; help = &quot;&quot;; hidden = false)" href="argparse.html#flag%2Cstring%2Cstring%2Cstring">argparse: flag(name1: string; name2 = &quot;&quot;; multiple = false; help = &quot;&quot;; hidden = false)</a></li>
+          data-doc-search-tag="argparse: flag(name1: string; name2 = &quot;&quot;; multiple = false; help = &quot;&quot;; hidden = false;
+     shortcircuit = false)" href="argparse.html#flag%2Cstring%2Cstring%2Cstring">argparse: flag(name1: string; name2 = &quot;&quot;; multiple = false; help = &quot;&quot;; hidden = false;
+     shortcircuit = false)</a></li>
           </ul></dd>
 <dt><a name="generate" href="#generate"><span>generate:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -291,8 +293,10 @@ function main() {
 <dt><a name="option" href="#option"><span>option:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="argparse: option(name1: string; name2 = &quot;&quot;; help = &quot;&quot;; default = none(); env = &quot;&quot;;
-       multiple = false; choices: seq[string] = @[]; hidden = false)" href="argparse.html#option%2Cstring%2Cstring%2Cstring%2Cstring%2Cseq%5Bstring%5D">argparse: option(name1: string; name2 = &quot;&quot;; help = &quot;&quot;; default = none(); env = &quot;&quot;;
-       multiple = false; choices: seq[string] = @[]; hidden = false)</a></li>
+       multiple = false; choices: seq[string] = @[]; required = false;
+       hidden = false)" href="argparse.html#option%2Cstring%2Cstring%2Cstring%2Cstring%2Cseq%5Bstring%5D">argparse: option(name1: string; name2 = &quot;&quot;; help = &quot;&quot;; default = none(); env = &quot;&quot;;
+       multiple = false; choices: seq[string] = @[]; required = false;
+       hidden = false)</a></li>
           </ul></dd>
 <dt><a name="Optional" href="#Optional"><span>Optional:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -331,6 +335,10 @@ function main() {
 <dt><a name="popright" href="#popright"><span>popright:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="backend: popright[T](s: var seq[T]; n = 0): T" href="argparse/backend.html#popright%2Cseq%5BT%5D%2Cint">backend: popright[T](s: var seq[T]; n = 0): T</a></li>
+          </ul></dd>
+<dt><a name="raiseShortCircuit" href="#raiseShortCircuit"><span>raiseShortCircuit:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="backend: raiseShortCircuit(flagname: string)" href="argparse/backend.html#raiseShortCircuit%2Cstring">backend: raiseShortCircuit(flagname: string)</a></li>
           </ul></dd>
 <dt><a name="replace" href="#replace"><span>replace:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -399,7 +407,7 @@ function main() {
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-11-28 04:18:19 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2020-12-01 02:13:36 UTC</small>
       </div>
     </div>
   </div>
