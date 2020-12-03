@@ -2,21 +2,28 @@
 ##
 ## Use ``newParser`` to create a parser.  Within the body
 ## of the parser use the following procs/templates (read the individual
-## documentation for more details):
+## documentation below for more details):
 ##
-## - ``flag`` - for boolean flags (e.g. ``--dryrun``)
-## - ``option`` - for options which have arguments (e.g. ``--output foo``)
-## - ``arg`` - for positional arguments (e.g. ``file1 file2``)
-## - ``command`` - for sub commands
-## - ``run`` - to define code to run when the parser is used in run mode rather than parse mode.  See the documentation for more information.
-## - ``help`` - to define a help string for the parser/subcommand
-## - ``nohelpflag`` - to disable the automatic `-h/--help` flag.  When using ``parse()``, ``.help`` will be a boolean flag.
-##
+## ===================  ===================================================
+## Proc                 Description
+## ===================  ===================================================
+## ``flag(...)``        boolean flag (e.g. ``--dryrun``)
+## ``option(...)``      option with argument (e.g. ``--output foo``)
+## ``arg(...)``         positional argument (e.g. ``file1 file2``)
+## ``help(...)``        add a help string to the parser or subcommand
+## ``command "NAME":``  add a sub command
+## ``run:``             code to run when the parser is used in run mode
+## ``nohelpflag()``     disable the automatic ``-h/--help`` flag
+## ===================  ===================================================
+## 
 ## The following special variables are available within ``run`` blocks:
 ##
-## - ``opts`` - contains your user-defined options
+## - ``opts`` - contains your user-defined options. Same thing as returned from ``parse(...)`` scoped to the subcommand.
 ## - ``opts.parentOpts`` - a reference to parent options (i.e. from a subcommand)
-## - ``opts.argparseCommand`` - a string holding the chosen command
+## - ``opts.argparse_command`` - a string holding the chosen command
+## - ``opts.command`` - same as above (if there is no flag/option/arg named ``"command"``)
+## - ``opts.argparse_NAMEOFCOMMAND_opts`` - an ``Option[...]`` that will hold the options for the command named ``NAMEOFCOMMAND``
+## - ``opts.NAMEOFCOMMAND`` - Same as above, but a shorter version (if there's no name conflict with other flags/options/args)
 ##
 ## If ``Parser.parse()`` and ``Parser.run()`` are called without arguments, they use the arguments from the command line.
 ## 
@@ -124,7 +131,7 @@ template newParser*(name: string, body: untyped): untyped =
   domkParser()
 
 template newParser*(body: untyped): untyped =
-  ## Entry point for making command-line parsers without a name.
+  ## Create a new command-line parser named the same as the current executable.
   ##
   runnableExamples:
     var p = newParser:
@@ -219,7 +226,7 @@ proc option*(name1: string, name2 = "", help = "", default = none[string](), env
 proc arg*(varname: string, default = none[string](), env = "", help = "", nargs = 1) {.compileTime.} =
   ## Add an argument to the argument parser.
   ##
-  ## Set ``default`` to the default Option[string] value.  This is only
+  ## Set ``default`` to the default ``Option[string]`` value.  This is only
   ## allowed for ``nargs = 1``.
   ##
   ## Set ``env`` to an environment variable name to use as the default value. This is only allowed for ``nargs = 1``.
@@ -266,7 +273,7 @@ proc help*(helptext: string) {.compileTime.} =
   builderStack[^1].help &= helptext
 
 proc nohelpflag*() {.compileTime.} =
-  ## Disable the automatic -h/--help flag
+  ## Disable the automatic ``-h``/``--help`` flag
   runnableExamples:
     var p = newParser:
       nohelpflag()
@@ -285,13 +292,19 @@ template run*(body: untyped): untyped =
 
 template command*(name: string, group: string, content: untyped): untyped =
   ## Add a subcommand to this parser
+  ## 
+  ## ``group`` is a string used to group commands in help output
+  runnableExamples:
+    var p = newParser:
+      command("dostuff", "groupA"): discard
+      command("morestuff", "groupB"): discard
+      command("morelikethefirst", "groupA"): discard
+    echo p.help
   add_command(name, group) do:
     content
 
 template command*(name: string, content: untyped): untyped =
-  ## Add a sub-command to the argument parser.
-  ##
-  ## group is a string used to group commands in help output
+  ## Add a subcommand to this parser
   runnableExamples:
     var p = newParser:
       command("dostuff"):

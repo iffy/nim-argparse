@@ -791,7 +791,7 @@ proc addParser*(name: string, group: string, content: proc()): Builder =
   content()
   var builder = builderStack.pop()
   builder.groupName = group
-  if builder.help == "":
+  if builder.help == "" and builderStack.len == 0:
     builder.help = "{prog}"
 
   if builderStack.len > 0:

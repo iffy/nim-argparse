@@ -70,3 +70,10 @@ except UsageError:
   stderr.writeLine getCurrentExceptionMsg()
   quit(1)
 ```
+
+# Alternatives
+
+If `argparse` doesn't suit your needs, consider these alternatives:
+
+- <https://github.com/c-blake/cligen>
+- <https://nim-lang.org/docs/parseopt.html>

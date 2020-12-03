@@ -161,19 +161,22 @@ function main() {
   <div id="tocRoot"></div>
   
   <p class="module-desc"><p>argparse is an explicit, strongly-typed command line argument parser.</p>
-<p>Use <tt class="docutils literal"><span class="pre">newParser</span></tt> to create a parser.  Within the body of the parser use the following procs/templates (read the individual documentation for more details):</p>
-<ul class="simple"><li><tt class="docutils literal"><span class="pre">flag</span></tt> - for boolean flags (e.g. <tt class="docutils literal"><span class="pre">--dryrun</span></tt>)</li>
-<li><tt class="docutils literal"><span class="pre">option</span></tt> - for options which have arguments (e.g. <tt class="docutils literal"><span class="pre">--output foo</span></tt>)</li>
-<li><tt class="docutils literal"><span class="pre">arg</span></tt> - for positional arguments (e.g. <tt class="docutils literal"><span class="pre">file1 file2</span></tt>)</li>
-<li><tt class="docutils literal"><span class="pre">command</span></tt> - for sub commands</li>
-<li><tt class="docutils literal"><span class="pre">run</span></tt> - to define code to run when the parser is used in run mode rather than parse mode.  See the documentation for more information.</li>
-<li><tt class="docutils literal"><span class="pre">help</span></tt> - to define a help string for the parser/subcommand</li>
-<li><tt class="docutils literal"><span class="pre">nohelpflag</span></tt> - to disable the automatic <tt class="docutils literal"><span class="pre">-h/--help</span></tt> flag.  When using <tt class="docutils literal"><span class="pre">parse()</span></tt>, <tt class="docutils literal"><span class="pre">.help</span></tt> will be a boolean flag.</li>
-</ul>
-<p>The following special variables are available within <tt class="docutils literal"><span class="pre">run</span></tt> blocks:</p>
-<ul class="simple"><li><tt class="docutils literal"><span class="pre">opts</span></tt> - contains your user-defined options</li>
+<p>Use <tt class="docutils literal"><span class="pre">newParser</span></tt> to create a parser.  Within the body of the parser use the following procs/templates (read the individual documentation below for more details):</p>
+<table border="1" class="docutils"><tr><th>Proc</th><th>Description</th></tr>
+<tr><td><tt class="docutils literal"><span class="pre">flag(...)</span></tt></td><td>boolean flag (e.g. <tt class="docutils literal"><span class="pre">--dryrun</span></tt>)</td></tr>
+<tr><td><tt class="docutils literal"><span class="pre">option(...)</span></tt></td><td>option with argument (e.g. <tt class="docutils literal"><span class="pre">--output foo</span></tt>)</td></tr>
+<tr><td><tt class="docutils literal"><span class="pre">arg(...)</span></tt></td><td>positional argument (e.g. <tt class="docutils literal"><span class="pre">file1 file2</span></tt>)</td></tr>
+<tr><td><tt class="docutils literal"><span class="pre">help(...)</span></tt></td><td>add a help string to the parser or subcommand</td></tr>
+<tr><td><tt class="docutils literal"><span class="pre">command &quot;NAME&quot;:</span></tt></td><td>add a sub command</td></tr>
+<tr><td><tt class="docutils literal"><span class="pre">run:</span></tt></td><td>code to run when the parser is used in run mode</td></tr>
+<tr><td><tt class="docutils literal"><span class="pre">nohelpflag()</span></tt></td><td>disable the automatic <tt class="docutils literal"><span class="pre">-h/--help</span></tt> flag</td></tr>
+</table><p>The following special variables are available within <tt class="docutils literal"><span class="pre">run</span></tt> blocks:</p>
+<ul class="simple"><li><tt class="docutils literal"><span class="pre">opts</span></tt> - contains your user-defined options. Same thing as returned from <tt class="docutils literal"><span class="pre">parse(...)</span></tt> scoped to the subcommand.</li>
 <li><tt class="docutils literal"><span class="pre">opts.parentOpts</span></tt> - a reference to parent options (i.e. from a subcommand)</li>
-<li><tt class="docutils literal"><span class="pre">opts.argparseCommand</span></tt> - a string holding the chosen command</li>
+<li><tt class="docutils literal"><span class="pre">opts.argparse_command</span></tt> - a string holding the chosen command</li>
+<li><tt class="docutils literal"><span class="pre">opts.command</span></tt> - same as above (if there is no flag/option/arg named <tt class="docutils literal"><span class="pre">&quot;command&quot;</span></tt>)</li>
+<li><tt class="docutils literal"><span class="pre">opts.argparse_NAMEOFCOMMAND_opts</span></tt> - an <tt class="docutils literal"><span class="pre">Option[...]</span></tt> that will hold the options for the command named <tt class="docutils literal"><span class="pre">NAMEOFCOMMAND</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">opts.NAMEOFCOMMAND</span></tt> - Same as above, but a shorter version (if there's no name conflict with other flags/options/args)</li>
 </ul>
 <p>If <tt class="docutils literal"><span class="pre">Parser.parse()</span></tt> and <tt class="docutils literal"><span class="pre">Parser.run()</span></tt> are called without arguments, they use the arguments from the command line.</p>
 <p>By default (unless <tt class="docutils literal"><span class="pre">nohelpflag</span></tt> is present) calling <tt class="docutils literal"><span class="pre">parse()</span></tt> with a help flag (<tt class="docutils literal"><span class="pre">-h</span></tt> / <tt class="docutils literal"><span class="pre">--help</span></tt>) will raise a <tt class="docutils literal"><span class="pre">ShortCircuit</span></tt> error.  The error's <tt class="docutils literal"><span class="pre">flag</span></tt> field will contain the name of the flag that triggered the short circuit. </p>
@@ -292,7 +295,7 @@ function main() {
 <dd>
 
 <p>Add an argument to the argument parser.</p>
-<p>Set <tt class="docutils literal"><span class="pre">default</span></tt> to the default Option[string] value.  This is only allowed for <tt class="docutils literal"><span class="pre">nargs = 1</span></tt>.</p>
+<p>Set <tt class="docutils literal"><span class="pre">default</span></tt> to the default <tt class="docutils literal"><span class="pre">Option[string]</span></tt> value.  This is only allowed for <tt class="docutils literal"><span class="pre">nargs = 1</span></tt>.</p>
 <p>Set <tt class="docutils literal"><span class="pre">env</span></tt> to an environment variable name to use as the default value. This is only allowed for <tt class="docutils literal"><span class="pre">nargs = 1</span></tt>.</p>
 <p>The value <tt class="docutils literal"><span class="pre">nargs</span></tt> has the following meanings:</p>
 <ul class="simple"><li><tt class="docutils literal"><span class="pre">nargs = 1</span></tt> : A single argument. The value type will be <tt class="docutils literal"><span class="pre">string</span></tt></li>
@@ -331,7 +334,7 @@ function main() {
 <dt><pre><span class="Keyword">proc</span> <a href="#nohelpflag"><span class="Identifier">nohelpflag</span></a><span class="Other">(</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">compileTime</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
-Disable the automatic -h/--help flag
+Disable the automatic <tt class="docutils literal"><span class="pre">-h</span></tt>/<tt class="docutils literal"><span class="pre">--help</span></tt> flag
 <p><strong class="examples_text">Example:</strong></p>
 <pre class="listing"><span class="Keyword">var</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newParser</span><span class="Punctuation">:</span><span class="Whitespace">
   </span><span class="Identifier">nohelpflag</span><span class="Punctuation">(</span><span class="Punctuation">)</span></pre>
@@ -358,7 +361,7 @@ Create a new parser with a static program name.
 <dt><pre><span class="Keyword">template</span> <a href="#newParser.t%2Cuntyped"><span class="Identifier">newParser</span></a><span class="Other">(</span><span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">untyped</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">untyped</span></pre></dt>
 <dd>
 
-Entry point for making command-line parsers without a name. 
+Create a new command-line parser named the same as the current executable. 
 <p><strong class="examples_text">Example:</strong></p>
 <pre class="listing"><span class="Keyword">var</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newParser</span><span class="Punctuation">:</span><span class="Whitespace">
   </span><span class="Identifier">flag</span><span class="Punctuation">(</span><span class="StringLit">&quot;-a&quot;</span><span class="Punctuation">)</span><span class="Whitespace">
@@ -381,16 +384,22 @@ Add a run block to this command
 <dt><pre><span class="Keyword">template</span> <a href="#command.t%2Cstring%2Cstring%2Cuntyped"><span class="Identifier">command</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">group</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">content</span><span class="Other">:</span> <span class="Identifier">untyped</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">untyped</span></pre></dt>
 <dd>
 
-Add a subcommand to this parser
+<p>Add a subcommand to this parser</p>
+<p><tt class="docutils literal"><span class="pre">group</span></tt> is a string used to group commands in help output</p>
+
+<p><strong class="examples_text">Example:</strong></p>
+<pre class="listing"><span class="Keyword">var</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newParser</span><span class="Punctuation">:</span><span class="Whitespace">
+  </span><span class="Identifier">command</span><span class="Punctuation">(</span><span class="StringLit">&quot;dostuff&quot;</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="StringLit">&quot;groupA&quot;</span><span class="Punctuation">)</span><span class="Punctuation">:</span><span class="Whitespace"> </span><span class="Keyword">discard</span><span class="Whitespace">
+  </span><span class="Identifier">command</span><span class="Punctuation">(</span><span class="StringLit">&quot;morestuff&quot;</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="StringLit">&quot;groupB&quot;</span><span class="Punctuation">)</span><span class="Punctuation">:</span><span class="Whitespace"> </span><span class="Keyword">discard</span><span class="Whitespace">
+  </span><span class="Identifier">command</span><span class="Punctuation">(</span><span class="StringLit">&quot;morelikethefirst&quot;</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="StringLit">&quot;groupA&quot;</span><span class="Punctuation">)</span><span class="Punctuation">:</span><span class="Whitespace"> </span><span class="Keyword">discard</span><span class="Whitespace">
+</span><span class="Identifier">echo</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Operator">.</span><span class="Identifier">help</span></pre>
 
 </dd>
 <a id="command.t,string,untyped"></a>
 <dt><pre><span class="Keyword">template</span> <a href="#command.t%2Cstring%2Cuntyped"><span class="Identifier">command</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">content</span><span class="Other">:</span> <span class="Identifier">untyped</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">untyped</span></pre></dt>
 <dd>
 
-<p>Add a sub-command to the argument parser.</p>
-<p>group is a string used to group commands in help output</p>
-
+Add a subcommand to this parser
 <p><strong class="examples_text">Example:</strong></p>
 <pre class="listing"><span class="Keyword">var</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newParser</span><span class="Punctuation">:</span><span class="Whitespace">
   </span><span class="Identifier">command</span><span class="Punctuation">(</span><span class="StringLit">&quot;dostuff&quot;</span><span class="Punctuation">)</span><span class="Punctuation">:</span><span class="Whitespace">
@@ -414,7 +423,7 @@ Add a subcommand to this parser
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-12-03 14:52:15 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2020-12-03 16:41:26 UTC</small>
       </div>
     </div>
   </div>
