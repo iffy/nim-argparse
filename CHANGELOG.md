@@ -1,3 +1,11 @@
+# v2.0.0 - 2020-12-03
+
+- **BREAKING CHANGE:** Calling `parse()` with `-h`/`--help` flags will now raise a `ShortCircuit` error instead of returning options with the `.help` attribute set.
+- **NEW:** Removed `argparse_help` and other shortcircuiting flags from the parser options object since they are no longer accessible anyway.
+- **NEW:** You can now access subcommand options with `parse()`. ([#60](https://github.com/iffy/nim-argparse/issues/60))
+- **FIX:** Required options no longer override `-h`/`--help` shortcircuitry ([#57](https://github.com/iffy/nim-argparse/issues/57))
+- **FIX:** Fix parsing of options that combine key and value into a single command-line token.
+
 # v1.1.0 - 2020-11-28
 
 - **NEW:** You can now use `--` to stop further flag/option parsing so that remaining command line parameters are considered arguments.

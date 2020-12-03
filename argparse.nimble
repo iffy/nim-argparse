@@ -1,6 +1,6 @@
 # Package
 
-version       = "1.1.0"
+version       = "2.0.0"
 author        = "Matt Haggard"
 description   = "A command line argument parser"
 license       = "MIT"
