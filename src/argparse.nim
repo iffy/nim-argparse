@@ -69,6 +69,18 @@ runnableExamples:
     stderr.writeLine getCurrentExceptionMsg()
     quit(1)
 
+runnableExamples:
+  var p = newParser:
+    command "go":
+      flag("-a")
+    command "leave":
+      flag("-b")
+  
+  let opts = p.parse(@["go", "-a"])
+  assert opts.command == "go"
+  assert opts.go.isSome
+  assert opts.go.get.a == true
+  assert opts.leave.isNone
 
 import macros; export macros
 import strutils

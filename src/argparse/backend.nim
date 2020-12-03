@@ -245,8 +245,13 @@ proc optsTypeDef*(b: Builder): NimNode =
   ##   MyParserOpts = object
   ##     flag1*: bool
   ##     arg1*: string
+  ##     argparse_foo_opts*: Option[OptsFoo]
   var properties = nnkRecList.newTree()
   for component in b.components:
+    if component.kind == ArgFlag:
+      if component.shortCircuit:
+        # don't add shortcircuits to the option type
+        continue
     properties.add(component.propDefinition())
   if b.parent.isSome:
     properties.add nnkIdentDefs.newTree(
@@ -259,14 +264,33 @@ proc optsTypeDef*(b: Builder): NimNode =
       ),
       newEmptyNode()
     )
-  properties.add nnkIdentDefs.newTree(
-    nnkPostfix.newTree(
-      ident("*"),
-      ident("argparse_command"),
-    ),
-    ident("string"),
-    newEmptyNode(),
-  )
+  
+  if b.children.len > 0:
+    # .argparse_command
+    properties.add nnkIdentDefs.newTree(
+      nnkPostfix.newTree(
+        ident("*"),
+        ident("argparse_command"),
+      ),
+      ident("string"),
+      newEmptyNode(),
+    )
+
+  # subcommand opts
+  for child in b.children:
+    let childOptsIdent = child.optsIdent()
+    properties.add nnkIdentDefs.newTree(
+      nnkPostfix.newTree(
+        ident("*"),
+        ident("argparse_" & child.name & "_opts")
+      ),
+      nnkBracketExpr.newTree(
+        ident("Option"),
+        nnkRefTy.newTree(childOptsIdent)
+      ),
+      newEmptyNode()
+    )
+
   # type MyOpts = object
   result = nnkTypeDef.newTree(
     b.optsIdent(),
@@ -478,6 +502,7 @@ proc parseProcDef*(b: Builder): NimNode =
     let childParserIdent = child.parserIdent()
     let childOptsIdent = child.optsIdent()
     let childNameStr = child.name.newStrLitNode()
+    let subopts_prop_name = ident("argparse_" & child.name & "_opts")
     commandCase.add(child.name, replaceNodes(quote do:
       ## Call the subcommand's parser
       takeArgsFromExtra(opts, state)
@@ -488,6 +513,7 @@ proc parseProcDef*(b: Builder): NimNode =
       var subOpts: ref `childOptsIdent`
       new(subOpts)
       subOpts.parentOpts = opts
+      opts.`subopts_prop_name` = some(subOpts)
       subparser.parse(subOpts, state, runblocks = runblocks, quitOnHelp = quitOnHelp, output = output)
       continue
     ))
@@ -562,7 +588,7 @@ proc parseProcDef*(b: Builder): NimNode =
 
   result.add(replaceNodes(parseProc))
 
-  # Convenience procs
+  # Convenience parse/run procs
   result.add replaceNodes(quote do:
     proc parse(parser: `parserIdent`, args: seq[string], quitOnHelp = true): ref `optsIdent` {.used.} =
       ## Parse arguments using the `parserIdent` parser
@@ -591,6 +617,27 @@ proc parseProcDef*(b: Builder): NimNode =
           params.add(paramStr(i))
         parser.run(params)
   )
+
+  # Shorter named convenience procs
+  if b.children.len > 0:
+    # .argparse_command -> .command shortcut
+    result.add replaceNodes(quote do:
+      proc command(opts: ref `optsIdent`): string {.used, inline.} =
+        opts.argparse_command
+    )
+
+  # .argparse_NAME_opts -> .NAME shortcut
+  for child in b.children:
+    let name = ident(child.name)
+    let fulloptname = ident("argparse_" & child.name & "_opts")
+    let retval = nnkBracketExpr.newTree(
+      ident("Option"),
+      nnkRefTy.newTree(child.optsIdent())
+    )
+    result.add replaceNodes(quote do:
+      proc `name`(opts: ref `optsIdent`): `retval` {.used, inline.} =
+        opts.`fulloptname`
+    )
 
 proc setOrAdd*(x: var string, val: string) =
   x = val

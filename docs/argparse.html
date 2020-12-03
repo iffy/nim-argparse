@@ -220,7 +220,19 @@ function main() {
     </span><span class="Identifier">quit</span><span class="Punctuation">(</span><span class="DecNumber">1</span><span class="Punctuation">)</span><span class="Whitespace">
 </span><span class="Keyword">except</span><span class="Whitespace"> </span><span class="Identifier">UsageError</span><span class="Punctuation">:</span><span class="Whitespace">
   </span><span class="Identifier">stderr</span><span class="Operator">.</span><span class="Identifier">writeLine</span><span class="Whitespace"> </span><span class="Identifier">getCurrentExceptionMsg</span><span class="Punctuation">(</span><span class="Punctuation">)</span><span class="Whitespace">
-  </span><span class="Identifier">quit</span><span class="Punctuation">(</span><span class="DecNumber">1</span><span class="Punctuation">)</span></pre></p>
+  </span><span class="Identifier">quit</span><span class="Punctuation">(</span><span class="DecNumber">1</span><span class="Punctuation">)</span></pre>
+<p><strong class="examples_text">Example:</strong></p>
+<pre class="listing"><span class="Keyword">var</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newParser</span><span class="Punctuation">:</span><span class="Whitespace">
+  </span><span class="Identifier">command</span><span class="Whitespace"> </span><span class="StringLit">&quot;go&quot;</span><span class="Punctuation">:</span><span class="Whitespace">
+    </span><span class="Identifier">flag</span><span class="Punctuation">(</span><span class="StringLit">&quot;-a&quot;</span><span class="Punctuation">)</span><span class="Whitespace">
+  </span><span class="Identifier">command</span><span class="Whitespace"> </span><span class="StringLit">&quot;leave&quot;</span><span class="Punctuation">:</span><span class="Whitespace">
+    </span><span class="Identifier">flag</span><span class="Punctuation">(</span><span class="StringLit">&quot;-b&quot;</span><span class="Punctuation">)</span><span class="Whitespace">
+
+</span><span class="Keyword">let</span><span class="Whitespace"> </span><span class="Identifier">opts</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">p</span><span class="Operator">.</span><span class="Identifier">parse</span><span class="Punctuation">(</span><span class="Operator">@</span><span class="Punctuation">[</span><span class="StringLit">&quot;go&quot;</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="StringLit">&quot;-a&quot;</span><span class="Punctuation">]</span><span class="Punctuation">)</span><span class="Whitespace">
+</span><span class="Identifier">assert</span><span class="Whitespace"> </span><span class="Identifier">opts</span><span class="Operator">.</span><span class="Identifier">command</span><span class="Whitespace"> </span><span class="Operator">==</span><span class="Whitespace"> </span><span class="StringLit">&quot;go&quot;</span><span class="Whitespace">
+</span><span class="Identifier">assert</span><span class="Whitespace"> </span><span class="Identifier">opts</span><span class="Operator">.</span><span class="Identifier">go</span><span class="Operator">.</span><span class="Identifier">isSome</span><span class="Whitespace">
+</span><span class="Identifier">assert</span><span class="Whitespace"> </span><span class="Identifier">opts</span><span class="Operator">.</span><span class="Identifier">go</span><span class="Operator">.</span><span class="Identifier">get</span><span class="Operator">.</span><span class="Identifier">a</span><span class="Whitespace"> </span><span class="Operator">==</span><span class="Whitespace"> </span><span class="Identifier">true</span><span class="Whitespace">
+</span><span class="Identifier">assert</span><span class="Whitespace"> </span><span class="Identifier">opts</span><span class="Operator">.</span><span class="Identifier">leave</span><span class="Operator">.</span><span class="Identifier">isNone</span></pre></p>
   <div class="section" id="6">
 <h1><a class="toc-backref" href="#6">Imports</a></h1>
 <dl class="item">
@@ -402,7 +414,7 @@ Add a subcommand to this parser
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-12-01 03:20:20 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2020-12-03 14:52:15 UTC</small>
       </div>
     </div>
   </div>
