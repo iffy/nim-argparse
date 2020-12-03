@@ -6,6 +6,10 @@
 nimble install https://github.com/iffy/changer
 ```
 
+# Configuration
+
+You can configure how `changer` behaves by editing the `changes/config.toml` file.
+
 # Usage
 
 Start a changelog in a project by running:
