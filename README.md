@@ -2,6 +2,8 @@
 
 ![tests](https://github.com/iffy/nim-argparse/workflows/tests/badge.svg?branch=master)
 
+[Docs](https://www.iffycan.com/nim-argparse/argparse.html)
+
 Command line argument parsing library.  It generates the parser at compile time so that parsed options have a well-defined type.
 
 # Example
@@ -68,23 +70,3 @@ except UsageError:
   stderr.writeLine getCurrentExceptionMsg()
   quit(1)
 ```
-
-# Development
-
-## Running tests
-
-Run tests with:
-
-```
-nimble test
-```
-
-Run a single test with:
-
-```
-nim c -r tests/test1.nim -g "somepatternmatchingthetestname"
-```
-
-## Building the docs
-
-When you publish a new version, publish the docs by running `./builddocs.sh` then pushing `master`.

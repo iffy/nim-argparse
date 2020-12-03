@@ -639,6 +639,92 @@ suite "commands":
     let r2 = p2.parse(shlex"-b")
     check r2.b == true
   
+  test "parse access to sub-opts":
+    var p = newParser:
+      command "foo":
+        flag("-a")
+      command "bar":
+        flag("-b")
+    let o1 = p.parse(shlex"foo -a")
+    check o1.argparse_command == "foo" # conflict-unlikely version
+    check o1.command == "foo" # shortcut version
+    check o1.argparse_foo_opts.isSome # conflict-unlikely version
+    check o1.foo.isSome # shortcut version
+    check o1.foo.get.a == true
+    
+    check o1.argparse_bar_opts.isNone # conflict-unlikely version
+    check o1.bar.isNone
+  
+  test "parse sub-opts name conflicts":
+    var p = newParser:
+      flag("--foo")
+      arg("command") # why would you do this? :)
+      command "foo":
+        flag("-a")
+    let o1 = p.parse(shlex"hey foo -a")
+    check o1.argparse_command == "foo"
+    check o1.command == "hey"
+    
+    check o1.foo == false # --foo flag
+    check o1.argparse_foo_opts.isSome # foo command
+    check o1.argparse_foo_opts.get.a == true
+  
+  test "flag named command":
+    var p = newParser:
+      flag("--command")
+      command "foo":
+        discard
+    let opts = p.parse(shlex"foo")
+    check opts.command == false
+    check opts.argparse_command == "foo"
+  
+  test "option named command":
+    var p = newParser:
+      option("--command")
+      command "foo":
+        discard
+    let opts = p.parse(shlex"foo")
+    check opts.command == ""
+    check opts.argparse_command == "foo"
+  
+  test "arg named command":
+    var p = newParser:
+      arg("command")
+      command "foo":
+        discard
+    let opts = p.parse(shlex"hey foo")
+    check opts.command == "hey"
+    check opts.argparse_command == "foo"
+  
+  test "flag/command name conflict":
+    var p = newParser:
+      flag("--foo")
+      command "foo": discard
+    let opts = p.parse(shlex"foo")
+    check opts.command == "foo"
+    check opts.foo == false
+    check opts.argparse_foo_opts.isSome
+  
+  test "option/command name conflict":
+    var p = newParser:
+      option("--foo")
+      command "foo": discard
+    let opts = p.parse(shlex"foo")
+    check opts.command == "foo"
+    check opts.foo == ""
+    check opts.argparse_foo_opts.isSome
+  
+  test "arg/command name conflict":
+    var p = newParser:
+      arg("foo")
+      command "foo": discard
+    let opts = p.parse(shlex"hey foo")
+    check opts.command == "foo"
+    check opts.foo == "hey"
+    check opts.argparse_foo_opts.isSome
+  
+
+suite "misc":
   test "README run":
     var res:seq[string]
     var p = newParser:
@@ -666,7 +752,6 @@ suite "commands":
     ]
   
   test "README parse":
-    # expandMAcros:
     var p = newParser:
       flag("-a", "--apple")
       flag("-b", help="Show a banana")
