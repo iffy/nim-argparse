@@ -1,8 +1,7 @@
-import macros
 import argparse
-# import macros
+import macros
 import os
-# import parseopt
+import osproc
 import sequtils
 import streams
 import strformat
@@ -765,3 +764,20 @@ suite "misc":
     assert opts.output == "foo"
     assert opts.name == "hi"
     assert opts.others == @[]
+  
+  test "parse with no args":
+    let tmpfile = currentSourcePath().parentDir() / "something.nim"
+    defer:
+      removeFile(tmpfile)
+      removeFile(tmpfile.changeFileExt(ExeExt))
+    tmpfile.writeFile("""
+import argparse
+var p = newParser:
+  arg("name")
+
+echo p.parse().name
+    """)
+    let output = execProcess(findExe"nim",
+      args = ["c", "-r", tmpfile, "bob"],
+      options = {})
+    check output == "bob\n"
