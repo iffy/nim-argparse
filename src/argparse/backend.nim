@@ -598,6 +598,18 @@ proc parseProcDef*(b: Builder): NimNode =
       parser.parse(opts, state, quitOnHelp = quitOnHelp)
       result = opts
   )
+  # proc parse() with no args
+  result.add replaceNodes(quote do:
+    proc parse(parser: `parserIdent`, quitOnHelp = true): ref `optsIdent` {.used.} =
+      ## Parse command line params
+      when declared(commandLineParams):
+        parser.parse(toSeq(commandLineParams()), quitOnHelp = quitOnHelp)
+      else:
+        var params: seq[string]
+        for i in 0..paramCount():
+          params.add(paramStr(i))
+        parser.parse(params, quitOnHelp = quitOnHelp)
+  )
   result.add replaceNodes(quote do:
     proc run(parser: `parserIdent`, args: seq[string], quitOnHelp = true, output:Stream = ARGPARSE_STDOUT) {.used.} =
       ## Run the matching run-blocks of the parser
@@ -606,6 +618,7 @@ proc parseProcDef*(b: Builder): NimNode =
       new(opts)
       parser.parse(opts, state, runblocks = true, quitOnHelp = quitOnHelp, output = output)
   )
+  # proc run() with no args
   result.add replaceNodes(quote do:
     proc run(parser: `parserIdent`) {.used.} =
       ## Run the matching run-blocks of the parser
