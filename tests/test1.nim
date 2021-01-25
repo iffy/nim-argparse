@@ -778,6 +778,9 @@ var p = newParser:
 echo p.parse().name
     """)
     let output = execProcess(findExe"nim",
-      args = ["c", "-r", tmpfile, "bob"],
+      args = ["c", "--hints:off", "--verbosity:0", "-r", tmpfile, "bob"],
       options = {})
+    checkpoint "=============== output =============="
+    checkpoint output
+    checkpoint "====================================="
     check output == "bob\n"
