@@ -1,3 +1,8 @@
+# v2.0.1 - 2021-07-13
+
+- **FIX:** Removed program name from default subcommand help text
+- **FIX:** Restore ability to call `parse()` without args ([#64](https://github.com/iffy/nim-argparse/issues/64))
+
 # v2.0.0 - 2020-12-03
 
 - **BREAKING CHANGE:** Calling `parse()` with `-h`/`--help` flags will now raise a `ShortCircuit` error instead of returning options with the `.help` attribute set.
