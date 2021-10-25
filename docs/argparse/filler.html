@@ -17,7 +17,7 @@
 <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro:400,500,600' rel='stylesheet' type='text/css'/>
 
 <!-- CSS -->
-<title>argparse/filler</title>
+<title>src/argparse/filler</title>
 <link rel="stylesheet" type="text/css" href="../nimdoc.out.css">
 
 <script type="text/javascript" src="../dochack.js"></script>
@@ -34,7 +34,6 @@ function main() {
     }
   }
 
-  const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
   function switchTheme(e) {
       if (e.target.checked) {
           document.documentElement.setAttribute('data-theme', 'dark');
@@ -45,24 +44,32 @@ function main() {
       }
   }
 
-  toggleSwitch.addEventListener('change', switchTheme, false);
+  const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+  if (toggleSwitch !== null) {
+    toggleSwitch.addEventListener('change', switchTheme, false);
+  }
 
-  const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
+  var currentTheme = localStorage.getItem('theme');
+  if (!currentTheme && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    currentTheme = 'dark';
+  }
   if (currentTheme) {
     document.documentElement.setAttribute('data-theme', currentTheme);
 
-    if (currentTheme === 'dark') {
+    if (currentTheme === 'dark' && toggleSwitch !== null) {
       toggleSwitch.checked = true;
     }
   }
 }
+
+window.addEventListener('DOMContentLoaded', main);
 </script>
 
 </head>
-<body onload="main()">
+<body>
 <div class="document" id="documentId">
   <div class="container">
-    <h1 class="title">argparse/filler</h1>
+    <h1 class="title">src/argparse/filler</h1>
     <div class="row">
   <div class="three columns">
   <div class="theme-switch-wrapper">
@@ -94,79 +101,79 @@ function main() {
 <li>
   <a class="reference reference-toplevel" href="#7" id="57">Types</a>
   <ul class="simple simple-toc-section">
-      <li><a class="reference" href="#SlotKind"
-    title="SlotKind = enum
-  Required, Optional, Wildcard"><wbr />Slot<wbr />Kind<span class="attachedType"></span></a></li>
-  <li><a class="reference" href="#ArgFiller"
+      <li><a class="reference" href="#ArgFiller"
     title="ArgFiller = object
   slots: seq[Slot]
-  counts: CountTableRef[SlotKind]"><wbr />Arg<wbr />Filler<span class="attachedType"></span></a></li>
+  counts: CountTableRef[SlotKind]">ArgFiller</a></li>
   <li><a class="reference" href="#FillChannel"
-    title="FillChannel = tuple[idx: Slice[int], dest: string, kind: SlotKind]"><wbr />Fill<wbr />Channel<span class="attachedType"></span></a></li>
+    title="FillChannel = tuple[idx: Slice[int], dest: string, kind: SlotKind]">FillChannel</a></li>
+  <li><a class="reference" href="#SlotKind"
+    title="SlotKind = enum
+  Required, Optional, Wildcard">SlotKind</a></li>
 
   </ul>
 </li>
 <li>
   <a class="reference reference-toplevel" href="#12" id="62">Procs</a>
   <ul class="simple simple-toc-section">
-      <ul class="simple nested-toc-section">generate
+      <ul class="simple nested-toc-section">channels
+      <li><a class="reference" href="#channels%2C%2Cint"
+    title="channels(filler; nargs: int): seq[FillChannel]">channels(filler; nargs: int): seq[FillChannel]</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">generate
       <li><a class="reference" href="#generate%2C%2Cstring"
-    title="generate(filler; containerName: string): NimNode">generate,,string<span class="attachedType"></span></a></li>
-
-  </ul>
-  <ul class="simple nested-toc-section">missing
-      <li><a class="reference" href="#missing%2C%2Cint"
-    title="missing(filler; nargs: int): seq[string]">missing,,int<span class="attachedType"></span></a></li>
-
-  </ul>
-  <ul class="simple nested-toc-section">newArgFiller
-      <li><a class="reference" href="#newArgFiller"
-    title="newArgFiller(): ref ArgFiller">newArgFiller<span class="attachedType">ArgFiller</span></a></li>
+    title="generate(filler; containerName: string): NimNode">generate(filler; containerName: string): NimNode</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">hasVariableArgs
       <li><a class="reference" href="#hasVariableArgs"
-    title="hasVariableArgs(filler): bool">hasVariableArgs<span class="attachedType"></span></a></li>
-
-  </ul>
-  <ul class="simple nested-toc-section">required
-      <li><a class="reference" href="#required%2C%2Cstring%2Cint"
-    title="required(filler; argname: string; nargs = 1)">required,,string,int<span class="attachedType"></span></a></li>
+    title="hasVariableArgs(filler): bool">hasVariableArgs(filler): bool</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">hasWildcard
       <li><a class="reference" href="#hasWildcard"
-    title="hasWildcard(filler): bool">hasWildcard<span class="attachedType"></span></a></li>
-
-  </ul>
-  <ul class="simple nested-toc-section">numArgsAfterWildcard
-      <li><a class="reference" href="#numArgsAfterWildcard"
-    title="numArgsAfterWildcard(filler): int">numArgsAfterWildcard<span class="attachedType"></span></a></li>
+    title="hasWildcard(filler): bool">hasWildcard(filler): bool</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">minArgs
       <li><a class="reference" href="#minArgs"
-    title="minArgs(filler): int">minArgs<span class="attachedType"></span></a></li>
+    title="minArgs(filler): int">minArgs(filler): int</a></li>
 
   </ul>
-  <ul class="simple nested-toc-section">wildcard
-      <li><a class="reference" href="#wildcard%2C%2Cstring"
-    title="wildcard(filler; argname: string)">wildcard,,string<span class="attachedType"></span></a></li>
+  <ul class="simple nested-toc-section">missing
+      <li><a class="reference" href="#missing%2C%2Cint"
+    title="missing(filler; nargs: int): seq[string]">missing(filler; nargs: int): seq[string]</a></li>
 
   </ul>
-  <ul class="simple nested-toc-section">channels
-      <li><a class="reference" href="#channels%2C%2Cint"
-    title="channels(filler; nargs: int): seq[FillChannel]">channels,,int<span class="attachedType">FillChannel</span></a></li>
+  <ul class="simple nested-toc-section">newArgFiller
+      <li><a class="reference" href="#newArgFiller"
+    title="newArgFiller(): ref ArgFiller">newArgFiller(): ref ArgFiller</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">numArgsAfterWildcard
+      <li><a class="reference" href="#numArgsAfterWildcard"
+    title="numArgsAfterWildcard(filler): int">numArgsAfterWildcard(filler): int</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">optional
       <li><a class="reference" href="#optional%2C%2Cstring"
-    title="optional(filler; argname: string)">optional,,string<span class="attachedType"></span></a></li>
+    title="optional(filler; argname: string)">optional(filler; argname: string)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">required
+      <li><a class="reference" href="#required%2C%2Cstring%2Cint"
+    title="required(filler; argname: string; nargs = 1)">required(filler; argname: string; nargs = 1)</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">upperBreakpoint
       <li><a class="reference" href="#upperBreakpoint"
-    title="upperBreakpoint(filler): int">upperBreakpoint<span class="attachedType"></span></a></li>
+    title="upperBreakpoint(filler): int">upperBreakpoint(filler): int</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">wildcard
+      <li><a class="reference" href="#wildcard%2C%2Cstring"
+    title="wildcard(filler; argname: string)">wildcard(filler; argname: string)</a></li>
 
   </ul>
 
@@ -176,6 +183,7 @@ function main() {
 </ul>
 
   </div>
+  
   <div class="nine columns" id="content">
   <div id="tocRoot"></div>
   
@@ -183,15 +191,7 @@ function main() {
   <div class="section" id="7">
 <h1><a class="toc-backref" href="#7">Types</a></h1>
 <dl class="item">
-<a id="SlotKind"></a>
-<dt><pre><a href="filler.html#SlotKind"><span class="Identifier">SlotKind</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
-  <span class="Identifier">Required</span><span class="Other">,</span> <span class="Identifier">Optional</span><span class="Other">,</span> <span class="Identifier">Wildcard</span></pre></dt>
-<dd>
-
-
-
-</dd>
-<a id="ArgFiller"></a>
+<div id="ArgFiller">
 <dt><pre><a href="filler.html#ArgFiller"><span class="Identifier">ArgFiller</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
   <span class="Identifier">slots</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">Slot</span><span class="Other">]</span>
   <span class="Identifier">counts</span><span class="Other">:</span> <span class="Identifier">CountTableRef</span><span class="Other">[</span><a href="filler.html#SlotKind"><span class="Identifier">SlotKind</span></a><span class="Other">]</span>
@@ -201,102 +201,125 @@ function main() {
 
 
 </dd>
-<a id="FillChannel"></a>
+</div>
+<div id="FillChannel">
 <dt><pre><a href="filler.html#FillChannel"><span class="Identifier">FillChannel</span></a> <span class="Other">=</span> <span class="Keyword">tuple</span><span class="Other">[</span><span class="Identifier">idx</span><span class="Other">:</span> <span class="Identifier">Slice</span><span class="Other">[</span><span class="Identifier">int</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">dest</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">,</span> <span class="Identifier">kind</span><span class="Other">:</span> <a href="filler.html#SlotKind"><span class="Identifier">SlotKind</span></a><span class="Other">]</span></pre></dt>
 <dd>
 
 
 
 </dd>
+</div>
+<div id="SlotKind">
+<dt><pre><a href="filler.html#SlotKind"><span class="Identifier">SlotKind</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
+  <span class="Identifier">Required</span><span class="Other">,</span> <span class="Identifier">Optional</span><span class="Other">,</span> <span class="Identifier">Wildcard</span></pre></dt>
+<dd>
+
+
+
+</dd>
+</div>
 
 </dl></div>
 <div class="section" id="12">
 <h1><a class="toc-backref" href="#12">Procs</a></h1>
 <dl class="item">
-<a id="newArgFiller"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#newArgFiller"><span class="Identifier">newArgFiller</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <span class="Keyword">ref</span> <a href="filler.html#ArgFiller"><span class="Identifier">ArgFiller</span></a> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-
-
-</dd>
-<a id="required,,string,int"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#required%2C%2Cstring%2Cint"><span class="Identifier">required</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">;</span> <span class="Identifier">argname</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">nargs</span> <span class="Other">=</span> <span class="DecNumber">1</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-
-
-</dd>
-<a id="optional,,string"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#optional%2C%2Cstring"><span class="Identifier">optional</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">;</span> <span class="Identifier">argname</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-
-
-</dd>
-<a id="wildcard,,string"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#wildcard%2C%2Cstring"><span class="Identifier">wildcard</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">;</span> <span class="Identifier">argname</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-
-
-</dd>
-<a id="minArgs"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#minArgs"><span class="Identifier">minArgs</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">int</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-
-
-</dd>
-<a id="numArgsAfterWildcard"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#numArgsAfterWildcard"><span class="Identifier">numArgsAfterWildcard</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">int</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-
-
-</dd>
-<a id="hasVariableArgs"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#hasVariableArgs"><span class="Identifier">hasVariableArgs</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-
-
-</dd>
-<a id="hasWildcard"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#hasWildcard"><span class="Identifier">hasWildcard</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-
-
-</dd>
-<a id="upperBreakpoint"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#upperBreakpoint"><span class="Identifier">upperBreakpoint</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">int</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-
-
-</dd>
-<a id="channels,,int"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#channels%2C%2Cint"><span class="Identifier">channels</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">;</span> <span class="Identifier">nargs</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="filler.html#FillChannel"><span class="Identifier">FillChannel</span></a><span class="Other">]</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<div id="channels,,int">
+<dt><pre><span class="Keyword">proc</span> <a href="#channels%2C%2Cint"><span class="Identifier">channels</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">;</span> <span class="Identifier">nargs</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="filler.html#FillChannel"><span class="Identifier">FillChannel</span></a><span class="Other">]</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 Given the number of arguments, show where those arguments will go
 
 </dd>
-<a id="missing,,int"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#missing%2C%2Cint"><span class="Identifier">missing</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">;</span> <span class="Identifier">nargs</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+</div>
+<div id="generate,,string">
+<dt><pre><span class="Keyword">proc</span> <a href="#generate%2C%2Cstring"><span class="Identifier">generate</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">;</span> <span class="Identifier">containerName</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+
+</dd>
+</div>
+<div id="hasVariableArgs">
+<dt><pre><span class="Keyword">proc</span> <a href="#hasVariableArgs"><span class="Identifier">hasVariableArgs</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+
+</dd>
+</div>
+<div id="hasWildcard">
+<dt><pre><span class="Keyword">proc</span> <a href="#hasWildcard"><span class="Identifier">hasWildcard</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+
+</dd>
+</div>
+<div id="minArgs">
+<dt><pre><span class="Keyword">proc</span> <a href="#minArgs"><span class="Identifier">minArgs</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">int</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+
+</dd>
+</div>
+<div id="missing,,int">
+<dt><pre><span class="Keyword">proc</span> <a href="#missing%2C%2Cint"><span class="Identifier">missing</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">;</span> <span class="Identifier">nargs</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 Given the number of arguments, which required arguments will not get a value?
 
 </dd>
-<a id="generate,,string"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#generate%2C%2Cstring"><span class="Identifier">generate</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">;</span> <span class="Identifier">containerName</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+</div>
+<div id="newArgFiller">
+<dt><pre><span class="Keyword">proc</span> <a href="#newArgFiller"><span class="Identifier">newArgFiller</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <span class="Keyword">ref</span> <a href="filler.html#ArgFiller"><span class="Identifier">ArgFiller</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 
 </dd>
+</div>
+<div id="numArgsAfterWildcard">
+<dt><pre><span class="Keyword">proc</span> <a href="#numArgsAfterWildcard"><span class="Identifier">numArgsAfterWildcard</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">int</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+
+</dd>
+</div>
+<div id="optional,,string">
+<dt><pre><span class="Keyword">proc</span> <a href="#optional%2C%2Cstring"><span class="Identifier">optional</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">;</span> <span class="Identifier">argname</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+
+</dd>
+</div>
+<div id="required,,string,int">
+<dt><pre><span class="Keyword">proc</span> <a href="#required%2C%2Cstring%2Cint"><span class="Identifier">required</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">;</span> <span class="Identifier">argname</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">nargs</span> <span class="Other">=</span> <span class="DecNumber">1</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+
+</dd>
+</div>
+<div id="upperBreakpoint">
+<dt><pre><span class="Keyword">proc</span> <a href="#upperBreakpoint"><span class="Identifier">upperBreakpoint</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">int</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+
+</dd>
+</div>
+<div id="wildcard,,string">
+<dt><pre><span class="Keyword">proc</span> <a href="#wildcard%2C%2Cstring"><span class="Identifier">wildcard</span></a><span class="Other">(</span><span class="Identifier">filler</span><span class="Other">;</span> <span class="Identifier">argname</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+
+</dd>
+</div>
 
 </dl></div>
 
@@ -307,7 +330,7 @@ Given the number of arguments, which required arguments will not get a value?
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-12-03 16:41:26 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2021-10-25 17:10:51 UTC</small>
       </div>
     </div>
   </div>

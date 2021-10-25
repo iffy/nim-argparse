@@ -240,12 +240,6 @@ proc parserIdent(b: Builder): NimNode =
 
 proc optsTypeDef*(b: Builder): NimNode =
   ## Generate the type definition for the return value of parsing:
-  ## 
-  ## type
-  ##   MyParserOpts = object
-  ##     flag1*: bool
-  ##     arg1*: string
-  ##     argparse_foo_opts*: Option[OptsFoo]
   var properties = nnkRecList.newTree()
   for component in b.components:
     if component.kind == ArgFlag:
