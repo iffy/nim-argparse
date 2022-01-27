@@ -180,39 +180,52 @@ proc popright*[T](s: var seq[T], n = 0): T =
 # Component
 #--------------------------------------------------------------
 
-proc propDefinition(c: Component): NimNode =
+proc identDef(varname: NimNode, vartype: NimNode): NimNode =
+  ## Return a property definition for an object.
+  ## 
+  ## type
+  ##   Foo = object
+  ##     varname*: vartype <-- this is the AST being returned
+  return nnkIdentDefs.newTree(
+    nnkPostfix.newTree(
+      ident("*"),
+      varname,
+    ),
+    vartype,
+    newEmptyNode()
+  )
+
+proc propDefinitions(c: Component): seq[NimNode] =
   ## Return the type of this component as will be put in the
   ## parser return type object definition
   ## 
   ## type
   ##   Foo = object
   ##     name*: string <-- this is the AST being returned
-  var val: NimNode
+  let varname = ident(c.varname.safeIdentStr)
   case c.kind
   of ArgFlag:
     if c.flagMultiple:
-      val = ident("int")
+      result.add identDef(varname, ident("int"))
     else:
-      val = ident("bool")
+      result.add identDef(varname, ident("bool"))
   of ArgOption:
     if c.optMultiple:
-      val = parseExpr("seq[string]")
+      result.add identDef(varname, parseExpr("seq[string]"))
     else:
-      val = ident("string")
+      result.add identDef(varname, ident("string"))
+      result.add identDef(
+        ident(safeIdentStr(c.varname & "_opt")),
+        nnkBracketExpr.newTree(
+          newIdentNode("Option"),
+          newIdentNode("string")
+        )
+      )
   of ArgArgument:
     if c.nargs != 1:
-      val = parseExpr("seq[string]")
+      result.add identDef(varname, parseExpr("seq[string]"))
     else:
-      val = ident("string")
-  # name*: type
-  return nnkIdentDefs.newTree(
-    nnkPostfix.newTree(
-      ident("*"),
-      ident(c.varname.safeIdentStr)
-    ),
-    val,
-    newEmptyNode()
-  )
+      result.add identDef(varname, ident("string"))
 
 #--------------------------------------------------------------
 # Builder
@@ -252,7 +265,7 @@ proc optsTypeDef*(b: Builder): NimNode =
       if component.shortCircuit:
         # don't add shortcircuits to the option type
         continue
-    properties.add(component.propDefinition())
+    properties.add(component.propDefinitions())
   if b.parent.isSome:
     properties.add nnkIdentDefs.newTree(
       nnkPostfix.newTree(
@@ -369,17 +382,22 @@ proc parseProcDef*(b: Builder): NimNode =
         flagCase.add(matches, body)
     of ArgOption:
       let varname = ident(component.varname)
+      let varname_opt = ident(component.varname & "_opt")
       if component.env != "":
         # Set default from environment variable
         let dft = newStrLitNode(component.optDefault.get(""))
         let env = newStrLitNode(component.env)
         setDefaults.add quote do:
           opts.`varname` = getEnv(`env`, `dft`)
+        if component.optDefault.isSome:
+          setDefaults.add quote do:
+            opts.`varname_opt` = some(getEnv(`env`, `dft`))
       elif component.optDefault.isSome:
         # Set default
         let dft = component.optDefault.get()
         setDefaults.add quote do:
           opts.`varname` = `dft`
+          opts.`varname_opt` = some(`dft`)
       var matches: seq[string]
       var optCombo: string
       if component.optShort != "":
@@ -430,6 +448,7 @@ proc parseProcDef*(b: Builder): NimNode =
           switches_seen.add(`optComboNode`)
         body = quote do:
           opts.`varname` = state.value.get()
+          opts.`varname_opt` = some(opts.`varname`)
           state.consume(ArgOption)
           continue
       if not body.isNil:

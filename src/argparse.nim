@@ -187,6 +187,9 @@ proc option*(name1: string, name2 = "", help = "", default = none[string](), env
   ## Add an option to the argument parser.  The longest
   ## named flag will be used as the name on the parsed
   ## result.
+  ## 
+  ## Additionally, an ``Option[string]`` named ``FLAGNAME_opt``
+  ## will be available on the parse result.
   ##
   ## Set ``multiple`` to true to accept multiple options.
   ##
@@ -206,6 +209,8 @@ proc option*(name1: string, name2 = "", help = "", default = none[string](), env
     var p = newParser:
       option("-a", "--apple", help="Name of apple")
     assert p.parse(@["-a", "5"]).apple == "5"
+    assert p.parse(@[]).apple_opt.isNone
+    assert p.parse(@["--apple", "6"]).apple_opt.get() == "6"
 
   let names = longAndShort(name1, name2)
   let varname = names.long.toVarname()
