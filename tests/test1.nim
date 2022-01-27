@@ -187,6 +187,13 @@ suite "options":
       option("-b", required=true)
     expect ShortCircuit:
       discard p.parse(shlex"--help", quitOnHelp=false)
+  
+  test "required options provided by env":
+    var p = newParser:
+      option("-b", "--bob", env="BOB", required = true)
+    withEnv("BOB", "something"):
+      check p.parse(shlex"").bob == "something"
+      check p.parse(shlex"--bob another").bob == "another"
 
 suite "args":
   test "single, required arg":

@@ -407,8 +407,9 @@ proc parseProcDef*(b: Builder): NimNode =
       
       # Make sure required options have been provided
       if component.optRequired:
+        let envStr = newStrLitNode(component.env)
         requiredOptionGuard.add quote do:
-          if `optComboNode` notin switches_seen:
+          if `optComboNode` notin switches_seen and (`envStr` == "" or getEnv(`envStr`) == ""):
             raise UsageError.newException("Option " & `optComboNode` & " is required and was not provided")
 
       # Make sure it hasn't been provided twice
