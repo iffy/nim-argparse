@@ -1,7 +1,7 @@
 import algorithm; export algorithm
 import macros
 import options; export options
-import sequtils
+import sequtils; export sequtils
 import streams; export streams
 import strformat
 import strutils; export strutils
@@ -162,13 +162,19 @@ proc safeIdentStr(x: string): string =
 proc popleft*[T](s: var seq[T]):T =
   ## Pop from the front of a seq
   result = s[0]
-  s.delete(0, 0)
+  when (NimMajor, NimMinor, NimPatch) >= (1, 6, 0):
+    s.delete(0..0)
+  else:
+    s.delete(0, 0)
 
 proc popright*[T](s: var seq[T], n = 0): T =
   ## Pop the nth item from the end of a seq
   let idx = s.len - n - 1
   result = s[idx]
-  s.delete(idx, idx)
+  when (NimMajor, NimMinor, NimPatch) >= (1, 6, 0):
+    s.delete(idx..idx)
+  else:
+    s.delete(idx, idx)
 
 #--------------------------------------------------------------
 # Component
