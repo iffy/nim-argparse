@@ -105,6 +105,8 @@ suite "options":
       option("-a", help="Stuff")
     check p.parse(shlex"-a=5").a == "5"
     check p.parse(shlex"-a 5").a == "5"
+    check p.parse(shlex"-a 5").a_opt.get() == "5"
+    check p.parse(shlex"").a_opt.isNone
 
     check "Stuff" in p.help
   
@@ -113,21 +115,28 @@ suite "options":
       option("--apple")
     check p.parse(shlex"--apple=10").apple == "10"
     check p.parse(shlex"--apple 10").apple == "10"
+    check p.parse(shlex"--apple 10").apple_opt.get() == "10"
+    check p.parse(shlex"").apple_opt.isNone
   
   test "option default":
     var p = newParser:
       option("--category", default=some("pinball"))
     check p.parse(shlex"").category == "pinball"
     check p.parse(shlex"--category foo").category == "foo"
+    check p.parse(shlex"").category_opt.get() == "pinball"
+    check p.parse(shlex"--category foo").category_opt.get() == "foo"
   
   test "option default from env var":
     var p = newParser:
       option("--category", env="HELLO", default=some("who"))
     check "HELLO" in p.help
     check p.parse(shlex"").category == "who"
+    check p.parse(shlex"").category_opt.get() == "who"
     withEnv("HELLO", "Adele"):
       check p.parse(shlex"").category == "Adele"
+      check p.parse(shlex"").category_opt.get() == "Adele"
     check p.parse(shlex"--category hey").category == "hey"
+    check p.parse(shlex"--category hey").category_opt.get() == "hey"
   
   test "unknown option":
     var p = newParser:
@@ -179,7 +188,9 @@ suite "options":
     expect UsageError:
       discard p.parse(@[])
     check p.parse(shlex"-b foo").bob == "foo"
+    check p.parse(shlex"-b foo").bob_opt.get() == "foo"
     check p.parse(@["-b", ""]).bob == ""
+    check p.parse(@["-b", ""]).bob_opt.get() == ""
   
   test "required options still allow for --help":
     var p = newParser:

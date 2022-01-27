@@ -35,6 +35,7 @@ var p = newParser:
       echo opts.parentOpts.apple
       echo opts.parentOpts.b
       echo opts.parentOpts.output
+      echo opts.parentOpts.output_opt.get()
 
 try:
   p.run(@["--apple", "-o=foo", "somecommand", "myname", "thing1", "thing2"])
