@@ -1,3 +1,9 @@
+# v2.1.0 - 2022-01-27
+
+- **NEW:** Parse result objects will now have a `OPTION_opt` attribute that is an `Option[string]`. This can be used to inspect if the option was actually given rather than blank. ([#68](https://github.com/iffy/nim-argparse/issues/68))
+- **FIX:** When `required=true` for an option, passing a value via environment variable now fulfills the requirement. ([#67](https://github.com/iffy/nim-argparse/issues/67))
+- **FIX:** Fix deprecation warning: use `delete(s, first..last)`; delete is deprecated ([#69](https://github.com/iffy/nim-argparse/issues/69))
+
 # v2.0.1 - 2021-07-13
 
 - **FIX:** Removed program name from default subcommand help text

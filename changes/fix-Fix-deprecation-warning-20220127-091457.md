@@ -1,1 +1,0 @@
-Fix deprecation warning: use `delete(s, first..last)`; delete is deprecated (#69)

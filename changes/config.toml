@@ -1,9 +1,4 @@
-# Replacements are string substitutions using
-# https://nitely.github.io/nim-regex/regex.html#replace%2Cstring%2CRegex%2Cstring%2Cint
-# They run on each snippet in the order defined, before the snippet is
-# added to the CHANGELOG.md file.
-# For example, uncomment the following lines to replace issue numbers with
-# links to your GitHub project.
+update_nimble = true
 
 [[replacement]]
 pattern = '#(\d+)'
