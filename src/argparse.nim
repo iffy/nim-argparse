@@ -94,8 +94,8 @@ import strutils
 import argparse/backend; export backend
 import argparse/macrohelp; export macrohelp
 
-proc ident*(x: string): NimNode =
-  macros.ident(x)
+template ident*(x: string): NimNode = macros.ident(x)
+template newIdentNode*(x: string): NimNode = macros.newIdentNode(x)
 
 proc toVarname(x: string): string =
   ## Convert x to something suitable as a Nim identifier
