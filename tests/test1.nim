@@ -802,3 +802,23 @@ echo p.parse().name
     checkpoint output
     checkpoint "====================================="
     check output == "bob\n"
+  
+  test "std/logging":
+    let tmpfile = currentSourcePath().parentDir() / "std_logging.nim"
+    defer:
+      removeFile(tmpfile)
+      removeFile(tmpfile.changeFileExt(ExeExt))
+    tmpfile.writeFile("""
+import std/logging, argparse
+addHandler newConsoleLogger()
+error "ok"
+var p = newParser:
+  arg("foo")
+    """)
+    let output = execProcess(findExe"nim",
+      args = ["c", "--hints:off", "--verbosity:0", "-r", tmpfile],
+      options = {poStdErrToStdOut})
+    checkpoint "=============== output =============="
+    checkpoint output
+    checkpoint "====================================="
+    check output == "ERROR ok\n"

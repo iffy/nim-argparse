@@ -89,7 +89,7 @@ runnableExamples:
   assert opts.go.get.a == true
   assert opts.leave.isNone
 
-import macros; export macros
+import macros
 import strutils
 import argparse/backend; export backend
 import argparse/macrohelp; export macrohelp
