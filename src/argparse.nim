@@ -89,13 +89,10 @@ runnableExamples:
   assert opts.go.get.a == true
   assert opts.leave.isNone
 
-import macros
+import std/macros
 import strutils
 import argparse/backend; export backend
 import argparse/macrohelp; export macrohelp
-
-template ident*(x: string): NimNode = macros.ident(x)
-template newIdentNode*(x: string): NimNode = macros.newIdentNode(x)
 
 proc toVarname(x: string): string =
   ## Convert x to something suitable as a Nim identifier

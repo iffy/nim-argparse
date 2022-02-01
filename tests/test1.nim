@@ -821,4 +821,4 @@ var p = newParser:
     checkpoint "=============== output =============="
     checkpoint output
     checkpoint "====================================="
-    check output == "ERROR ok\n"
+    check "ERROR ok" in output
