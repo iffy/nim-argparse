@@ -217,8 +217,8 @@ proc propDefinitions(c: Component): seq[NimNode] =
       result.add identDef(
         ident(safeIdentStr(c.varname & "_opt")),
         nnkBracketExpr.newTree(
-          newIdentNode("Option"),
-          newIdentNode("string")
+          ident("Option"),
+          ident("string")
         )
       )
   of ArgArgument:

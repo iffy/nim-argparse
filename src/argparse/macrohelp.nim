@@ -21,6 +21,8 @@ type
     parent*: NimNode
     child*: NimNode
 
+const ident* = (proc(s: string): NimNode)(ident)
+const newIdentNode* = (proc(s: string): NimNode)(newIdentNode)
 
 proc replaceNodes*(ast: NimNode): NimNode =
   ## Replace NimIdent and NimSym by a fresh ident node
