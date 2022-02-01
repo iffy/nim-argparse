@@ -1,3 +1,7 @@
+# v3.0.0 - 2022-01-31
+
+- **BREAKING CHANGE:** No longer export `macros` when importing `argparse`. Fixes [#73](https://github.com/iffy/nim-argparse/issues/73)
+
 # v2.1.0 - 2022-01-27
 
 - **NEW:** Parse result objects will now have a `OPTION_opt` attribute that is an `Option[string]`. This can be used to inspect if the option was actually given rather than blank. ([#68](https://github.com/iffy/nim-argparse/issues/68))
