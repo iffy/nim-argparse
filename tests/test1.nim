@@ -161,6 +161,12 @@ suite "options":
     check p.parse(shlex"").a == []
     check p.parse(shlex"-a 20").a == @["20"]
   
+  test "multiple options default":
+    var p = newParser:
+      option("-a", multiple=true, default=some(@["1", "2"]))
+    check p.parse(shlex"").a == @["1", "2"]
+    check p.parse(shlex"-a 1").a == @["1"]
+  
   test "choices":
     var p = newParser:
       option("-b", choices = @["first", "second", "third"])

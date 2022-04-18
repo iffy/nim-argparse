@@ -16,6 +16,13 @@ type
   ShortCircuit* = object of CatchableError
     flag*: string
 
+  SingleOrSeq*[T] = object
+    case multiple: bool
+    of true:
+      multipleVal: seq[T]
+    of false:
+      singleVal: T
+
   ComponentKind* = enum
     ArgFlag
     ArgOption
@@ -36,12 +43,12 @@ type
       optShort*: string
       optLong*: string
       optMultiple*: bool
-      optDefault*: Option[string]
+      optDefault*: Option[SingleOrSeq[string]]
       optChoices*: seq[string]
       optRequired*: bool
     of ArgArgument:
       nargs*: int
-      argDefault*: Option[string]
+      argDefault*: Option[SingleOrSeq[string]]
 
   Builder* = ref BuilderObj
   BuilderObj* {.acyclic.} = object
@@ -80,6 +87,14 @@ type
 
 var ARGPARSE_STDOUT* = newFileStream(stdout)
 var builderStack* {.compileTime.} = newSeq[Builder]()
+
+converter toSingleOrSeq*(s: string): SingleOrSeq[string] =
+  SingleOrSeq[string](multiple: false, singleVal: s)
+
+converter toSingleOrSeq*(ss: seq[string]): SingleOrSeq[string] =
+  SingleOrSeq[string](multiple: true, multipleVal: ss)
+
+proc isSingle[T](s: SingleOrSeq[T]): bool = not s.multiple
 
 #--------------------------------------------------------------
 # ParseState
@@ -337,6 +352,9 @@ proc raiseShortCircuit*(flagname: string) {.inline.} =
   e.msg = "ShortCircuit on " & flagname
   raise e
 
+dumpAstGen:
+  @["foo", "bar"]
+
 proc parseProcDef*(b: Builder): NimNode =
   ## Generate the parse proc for this Builder
   ## 
@@ -385,7 +403,27 @@ proc parseProcDef*(b: Builder): NimNode =
       let varname_opt = ident(component.varname & "_opt")
       if component.env != "":
         # Set default from environment variable
-        let dft = newStrLitNode(component.optDefault.get(""))
+        let dft = block:
+          if component.optDefault.isSome:
+            let given_val = component.optDefault.get()
+            if component.optMultiple:
+              let val_seq = given_val.multipleVal
+              nnkStmtList.newTree(
+                nnkPrefix.newTree(
+                  newIdentNode("@"),
+                  nnkBracket.newTree(val_seq.mapIt(newLit(it))),
+                )
+              )
+            else:
+              newStrLitNode(given_val.singleVal)
+          else:
+            if component.optMultiple:
+              discard "TODO"
+              newStrLitNode("")
+              #quote do: @[]
+            else:
+              discard "TODO"
+              newStrLitNode("")
         let env = newStrLitNode(component.env)
         setDefaults.add quote do:
           opts.`varname` = getEnv(`env`, `dft`)
@@ -394,6 +432,7 @@ proc parseProcDef*(b: Builder): NimNode =
             opts.`varname_opt` = some(getEnv(`env`, `dft`))
       elif component.optDefault.isSome:
         # Set default
+        discard "TODO"
         let dft = component.optDefault.get()
         setDefaults.add quote do:
           opts.`varname` = `dft`
@@ -461,25 +500,35 @@ proc parseProcDef*(b: Builder): NimNode =
     of ArgArgument:
       # Process positional arguments
       if component.nargs == -1:
+        # multiple unbounded values
         filler.wildcard(component.varname)
       elif component.nargs == 1:
+        # single value
         let varname = ident(component.varname)
         if component.env != "":
+          # set default from environment variable
           filler.optional(component.varname)
           let envStr = newStrLitNode(component.env)
-          let dftStr = newStrLitNode(component.argDefault.get(""))
+          let dftStr = if component.argDefault.isSome and component.argDefault.get.isSingle:
+              newStrLitNode(component.argDefault.get.singleVal)
+            else:
+              raise ValueError.newException("Multiple defaults provided for single value: " & component.varname)
           setDefaults.add replaceNodes(quote do:
             opts.`varname` = getEnv(`envStr`, `dftStr`)
           )
         elif component.argDefault.isSome:
           filler.optional(component.varname)
-          let dftStr = newStrLitNode(component.argDefault.get())
+          let dftStr = if component.argDefault.get.isSingle:
+              newStrLitNode(component.argDefault.get.singleVal)
+            else:
+              raise ValueError.newException("Multiple defaults provided for single value: " & component.varname)
           setDefaults.add replaceNodes(quote do:
             opts.`varname` = `dftStr`
           )
         else:
           filler.required(component.varname, 1)
       elif component.nargs > 1:
+        # multiple finite values
         filler.required(component.varname, component.nargs)
   
   # args proc
@@ -690,7 +739,7 @@ proc getHelpText*(b: Builder): string =
   proc firstline(s:string):string =
     s.split("\L")[0]
 
-  proc formatOption(flags:string, helptext:string, defaultval = none[string](), envvar:string = "", choices:seq[string] = @[], opt_width = 26, max_width = 100):string =
+  proc formatOption(flags:string, helptext:string, defaultval = none[SingleOrSeq[string]](), envvar:string = "", choices:seq[string] = @[], opt_width = 26, max_width = 100):string =
     result.add("  " & flags)
     var helptext = helptext
     if choices.len > 0:

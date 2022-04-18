@@ -183,7 +183,7 @@ proc flag*(name1: string, name2 = "", multiple = false, help = "", hidden = fals
     hidden: hidden,
   )
 
-proc option*(name1: string, name2 = "", help = "", default = none[string](), env = "", multiple = false, choices: seq[string] = @[], required = false, hidden = false) {.compileTime.} =
+proc option*[T](name1: string, name2 = "", help = "", default = none[T](), env = "", multiple = false, choices: seq[string] = @[], required = false, hidden = false) {.compileTime.} =
   ## Add an option to the argument parser.  The longest
   ## named flag will be used as the name on the parsed
   ## result.
@@ -214,6 +214,7 @@ proc option*(name1: string, name2 = "", help = "", default = none[string](), env
 
   let names = longAndShort(name1, name2)
   let varname = names.long.toVarname()
+  let dft = if default.isSome: default.get().toSingleOrSeq else:
   builderStack[^1].components.add Component(
     kind: ArgOption,
     help: help,
@@ -228,7 +229,7 @@ proc option*(name1: string, name2 = "", help = "", default = none[string](), env
     optRequired: required,
   )
 
-proc arg*(varname: string, default = none[string](), env = "", help = "", nargs = 1) {.compileTime.} =
+proc arg*(varname: string, default = none[SingleOrSeq[string]](), env = "", help = "", nargs = 1) {.compileTime.} =
   ## Add an argument to the argument parser.
   ##
   ## Set ``default`` to the default ``Option[string]`` value.  This is only
