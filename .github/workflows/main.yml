@@ -12,13 +12,13 @@ jobs:
     strategy:
       matrix:
         nimversion: 
-          - stable
+          - choosenim:stable
           # - devel
           # no devel for now because GitHub Actions won't let me not fail for them
-          - 1.6
-          - 1.4
-          - 1.2
-          - 1.0
+          - binary:1.6
+          - binary:1.4
+          - binary:1.2
+          - binary:1.0
         os:
         - ubuntu-latest
         - macOS-latest
