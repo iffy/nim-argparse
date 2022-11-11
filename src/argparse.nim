@@ -30,6 +30,8 @@
 ## By default (unless ``nohelpflag`` is present) calling ``parse()`` with a help
 ## flag (``-h`` / ``--help``) will raise a ``ShortCircuit`` error.  The error's ``flag``
 ## field will contain the name of the flag that triggered the short circuit.
+## For help-related short circuits, the error's ``help`` field will contain the help text
+## of the given subcommand.
 ## 
 runnableExamples:
   var res:string
@@ -68,9 +70,9 @@ runnableExamples:
     assert opts.dryrun == true
     assert opts.output == "another.txt"
     assert opts.input == "cranberry"
-  except ShortCircuit as e:
-    if e.flag == "argparse_help":
-      echo p.help
+  except ShortCircuit as err:
+    if err.flag == "argparse_help":
+      echo err.help
       quit(1)
   except UsageError:
     stderr.writeLine getCurrentExceptionMsg()

@@ -15,6 +15,7 @@ type
   UsageError* = object of ValueError
   ShortCircuit* = object of CatchableError
     flag*: string
+    help*: string
 
   ComponentKind* = enum
     ArgFlag
@@ -330,11 +331,12 @@ proc parserTypeDef*(b: Builder): NimNode =
     )
   )
 
-proc raiseShortCircuit*(flagname: string) {.inline.} =
+proc raiseShortCircuit*(flagname: string, help: string) {.inline.} =
   var e: ref ShortCircuit
   new(e)
   e.flag = flagname
   e.msg = "ShortCircuit on " & flagname
+  e.help = help
   raise e
 
 proc parseProcDef*(b: Builder): NimNode =
@@ -364,7 +366,7 @@ proc parseProcDef*(b: Builder): NimNode =
       if component.shortCircuit:
         let varname = newStrLitNode(component.varname)
         body.add quote do:
-          raiseShortCircuit(`varname`)
+          raiseShortCircuit(`varname`, parser.help)
       else:
         if component.flagMultiple:
           let varname = ident(component.varname)
