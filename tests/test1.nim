@@ -490,6 +490,23 @@ suite "autohelp":
       except ShortCircuit as e:
         check e.flag == "argparse_help"
         raise e
+  
+  test "subcommand help":
+    var p = newParser:
+      command "foo":
+        help("foo sub help")
+        flag("-a")
+      command "bar":
+        help("bar sub help")
+        flag("-b")
+    var found_help: string
+    try:
+      var opts = p.parse(@["foo", "--help"])
+    except ShortCircuit as e:
+      if e.flag == "argparse_help":
+        found_help = e.help
+    check "foo sub help" in found_help
+    check "bar sub help" notin found_help
 
 suite "commands":
   test "run":

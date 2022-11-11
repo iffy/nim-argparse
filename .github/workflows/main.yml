@@ -9,23 +9,25 @@ on:
 jobs:
   tests:
     runs-on: ${{ matrix.os }}
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       matrix:
         nimversion: 
-          - stable
+          - choosenim:stable
           # - devel
           # no devel for now because GitHub Actions won't let me not fail for them
-          - 1.6.2
-          - 1.4.8
-          - 1.2.16
-          - 1.0.10
+          - binary:1.6
+          - binary:1.4
+          - binary:1.2
+          - binary:1.0
         os:
         - ubuntu-latest
         - macOS-latest
         - windows-latest
     steps:
     - uses: actions/checkout@v1
-    - uses: iffy/install-nim@v3
+    - uses: iffy/install-nim@v4
       with:
         version: ${{ matrix.nimversion }}
     - run: nim --version
