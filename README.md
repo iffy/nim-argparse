@@ -63,9 +63,9 @@ try:
   assert opts.output == "foo"
   assert opts.name == "hi"
   assert opts.others == @[]
-except ShortCircuit as e:
-  if e.flag == "argparse_help":
-    echo p.help
+except ShortCircuit as err:
+  if err.flag == "argparse_help":
+    echo err.help
     quit(1)
 except UsageError:
   stderr.writeLine getCurrentExceptionMsg()
