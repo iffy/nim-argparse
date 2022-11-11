@@ -1,3 +1,7 @@
+# v3.0.1 - 2022-11-11
+
+- **FIX:** Added a `.help` field to `ShortCircuit` errors so that you can get subcommand help within an exception handler ([#62](https://github.com/iffy/nim-argparse/issues/62))
+
 # v3.0.0 - 2022-01-31
 
 - **BREAKING CHANGE:** No longer export `macros` when importing `argparse`. Fixes [#73](https://github.com/iffy/nim-argparse/issues/73)
