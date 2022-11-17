@@ -96,11 +96,6 @@ import strutils
 import argparse/backend; export backend
 import argparse/macrohelp; export macrohelp
 
-proc toVarname(x: string): string =
-  ## Convert x to something suitable as a Nim identifier
-  ## Replaces - with _ for instance
-  x.replace("-", "_").strip(chars={'_'})
-
 proc longAndShort(name1: string, name2: string): tuple[long: string, short: string] =
   ## Given two strings, return the longer and shorter of the two with
   ## shortname possibly being empty.
@@ -258,7 +253,7 @@ proc arg*(varname: string, default = none[string](), env = "", help = "", nargs 
   builderStack[^1].components.add Component(
     kind: ArgArgument,
     help: help,
-    varname: varname,
+    varname: varname.toVarname(),
     nargs: nargs,
     env: env,
     argDefault: default,

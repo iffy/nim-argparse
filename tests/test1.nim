@@ -219,6 +219,11 @@ suite "args":
     expect UsageError:
       discard p.parse(shlex"")
   
+  test "args with hyphens become underscores":
+    var p = newParser:
+      arg("some-arg")
+    check p.parse(shlex"something").some_arg == "something"
+  
   test "extra args is an error":
     var p = newParser:
       arg("only")
@@ -747,6 +752,13 @@ suite "commands":
     check opts.command == "foo"
     check opts.foo == ""
     check opts.argparse_foo_opts.isSome
+  
+  test "command with hyphen":
+    var p = newParser:
+      command "some-command": discard
+    let opts = p.parse(shlex"some-command")
+    check opts.command == "some-command"
+    check opts.argparse_some_command_opts.isSome
   
   test "arg/command name conflict":
     var p = newParser:

@@ -82,6 +82,11 @@ type
 var ARGPARSE_STDOUT* = newFileStream(stdout)
 var builderStack* {.compileTime.} = newSeq[Builder]()
 
+proc toVarname*(x: string): string =
+  ## Convert x to something suitable as a Nim identifier
+  ## Replaces - with _ for instance
+  x.replace("-", "_").strip(chars={'_'})
+
 #--------------------------------------------------------------
 # ParseState
 #--------------------------------------------------------------
@@ -296,7 +301,7 @@ proc optsTypeDef*(b: Builder): NimNode =
     properties.add nnkIdentDefs.newTree(
       nnkPostfix.newTree(
         ident("*"),
-        ident("argparse_" & child.name & "_opts")
+        ident("argparse_" & child.name.toVarname() & "_opts")
       ),
       nnkBracketExpr.newTree(
         ident("Option"),
@@ -524,7 +529,7 @@ proc parseProcDef*(b: Builder): NimNode =
     let childParserIdent = child.parserIdent()
     let childOptsIdent = child.optsIdent()
     let childNameStr = child.name.newStrLitNode()
-    let subopts_prop_name = ident("argparse_" & child.name & "_opts")
+    let subopts_prop_name = ident("argparse_" & child.name.toVarname & "_opts")
     commandCase.add(child.name, replaceNodes(quote do:
       ## Call the subcommand's parser
       takeArgsFromExtra(opts, state)
@@ -664,7 +669,7 @@ proc parseProcDef*(b: Builder): NimNode =
   # .argparse_NAME_opts -> .NAME shortcut
   for child in b.children:
     let name = ident(child.name)
-    let fulloptname = ident("argparse_" & child.name & "_opts")
+    let fulloptname = ident("argparse_" & child.name.toVarname & "_opts")
     let retval = nnkBracketExpr.newTree(
       ident("Option"),
       nnkRefTy.newTree(child.optsIdent())
