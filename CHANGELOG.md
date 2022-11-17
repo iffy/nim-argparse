@@ -1,3 +1,7 @@
+# v4.0.0 - 2022-11-17
+
+- **BREAKING CHANGE:** You can now use hyphens in both `command("...")` and `arg("...")` names. ([#83](https://github.com/iffy/nim-argparse/issues/83))
+
 # v3.0.1 - 2022-11-11
 
 - **FIX:** Added a `.help` field to `ShortCircuit` errors so that you can get subcommand help within an exception handler ([#62](https://github.com/iffy/nim-argparse/issues/62))
