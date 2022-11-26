@@ -302,7 +302,7 @@ template command*(name: string, group: string, content: untyped): untyped =
       command("morestuff", "groupB"): discard
       command("morelikethefirst", "groupA"): discard
     echo p.help
-  add_command(name, group) do:
+  add_command(name, group) do ():
     content
 
 template command*(name: string, content: untyped): untyped =
