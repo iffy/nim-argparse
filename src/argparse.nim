@@ -191,6 +191,9 @@ proc option*(name1: string, name2 = "", help = "", default = none[string](), env
   ## Set ``multiple`` to true to accept multiple options.
   ##
   ## Set ``default`` to the default string value.
+  ## If the value can't be inferred at compile-time, insert it in the ``run``
+  ## block while accesing the option with
+  ## ``opts.FLAGNAME_opt.get(otherwise = RunTimeString)`` instead.
   ##
   ## Set ``env`` to an environment variable name to use as the default value
   ## 
