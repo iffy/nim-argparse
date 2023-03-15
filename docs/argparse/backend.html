@@ -164,7 +164,8 @@ window.addEventListener('DOMContentLoaded', main);
   runProcs*: seq[proc ()]    ## Procs to be run at the end of parsing">ParseState</a></li>
   <li><a class="reference" href="#ShortCircuit"
     title="ShortCircuit = object of CatchableError
-  flag*: string">ShortCircuit</a></li>
+  flag*: string
+  help*: string">ShortCircuit</a></li>
   <li><a class="reference" href="#UsageError"
     title="UsageError = object of ValueError">UsageError</a></li>
 
@@ -266,8 +267,8 @@ window.addEventListener('DOMContentLoaded', main);
 
   </ul>
   <ul class="simple nested-toc-section">raiseShortCircuit
-      <li><a class="reference" href="#raiseShortCircuit%2Cstring"
-    title="raiseShortCircuit(flagname: string)">raiseShortCircuit(flagname: string)</a></li>
+      <li><a class="reference" href="#raiseShortCircuit%2Cstring%2Cstring"
+    title="raiseShortCircuit(flagname: string; help: string)">raiseShortCircuit(flagname: string; help: string)</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">setOrAdd
@@ -280,6 +281,11 @@ window.addEventListener('DOMContentLoaded', main);
   <ul class="simple nested-toc-section">skip
       <li><a class="reference" href="#skip%2Cref.ParseState"
     title="skip(state: ref ParseState)">skip(state: ref ParseState)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">toVarname
+      <li><a class="reference" href="#toVarname%2Cstring"
+    title="toVarname(x: string): string">toVarname(x: string): string</a></li>
 
   </ul>
 
@@ -400,6 +406,7 @@ A compile-time object used to accumulate parser options before building the pars
 <div id="ShortCircuit">
 <dt><pre><a href="backend.html#ShortCircuit"><span class="Identifier">ShortCircuit</span></a> <span class="Other">=</span> <span class="Keyword">object</span> <span class="Keyword">of</span> <span class="Identifier">CatchableError</span>
   <span class="Identifier">flag</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
+  <span class="Identifier">help</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
 </pre></dt>
 <dd>
 
@@ -545,7 +552,7 @@ Generate the help proc for the parser
 <dt><pre><span class="Keyword">proc</span> <a href="#optsTypeDef%2CBuilder"><span class="Identifier">optsTypeDef</span></a><span class="Other">(</span><span class="Identifier">b</span><span class="Other">:</span> <a href="backend.html#Builder"><span class="Identifier">Builder</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
-Generate the type definition for the return value of parsing: 
+Generate the type definition for the return value of parsing:
 
 </dd>
 </div>
@@ -586,9 +593,9 @@ Pop the nth item from the end of a seq
 
 </dd>
 </div>
-<div id="raiseShortCircuit,string">
-<dt><pre><span class="Keyword">proc</span> <a href="#raiseShortCircuit%2Cstring"><span class="Identifier">raiseShortCircuit</span></a><span class="Other">(</span><span class="Identifier">flagname</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span class="Identifier">inline</span><span class="Other">,</span> <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ShortCircuit</span><span class="Other">]</span><span class="Other">,</span>
-    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<div id="raiseShortCircuit,string,string">
+<dt><pre><span class="Keyword">proc</span> <a href="#raiseShortCircuit%2Cstring%2Cstring"><span class="Identifier">raiseShortCircuit</span></a><span class="Other">(</span><span class="Identifier">flagname</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">help</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span class="Identifier">inline</span><span class="Other">,</span>
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ShortCircuit</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
@@ -619,6 +626,14 @@ Pop the nth item from the end of a seq
 
 </dd>
 </div>
+<div id="toVarname,string">
+<dt><pre><span class="Keyword">proc</span> <a href="#toVarname%2Cstring"><span class="Identifier">toVarname</span></a><span class="Other">(</span><span class="Identifier">x</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Convert x to something suitable as a Nim identifier Replaces - with _ for instance
+
+</dd>
+</div>
 
 </dl></div>
 
@@ -629,7 +644,7 @@ Pop the nth item from the end of a seq
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2021-10-25 17:10:51 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2023-03-15 13:20:33 UTC</small>
       </div>
     </div>
   </div>

@@ -10,6 +10,7 @@ BuilderObj	argparse/backend.html#BuilderObj	backend: BuilderObj
 ParseState	argparse/backend.html#ParseState	backend: ParseState	
 ARGPARSE_STDOUT	argparse/backend.html#ARGPARSE_STDOUT	backend: ARGPARSE_STDOUT	
 builderStack	argparse/backend.html#builderStack	backend: builderStack	
+toVarname	argparse/backend.html#toVarname,string	backend: toVarname(x: string): string	
 `$`	argparse/backend.html#$,ref.ParseState	backend: `$`(state: ref ParseState): string	
 newParseState	argparse/backend.html#newParseState,openArray[string]	backend: newParseState(args: openArray[string]): ref ParseState	
 consume	argparse/backend.html#consume,ref.ParseState,ComponentKind	backend: consume(state: ref ParseState; thing: ComponentKind)	
@@ -20,7 +21,7 @@ newBuilder	argparse/backend.html#newBuilder,string	backend: newBuilder(name = &q
 `$`	argparse/backend.html#$,Builder	backend: `$`(b: Builder): string	
 optsTypeDef	argparse/backend.html#optsTypeDef,Builder	backend: optsTypeDef(b: Builder): NimNode	
 parserTypeDef	argparse/backend.html#parserTypeDef,Builder	backend: parserTypeDef(b: Builder): NimNode	
-raiseShortCircuit	argparse/backend.html#raiseShortCircuit,string	backend: raiseShortCircuit(flagname: string)	
+raiseShortCircuit	argparse/backend.html#raiseShortCircuit,string,string	backend: raiseShortCircuit(flagname: string; help: string)	
 parseProcDef	argparse/backend.html#parseProcDef,Builder	backend: parseProcDef(b: Builder): NimNode	
 setOrAdd	argparse/backend.html#setOrAdd,string,string	backend: setOrAdd(x: var string; val: string)	
 setOrAdd	argparse/backend.html#setOrAdd,seq[string],string	backend: setOrAdd(x: var seq[string]; val: string)	

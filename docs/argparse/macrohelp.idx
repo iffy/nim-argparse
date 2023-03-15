@@ -1,5 +1,7 @@
 UnfinishedObjectTypeDef	argparse/macrohelp.html#UnfinishedObjectTypeDef	macrohelp: UnfinishedObjectTypeDef	
 UnfinishedCase	argparse/macrohelp.html#UnfinishedCase	macrohelp: UnfinishedCase	
+ident	argparse/macrohelp.html#ident	macrohelp: ident	
+newIdentNode	argparse/macrohelp.html#newIdentNode	macrohelp: newIdentNode	
 replaceNodes	argparse/macrohelp.html#replaceNodes,NimNode	macrohelp: replaceNodes(ast: NimNode): NimNode	
 parentOf	argparse/macrohelp.html#parentOf,NimNode,string	macrohelp: parentOf(node: NimNode; name: string): InsertionPoint	
 parentOf	argparse/macrohelp.html#parentOf,NimNode,NimNode	macrohelp: parentOf(node: NimNode; child: NimNode): InsertionPoint	
