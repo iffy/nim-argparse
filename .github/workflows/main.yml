@@ -23,7 +23,7 @@ jobs:
           - binary:1.0
         os:
         - ubuntu-latest
-        - macOS-latest
+        - macOS-13
         - windows-latest
     steps:
     - uses: actions/checkout@v1
