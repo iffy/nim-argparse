@@ -1,3 +1,7 @@
+# v4.0.2 - 2024-08-16
+
+- **FIX:** Internal: add missing cast to `{.nimcall.}` to move beyond things deprecated since Nim 0.18
+
 # v4.0.1 - 2022-11-28
 
 - **FIX:** Changed an internal invocation of `do:` to `do ():` to satisfy [RFC 486](https://github.com/nim-lang/RFCs/issues/486)
