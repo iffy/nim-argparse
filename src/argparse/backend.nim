@@ -79,6 +79,11 @@ type
     runProcs*: seq[proc()]
       ## Procs to be run at the end of parsing
 
+template doUsageAssert*(condition: bool, msg: string): untyped =
+  ## Raise a UsageError if condition is false
+  if not (`condition`):
+    raise UsageError.newException(`msg`)
+
 var ARGPARSE_STDOUT* = newFileStream(stdout)
 var builderStack* {.compileTime.} = newSeq[Builder]()
 
