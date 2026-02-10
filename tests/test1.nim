@@ -8,18 +8,7 @@ import strformat
 import strutils
 import unittest
 
-proc shlex(x:string):seq[string] =
-  # XXX this is not accurate, but okay enough for testing
-  if x == "":
-    result = @[]
-  else:
-    result = x.split({' '})
-
-template withEnv(name:string, value:string, body:untyped):untyped =
-  let old_value = getEnv(name, "")
-  putEnv(name, value)
-  body
-  putEnv(name, old_value)
+import ./util
 
 suite "flags":
   test "short flags":
@@ -71,6 +60,7 @@ suite "flags":
     var p = newParser:
       flag("-a", "--apple", help="Some apples")
       flag("--banana-split-and-ice-cream", help="More help")
+      noCompletions()
       flag("-c", multiple=true)
     
     check "Some apples" in p.help

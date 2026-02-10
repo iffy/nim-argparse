@@ -1,0 +1,4 @@
+nimTitle	util	argparse/util.html	module argparse/util		0
+nim	getProgNameAst	argparse/util.html#getProgNameAst,Builder	proc getProgNameAst(b: Builder): NimNode		9
+nim	parserIdent	argparse/util.html#parserIdent,Builder	proc parserIdent(b: Builder): NimNode		18
+nim	getRootBuilder	argparse/util.html#getRootBuilder,Builder	proc getRootBuilder(b: Builder): Builder		23

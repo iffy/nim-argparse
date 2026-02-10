@@ -1,35 +1,30 @@
-UsageError	argparse/backend.html#UsageError	backend: UsageError	
-ShortCircuit	argparse/backend.html#ShortCircuit	backend: ShortCircuit	
-ArgFlag	argparse/backend.html#ArgFlag	ComponentKind.ArgFlag	
-ArgOption	argparse/backend.html#ArgOption	ComponentKind.ArgOption	
-ArgArgument	argparse/backend.html#ArgArgument	ComponentKind.ArgArgument	
-ComponentKind	argparse/backend.html#ComponentKind	backend: ComponentKind	
-Component	argparse/backend.html#Component	backend: Component	
-Builder	argparse/backend.html#Builder	backend: Builder	
-BuilderObj	argparse/backend.html#BuilderObj	backend: BuilderObj	
-ParseState	argparse/backend.html#ParseState	backend: ParseState	
-ARGPARSE_STDOUT	argparse/backend.html#ARGPARSE_STDOUT	backend: ARGPARSE_STDOUT	
-builderStack	argparse/backend.html#builderStack	backend: builderStack	
-toVarname	argparse/backend.html#toVarname,string	backend: toVarname(x: string): string	
-`$`	argparse/backend.html#$,ref.ParseState	backend: `$`(state: ref ParseState): string	
-newParseState	argparse/backend.html#newParseState,openArray[string]	backend: newParseState(args: openArray[string]): ref ParseState	
-consume	argparse/backend.html#consume,ref.ParseState,ComponentKind	backend: consume(state: ref ParseState; thing: ComponentKind)	
-skip	argparse/backend.html#skip,ref.ParseState	backend: skip(state: ref ParseState)	
-popleft	argparse/backend.html#popleft,seq[T]	backend: popleft[T](s: var seq[T]): T	
-popright	argparse/backend.html#popright,seq[T],int	backend: popright[T](s: var seq[T]; n = 0): T	
-newBuilder	argparse/backend.html#newBuilder,string	backend: newBuilder(name = &quot;&quot;): Builder	
-`$`	argparse/backend.html#$,Builder	backend: `$`(b: Builder): string	
-optsTypeDef	argparse/backend.html#optsTypeDef,Builder	backend: optsTypeDef(b: Builder): NimNode	
-parserTypeDef	argparse/backend.html#parserTypeDef,Builder	backend: parserTypeDef(b: Builder): NimNode	
-raiseShortCircuit	argparse/backend.html#raiseShortCircuit,string,string	backend: raiseShortCircuit(flagname: string; help: string)	
-parseProcDef	argparse/backend.html#parseProcDef,Builder	backend: parseProcDef(b: Builder): NimNode	
-setOrAdd	argparse/backend.html#setOrAdd,string,string	backend: setOrAdd(x: var string; val: string)	
-setOrAdd	argparse/backend.html#setOrAdd,seq[string],string	backend: setOrAdd(x: var seq[string]; val: string)	
-getHelpText	argparse/backend.html#getHelpText,Builder	backend: getHelpText(b: Builder): string	
-helpProcDef	argparse/backend.html#helpProcDef,Builder	backend: helpProcDef(b: Builder): NimNode	
-GenResponse	argparse/backend.html#GenResponse	backend: GenResponse	
-addParser	argparse/backend.html#addParser,string,string,proc)	backend: addParser(name: string; group: string; content: proc ()): Builder	
-add_runProc	argparse/backend.html#add_runProc,NimNode	backend: add_runProc(body: NimNode)	
-add_command	argparse/backend.html#add_command,string,string,proc)	backend: add_command(name: string; group: string; content: proc ())	
-allChildren	argparse/backend.html#allChildren,Builder	backend: allChildren(builder: Builder): seq[Builder]	
-generateDefs	argparse/backend.html#generateDefs,Builder	backend: generateDefs(builder: Builder): NimNode	
+nimTitle	backend	argparse/backend.html	module argparse/backend		0
+nim	ParseState	argparse/backend.html#ParseState	object ParseState		21
+nim	doUsageAssert	argparse/backend.html#doUsageAssert.t,bool,string	template doUsageAssert(condition: bool; msg: string): untyped		33
+nim	ARGPARSE_STDOUT	argparse/backend.html#ARGPARSE_STDOUT	var ARGPARSE_STDOUT		38
+nim	builderStack	argparse/backend.html#builderStack	var builderStack		39
+nim	toVarname	argparse/backend.html#toVarname,string	proc toVarname(x: string): string		41
+nim	`$`	argparse/backend.html#$,ref.ParseState	proc `$`(state: ref ParseState): string		50
+nim	newParseState	argparse/backend.html#newParseState,openArray[string]	proc newParseState(args: openArray[string]): ref ParseState		86
+nim	consume	argparse/backend.html#consume,ref.ParseState,ComponentKind	proc consume(state: ref ParseState; thing: ComponentKind)		93
+nim	skip	argparse/backend.html#skip,ref.ParseState	proc skip(state: ref ParseState)		103
+nim	popleft	argparse/backend.html#popleft,seq[T]	proc popleft[T](s: var seq[T]): T		126
+nim	popright	argparse/backend.html#popright,seq[T],int	proc popright[T](s: var seq[T]; n = 0): T		134
+nim	newBuilder	argparse/backend.html#newBuilder,string	proc newBuilder(name = ""): Builder		189
+nim	`$`	argparse/backend.html#$,Builder	proc `$`(b: Builder): string		213
+nim	optsTypeDef	argparse/backend.html#optsTypeDef,Builder	proc optsTypeDef(b: Builder): NimNode		221
+nim	parserTypeDef	argparse/backend.html#parserTypeDef,Builder	proc parserTypeDef(b: Builder): NimNode		263
+nim	raiseShortCircuit	argparse/backend.html#raiseShortCircuit,string,string	proc raiseShortCircuit(flagname: string; help: string)		274
+nim	parseProcDef	argparse/backend.html#parseProcDef,Builder	proc parseProcDef(b: Builder): NimNode		283
+nim	setOrAdd	argparse/backend.html#setOrAdd,string,string	proc setOrAdd(x: var string; val: string)		706
+nim	setOrAdd	argparse/backend.html#setOrAdd,seq[string],string	proc setOrAdd(x: var seq[string]; val: string)		709
+nim	getHelpText	argparse/backend.html#getHelpText,Builder	proc getHelpText(b: Builder): string		712
+nim	helpProcDef	argparse/backend.html#helpProcDef,Builder	proc helpProcDef(b: Builder): NimNode		856
+nim	GenResponse	argparse/backend.html#GenResponse	tuple GenResponse		870
+nim	addParser	argparse/backend.html#addParser,string,string,proc)	proc addParser(name: string; group: string; content: proc ()): Builder		872
+nim	add_runProc	argparse/backend.html#add_runProc,NimNode	proc add_runProc(body: NimNode)		889
+nim	add_command	argparse/backend.html#add_command,string,string,proc)	proc add_command(name: string; group: string; content: proc ())		893
+nim	allChildren	argparse/backend.html#allChildren,Builder	proc allChildren(builder: Builder): seq[Builder]		897
+nim	generateDefs	argparse/backend.html#generateDefs,Builder	proc generateDefs(builder: Builder): NimNode		903
+nimgrp	$	argparse/backend.html#$-procs-all	proc		50
+nimgrp	setoradd	argparse/backend.html#setOrAdd-procs-all	proc		706

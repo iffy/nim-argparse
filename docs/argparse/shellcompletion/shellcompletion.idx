@@ -1,0 +1,17 @@
+nimTitle	shellcompletion	argparse/shellcompletion/shellcompletion.html	module argparse/shellcompletion/shellcompletion		0
+nim	COMPLETION_OPT_VARNAME	argparse/shellcompletion/shellcompletion.html#COMPLETION_OPT_VARNAME	const COMPLETION_OPT_VARNAME		27
+nim	COMPLETION_FLAG_VARNAME	argparse/shellcompletion/shellcompletion.html#COMPLETION_FLAG_VARNAME	const COMPLETION_FLAG_VARNAME		28
+nim	COMPLETION_SHELLS	argparse/shellcompletion/shellcompletion.html#COMPLETION_SHELLS	const COMPLETION_SHELLS		29
+nim	COMPLETION_LONG_FLAG	argparse/shellcompletion/shellcompletion.html#COMPLETION_LONG_FLAG	const COMPLETION_LONG_FLAG		30
+nim	COMPLETION_LONG_HELP	argparse/shellcompletion/shellcompletion.html#COMPLETION_LONG_HELP	const COMPLETION_LONG_HELP		31
+nim	COMPLETION_SHORT_FLAG	argparse/shellcompletion/shellcompletion.html#COMPLETION_SHORT_FLAG	const COMPLETION_SHORT_FLAG		33
+nim	COMPLETION_SHORT_HELP	argparse/shellcompletion/shellcompletion.html#COMPLETION_SHORT_HELP	const COMPLETION_SHORT_HELP		34
+nim	COMPLETION_HEADER	argparse/shellcompletion/shellcompletion.html#COMPLETION_HEADER	const COMPLETION_HEADER		36
+nim	COMPLETION_OPT	argparse/shellcompletion/shellcompletion.html#COMPLETION_OPT	const COMPLETION_OPT		37
+nim	COMPLETION_FLAG	argparse/shellcompletion/shellcompletion.html#COMPLETION_FLAG	const COMPLETION_FLAG		46
+nim	deriveShellFromEnvVar	argparse/shellcompletion/shellcompletion.html#deriveShellFromEnvVar,string	proc deriveShellFromEnvVar(envVar: string): string		54
+nim	getShortCircuitBehaviourImpl	argparse/shellcompletion/shellcompletion.html#getShortCircuitBehaviourImpl,Builder	proc getShortCircuitBehaviourImpl(b: Builder): NimNode		121
+heading	Architecture	argparse/shellcompletion/shellcompletion.html#architecture	 Architecture		0
+heading	Compiletime	argparse/shellcompletion/shellcompletion.html#architecture-compiletime	  Compiletime		0
+heading	Further Detail	argparse/shellcompletion/shellcompletion.html#compiletime-further-detail	   Further Detail		0
+heading	Notes	argparse/shellcompletion/shellcompletion.html#notes	 Notes		0

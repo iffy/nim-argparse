@@ -1,18 +1,19 @@
-Required	argparse/filler.html#Required	SlotKind.Required	
-Optional	argparse/filler.html#Optional	SlotKind.Optional	
-Wildcard	argparse/filler.html#Wildcard	SlotKind.Wildcard	
-SlotKind	argparse/filler.html#SlotKind	filler: SlotKind	
-ArgFiller	argparse/filler.html#ArgFiller	filler: ArgFiller	
-FillChannel	argparse/filler.html#FillChannel	filler: FillChannel	
-newArgFiller	argparse/filler.html#newArgFiller	filler: newArgFiller(): ref ArgFiller	
-required	argparse/filler.html#required,,string,int	filler: required(filler; argname: string; nargs = 1)	
-optional	argparse/filler.html#optional,,string	filler: optional(filler; argname: string)	
-wildcard	argparse/filler.html#wildcard,,string	filler: wildcard(filler; argname: string)	
-minArgs	argparse/filler.html#minArgs	filler: minArgs(filler): int	
-numArgsAfterWildcard	argparse/filler.html#numArgsAfterWildcard	filler: numArgsAfterWildcard(filler): int	
-hasVariableArgs	argparse/filler.html#hasVariableArgs	filler: hasVariableArgs(filler): bool	
-hasWildcard	argparse/filler.html#hasWildcard	filler: hasWildcard(filler): bool	
-upperBreakpoint	argparse/filler.html#upperBreakpoint	filler: upperBreakpoint(filler): int	
-channels	argparse/filler.html#channels,,int	filler: channels(filler; nargs: int): seq[FillChannel]	
-missing	argparse/filler.html#missing,,int	filler: missing(filler; nargs: int): seq[string]	
-generate	argparse/filler.html#generate,,string	filler: generate(filler; containerName: string): NimNode	
+nimTitle	filler	argparse/filler.html	module argparse/filler		0
+nim	Required	argparse/filler.html#Required	SlotKind.Required		4
+nim	Optional	argparse/filler.html#Optional	SlotKind.Optional		4
+nim	Wildcard	argparse/filler.html#Wildcard	SlotKind.Wildcard		4
+nim	SlotKind	argparse/filler.html#SlotKind	enum SlotKind		4
+nim	ArgFiller	argparse/filler.html#ArgFiller	object ArgFiller		17
+nim	FillChannel	argparse/filler.html#FillChannel	tuple FillChannel		21
+nim	newArgFiller	argparse/filler.html#newArgFiller	proc newArgFiller(): ref ArgFiller		26
+nim	required	argparse/filler.html#required,,string,int	proc required(filler; argname: string; nargs = 1)		33
+nim	optional	argparse/filler.html#optional,,string	proc optional(filler; argname: string)		37
+nim	wildcard	argparse/filler.html#wildcard,,string	proc wildcard(filler; argname: string)		41
+nim	minArgs	argparse/filler.html#minArgs	proc minArgs(filler): int		47
+nim	numArgsAfterWildcard	argparse/filler.html#numArgsAfterWildcard	proc numArgsAfterWildcard(filler): int		52
+nim	hasVariableArgs	argparse/filler.html#hasVariableArgs	proc hasVariableArgs(filler): bool		66
+nim	hasWildcard	argparse/filler.html#hasWildcard	proc hasWildcard(filler): bool		69
+nim	upperBreakpoint	argparse/filler.html#upperBreakpoint	proc upperBreakpoint(filler): int		72
+nim	channels	argparse/filler.html#channels,,int	proc channels(filler; nargs: int): seq[FillChannel]		75
+nim	missing	argparse/filler.html#missing,,int	proc missing(filler; nargs: int): seq[string]		101
+nim	generate	argparse/filler.html#generate,,string	proc generate(filler; containerName: string): NimNode		112

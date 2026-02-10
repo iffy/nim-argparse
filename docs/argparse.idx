@@ -1,10 +1,15 @@
-newParser	argparse.html#newParser.t,string,untyped	argparse: newParser(name: string; body: untyped): untyped	
-newParser	argparse.html#newParser.t,untyped	argparse: newParser(body: untyped): untyped	
-flag	argparse.html#flag,string,string,string	argparse: flag(name1: string; name2 = &quot;&quot;; multiple = false; help = &quot;&quot;; hidden = false;\n     shortcircuit = false)	
-option	argparse.html#option,string,string,string,string,seq[string]	argparse: option(name1: string; name2 = &quot;&quot;; help = &quot;&quot;; default = none(); env = &quot;&quot;;\n       multiple = false; choices: seq[string] = @[]; required = false;\n       hidden = false)	
-arg	argparse.html#arg,string,string,string,int	argparse: arg(varname: string; default = none(); env = &quot;&quot;; help = &quot;&quot;; nargs = 1)	
-help	argparse.html#help,string	argparse: help(helptext: string)	
-nohelpflag	argparse.html#nohelpflag	argparse: nohelpflag()	
-run	argparse.html#run.t,untyped	argparse: run(body: untyped): untyped	
-command	argparse.html#command.t,string,string,untyped	argparse: command(name: string; group: string; content: untyped): untyped	
-command	argparse.html#command.t,string,untyped	argparse: command(name: string; content: untyped): untyped	
+nimTitle	argparse	argparse.html	module argparse		0
+nim	newParser	argparse.html#newParser.t,string,untyped	template newParser(name: string; body: untyped): untyped		144
+nim	newParser	argparse.html#newParser.t,untyped	template newParser(body: untyped): untyped		163
+nim	flag	argparse.html#flag,string,string,string	proc flag(name1: string; name2 = ""; multiple = false; help = ""; hidden = false;\n     shortcircuit = false)		182
+nim	option	argparse.html#option,string,string,string,string,seq[string]	proc option(name1: string; name2 = ""; help = ""; default = none[string](); env = "";\n       multiple = false; choices: seq[string] = @[];\n       completionsGenerator = default(array[ShellCompletionKind, string]);\n       required = false; hidden = false)		229
+nim	arg	argparse.html#arg,string,string,string,int	proc arg(varname: string; default = none[string](); env = ""; help = "";\n    completionsGenerator = default(array[ShellCompletionKind, string]);\n    nargs = 1)		314
+nim	help	argparse.html#help,string	proc help(helptext: string)		361
+nim	nohelpflag	argparse.html#nohelpflag	proc nohelpflag()		376
+nim	run	argparse.html#run.t,untyped	template run(body: untyped): untyped		384
+nim	command	argparse.html#command.t,string,string,untyped	template command(name: string; group: string; content: untyped): untyped		394
+nim	command	argparse.html#command.t,string,untyped	template command(name: string; content: untyped): untyped		410
+nim	noCompletions	argparse.html#noCompletions	proc noCompletions(disableFlag = true; disableOpt = true)		420
+nim	hideCompletions	argparse.html#hideCompletions	proc hideCompletions(hideFlag = true; hideOpt = true)		439
+nimgrp	newparser	argparse.html#newParser-templates-all	template		144
+nimgrp	command	argparse.html#command-templates-all	template		394

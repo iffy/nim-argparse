@@ -1,5 +1,5 @@
 import unittest
-import argparse/backend
+import argparse/[backend,types]
 
 suite "ParseState":
   

@@ -1,0 +1,12 @@
+nimTitle	types	argparse/types.html	module argparse/types		0
+nim	UsageError	argparse/types.html#UsageError	object UsageError		3
+nim	ShortCircuit	argparse/types.html#ShortCircuit	object ShortCircuit		5
+nim	sckFish	argparse/types.html#sckFish	ShellCompletionKind.sckFish		9
+nim	ShellCompletionKind	argparse/types.html#ShellCompletionKind	enum ShellCompletionKind		9
+nim	ArgFlag	argparse/types.html#ArgFlag	ComponentKind.ArgFlag		14
+nim	ArgOption	argparse/types.html#ArgOption	ComponentKind.ArgOption		14
+nim	ArgArgument	argparse/types.html#ArgArgument	ComponentKind.ArgArgument		14
+nim	ComponentKind	argparse/types.html#ComponentKind	enum ComponentKind		14
+nim	Component	argparse/types.html#Component	object Component		19
+nim	Builder	argparse/types.html#Builder	type Builder		43
+nim	BuilderObj	argparse/types.html#BuilderObj	object BuilderObj		44

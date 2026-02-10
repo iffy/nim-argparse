@@ -1,0 +1,4 @@
+nimTitle	fish	argparse/shellcompletion/fish.html	module argparse/shellcompletion/fish		0
+nim	COMPLETION_HEADER_FISH	argparse/shellcompletion/fish.html#COMPLETION_HEADER_FISH	const COMPLETION_HEADER_FISH		4
+nim	allChildren	argparse/shellcompletion/fish.html#allChildren,Builder	proc allChildren(builder: Builder): seq[Builder]		90
+nim	getFishShellCompletionsTemplate	argparse/shellcompletion/fish.html#getFishShellCompletionsTemplate,Builder,Option[HashSet[string]]	proc getFishShellCompletionsTemplate(b: Builder; allSubcommandsPre: Option[\n    HashSet[string]] = none[HashSet[string]]()): seq[string]		96
